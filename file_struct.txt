@@ -1,0 +1,70 @@
+teamcore/
+│
+├── app/
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Club.php
+│   │   ├── ClubMember.php
+│   │   ├── Event.php
+│   │   └── SportField.php
+│   │
+│   └── Http/
+│       ├── Controllers/
+│       │   ├── AuthController.php
+│       │   ├── ClubController.php
+│       │   ├── ClubMemberController.php
+│       │   ├── EventController.php
+│       │   └── SportFieldController.php
+│       │
+│       └── Middleware/
+│
+├── database/
+│   ├── migrations/
+│   │   ├── YYYY_MM_DD_create_users_table.php
+│   │   ├── YYYY_MM_DD_create_clubs_table.php
+│   │   ├── YYYY_MM_DD_create_club_members_table.php
+│   │   ├── YYYY_MM_DD_create_events_table.php
+│   │   └── YYYY_MM_DD_create_sport_fields_table.php
+│   │
+│   └── seeders/
+│       ├── UserSeeder.php
+│       ├── ClubSeeder.php
+│       └── SportFieldSeeder.php
+│
+├── resources/
+│   └── views/
+│       ├── layout/
+│       │   └── app.blade.php
+│       │
+│       ├── auth/
+│       │   ├── login.blade.php
+│       │   └── register.blade.php
+│       │
+│       ├── dashboard/
+│       │   └── index.blade.php
+│       │
+│       ├── clubs/
+│       │   ├── index.blade.php
+│       │   ├── show.blade.php
+│       │   └── edit.blade.php
+│       │
+│       ├── events/
+│       │   ├── index.blade.php
+│       │   ├── create.blade.php
+│       │   ├── show.blade.php
+│       │   └── edit.blade.php
+│       │
+│       └── sportfields/
+│           ├── index.blade.php
+│           └── show.blade.php
+│
+├── public/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── routes/
+│   ├── web.php
+│   └── api.php
+│
+└── README.md
