@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class SportField extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'sport_fields';
+
+    protected $fillable = [
+        'address_id',
+        'name',
+        'field_type',
+    ];
+
+    // -----------------------
+    // Relationships
+    // -----------------------
+
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class, 'sport_field_id');
+    }
+}
