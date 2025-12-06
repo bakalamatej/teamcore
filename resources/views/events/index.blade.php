@@ -1,0 +1,114 @@
+@push('scripts')
+    @vite(['resources/js/event-search.js'])
+@endpush
+
+<x-app-layout>
+    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <x-text-input
+                id="search"
+                type="text"
+                name="search"
+                placeholder="Search..."
+                class="w-1/3"
+            />
+
+            <div class="flex items-center space-x-3">
+                <form method="GET" action="{{ route('events.index') }}">
+                    <x-secondary-button type="submit" name="my_events" value="1">
+                        {{ __('My Events') }}
+                    </x-secondary-button>
+                </form>
+
+                @auth
+                    @if(auth()->user()->role === 'coach' || auth()->user()->role === 'admin')
+                        <x-primary-button :href="route('events.create')">
+                            {{ __('Create event') }}
+                        </x-primary-button>
+                    @endif
+                @endauth
+            </div>
+        </div>
+
+
+        <div class="border border-gray-300 rounded-md overflow-hidden mt-6 shadow-md">
+            <table class="w-full event-table">
+                <thead class="bg-gray-100">
+                    <tr class="border-b">
+                        <th class="p-3 text-left">{{__('Title') }}</th>
+                        <th class="p-3 text-left">{{__('Location') }}</th>
+                        <th class="p-3 text-left">{{__('Start date') }}</th>
+                        <th class="p-3 text-right">{{__('Actions') }}</th>
+                    </tr>   
+                </thead>
+                <tbody>
+                    @foreach($events as $event)
+                        <tr class="event-row" 
+                            data-title="{{ strtolower($event->title) }}" 
+                            data-location="{{ strtolower($event->location) }}">
+                            <td class="p-3">{{ $event->title }}</td>
+                            <td class="p-3">{{ $event->location }}</td>
+                            <td class="p-3">{{ $event->start_date }}</td>
+
+                            <td class="p-3 text-right">
+                                <a href="{{ route('events.show', $event) }}"
+                                    class="text-blue-600 mr-3 hover:underline">
+                                    {{ __('View') }}
+                                </a>
+                                @auth
+                                    @if(auth()->user()->role === 'admin' || auth()->id() === $event->user_id)
+
+                                        <a href="{{ route('events.edit', $event) }}"
+                                        class="text-yellow-600 mr-3 hover:underline">
+                                        {{ __('Edit') }}
+                                        </a>
+
+                                        <button
+                                            type="button"
+                                            class="text-red-600 hover:underline"
+                                            x-data
+                                            x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')"
+                                        >
+                                            {{ __('Delete') }}
+                                        </button>
+
+                                        <x-modal name="confirm-event-deletion-{{ $event->id }}" :show="false" focusable>
+                                            <form method="POST" action="{{ route('events.destroy', $event) }}" class="p-6 text-left">
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <h2 class="text-lg font-medium text-gray-900">
+                                                    {{ __('Are you sure you want to delete this event?') }}
+                                                </h2>
+
+                                                <p class="mt-1 text-sm text-gray-600">
+                                                    {{ __('Once deleted, this event cannot be recovered.') }}
+                                                </p>
+
+                                                <div class="flex justify-end gap-3 mt-6">
+                                                    <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                                        {{ __('Cancel') }}
+                                                    </x-secondary-button>
+
+                                                    <x-danger-button type="submit">
+                                                        {{ __('Delete Event') }}
+                                                    </x-danger-button>
+                                                </div>
+                                            </form>
+                                        </x-modal>
+
+                                    @endif
+                                @endauth
+                            </td>
+
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <div class="mt-4">
+                {{ $events->links() }}
+            </div>
+        </div>
+    </div>    
+</x-app-layout>

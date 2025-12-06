@@ -24,6 +24,7 @@ return new class extends Migration
 
             $table->unique(['event_id', 'club_id']);
 
+            $table->softDeletes();
             $table->timestamps();
         });
 

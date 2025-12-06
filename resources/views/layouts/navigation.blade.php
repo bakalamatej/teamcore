@@ -1,7 +1,7 @@
-<nav x-data="{ open: false }" class="bg-white mx-auto shadow-sm rounded-lg mt-6">
+<nav x-data="{ open: false }" class="relative bg-white mx-auto shadow-sm rounded-lg mt-6 shadow-xl">
 
     <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20">
+        <div class="flex justify-between min-h-[80px] items-center">
 
             <div class="flex">
                 <!-- Logo -->
@@ -17,11 +17,11 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('club')" :active="request()->routeIs('club')">
-                        {{ __('Club') }}
+                    <x-nav-link :href="route('clubs.index')" :active="request()->routeIs('clubs.index')">
+                        {{ __('Clubs') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('events')" :active="request()->routeIs('events')">
+                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                         {{ __('Events') }}
                     </x-nav-link>
 
@@ -36,7 +36,7 @@
             </div>
 
             <!-- Auth Buttons -->
-            <div class="hidden xl-custom:flex items-center xl-custom:ms-6">
+            <div class="hidden xl-custom:flex items-center">
                 @auth
                     <x-secondary-button class="ms-3" :href="route('profile.edit')">
                         {{ __('Profile') }}
@@ -44,9 +44,9 @@
 
                     <form method="POST" action="{{ route('logout') }}" class="ms-3">
                         @csrf
-                        <x-primary-button type="submit" class="bg-red-500 hover:bg-red-700">
+                        <x-danger-button type="submit">
                             {{ __('Sign out') }}
-                        </x-primary-button>
+                        </x-danger-button>
                     </form>
                 @else
                     <x-secondary-button class="ms-3" :href="route('register')">
@@ -80,32 +80,36 @@
     </div>
 
     <!-- Responsive menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden xl-custom:hidden">
+    <div x-show="open"
+         class="absolute top-full left-0 w-full bg-white shadow-xl z-50 rounded-lg"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform -translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform -translate-y-2"
+         @click.away="open = false">
 
         <!-- Links -->
         <div class="pt-2 pb-3">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('club')" :active="request()->routeIs('club')">
-                {{ __('Club') }}
+            <x-responsive-nav-link :href="route('clubs.index')" :active="request()->routeIs('clubs.index')">
+                {{ __('Clubs') }}
             </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('events')" :active="request()->routeIs('events')">
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                 {{ __('Events') }}
             </x-responsive-nav-link>
-
             <x-responsive-nav-link :href="route('calendar')" :active="request()->routeIs('calendar')">
                 {{ __('Calendar') }}
             </x-responsive-nav-link>
-
             <x-responsive-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
                 {{ __('Gallery') }}
             </x-responsive-nav-link>
         </div>
 
-        <!-- Auth -->
+        <!-- Auth buttons -->
         <div class="flex flex-col px-4 pb-3">
             @auth
                 <x-responsive-secondary-button :href="route('profile.edit')" class="">
@@ -114,9 +118,9 @@
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-responsive-primary-button type="submit" class="bg-red-500 hover:bg-red-700">
+                    <x-responsive-danger-button type="submit" class="bg-red-500 hover:bg-red-700">
                         {{ __('Sign out') }}
-                    </x-responsive-primary-button>
+                    </x-responsive-danger-button>
                 </form>
             @else
                 <x-responsive-secondary-button :href="route('register')" class="">
@@ -128,6 +132,5 @@
                 </x-responsive-primary-button>
             @endauth
         </div>
-
     </div>
 </nav>

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
             $table->foreign('club_id')->references('id')->on('clubs')->onDelete('cascade');
 
+            $table->softDeletes();
             $table->timestamps();
         });
 

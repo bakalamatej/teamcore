@@ -16,13 +16,15 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @stack('scripts')
+
     </head>
     <body class="font-sans antialiased bg-gray-200">
-        <div class="w-[90%] lg:w-[70%] mx-auto min-h-screen">
+        <div class="w-[90%] lg:w-[70%] mx-auto ">
             @include('layouts.navigation')
 
             <!-- Page Content -->
-            <main>
+            <main class="py-12" >
                 {{ $slot }}
             </main>
         </div>

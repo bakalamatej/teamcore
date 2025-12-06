@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('joined_at')->nullable();
             $table->date('left_at')->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }

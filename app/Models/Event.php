@@ -81,6 +81,14 @@ class Event extends Model
     }
 
     /**
+     * Returns sport field name
+     */
+    public function getLocationAttribute()
+    {
+        return $this->sportField?->name ?? 'N/A';
+    }
+
+    /**
      * Soft delete records of event
      */
     protected static function booted()
@@ -95,4 +103,8 @@ class Event extends Model
         });
     }
 
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
 }
