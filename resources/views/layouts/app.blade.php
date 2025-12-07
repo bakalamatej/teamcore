@@ -19,12 +19,12 @@
         @stack('scripts')
 
     </head>
-    <body class="font-sans antialiased bg-gray-200">
+    <body class="font-sans antialiased bg-neutral-300">
         <div class="w-[90%] lg:w-[70%] mx-auto ">
             @include('layouts.navigation')
 
             <!-- Page Content -->
-            <main class="py-12" >
+            <main class="pt-[128px]" >
                 {{ $slot }}
             </main>
         </div>

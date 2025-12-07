@@ -1,5 +1,5 @@
 @push('scripts')
-    @vite(['resources/js/club-search.js'])
+    @vite(['resources/js/clubs/club-search.js'])
 @endpush
 
 <x-app-layout>
@@ -14,7 +14,7 @@
             />
 
             @auth
-                @if(auth()->user()->role === 'admin')
+                @if(auth()->user()->isAdmin())
                     <x-primary-button :href="route('clubs.create')">
                         {{ __('Add Club') }}
                     </x-primary-button>
@@ -23,7 +23,7 @@
         </div>
 
         <div class="border border-gray-300 rounded-md overflow-hidden mt-6 shadow-md">
-            <table class="w-full clubs-table">
+            <table class="w-full data-table">
                 <thead class="bg-gray-100">
                     <tr class="border-b">
                         <th class="p-3 text-left">{{ __('Name') }}</th>
@@ -34,37 +34,55 @@
                 </thead>
                 <tbody>
                     @foreach($clubs as $club)
-                        <tr class="club-row" 
-                            data-name="{{ strtolower($club->name) }}" 
+                        <tr class="data-row"
+                            data-name="{{ strtolower($club->name) }}"
                             data-city="{{ strtolower($club->address->city ?? '') }}">
-                            <td class="p-3">{{ $club->name }}</td>
-                            <td class="p-3">{{ $club->address->city ?? '-' }}</td>
-                            <td class="p-3">
+                            <td>{{ $club->name }}</td>
+                            <td>{{ $club->address->city ?? '-' }}</td>
+                            <td>
                                 @if($club->webpage)
-                                    <a href="{{ $club->webpage }}" target="_blank" class="text-blue-600 hover:underline">
+                                    <a href="{{ $club->webpage }}" target="_blank" class="table-action">
                                         {{ $club->webpage }}
                                     </a>
                                 @endif
                             </td>
-                            <td class="p-3 text-right">
-                                <a href="{{ route('clubs.show', $club) }}" class="text-blue-600 hover:underline mr-2">
-                                    {{ __('View') }}
-                                </a>
+                            <td class="text-right">
+                                <a href="{{ route('clubs.show', $club) }}" class="table-action view">{{ __('View') }}</a>
 
                                 @auth
-                                    @if(auth()->user()->role === 'admin')
-                                        <a href="{{ route('clubs.edit', $club) }}" class="text-yellow-600 hover:underline mr-2">
-                                            {{ __('Edit') }}
-                                        </a>
+                                    @if(auth()->user()->isAdmin())
+                                        <a href="{{ route('clubs.edit', $club) }}" class="table-action edit">{{ __('Edit') }}</a>
 
-                                        <form action="{{ route('clubs.destroy', $club) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-600 hover:underline" 
-                                                    onclick="return confirm('{{ __('Delete club?') }}')">
-                                                {{ __('Delete') }}
-                                            </button>
-                                        </form>
+                                        <button type="button" class="table-action delete"
+                                                x-data
+                                                x-on:click="$dispatch('open-modal', 'confirm-club-deletion-{{ $club->id }}')">
+                                            {{ __('Delete') }}
+                                        </button>
+
+                                        <x-modal name="confirm-club-deletion-{{ $club->id }}" :show="false" focusable>
+                                            <form method="POST" action="{{ route('clubs.destroy', $club) }}" class="p-6 text-left">
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <h2 class="my-heading">
+                                                    {{ __('Are you sure you want to delete this club?') }}
+                                                </h2>
+
+                                                <p class="my-text">
+                                                    {{ __('Once deleted, this club cannot be recovered.') }}
+                                                </p>
+
+                                                <div class="flex justify-end gap-3 mt-6">
+                                                    <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                                        {{ __('Cancel') }}
+                                                    </x-secondary-button>
+
+                                                    <x-danger-button type="submit">
+                                                        {{ __('Delete Club') }}
+                                                    </x-danger-button>
+                                                </div>
+                                            </form>
+                                        </x-modal>
                                     @endif
                                 @endauth
                             </td>
@@ -72,6 +90,8 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
 
             <div class="mt-4">
                 {{ $clubs->links() }}

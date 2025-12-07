@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
     const search = document.querySelector("#search");
-    const table = document.querySelector(".clubs-table");
+    const table = document.querySelector(".data-table");
     if (!table) return;
 
-    const rows = table.querySelectorAll(".club-row");
+    const rows = table.querySelectorAll(".data-row");
 
     if (search) {
         search.addEventListener("keyup", () => {

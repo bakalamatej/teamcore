@@ -1,7 +1,7 @@
-import { validateEventForm } from './event-validation.js';
+import { validateClubForm } from './club-validation.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('eventCreateForm');
+    const form = document.getElementById('updateClubForm');
     if (!form) return;
 
     const action = form.dataset.action;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorBox.classList.remove('block');
         errorMsg.textContent = '';
 
-        const result = validateEventForm(form);
+        const result = validateClubForm(form);
         if (!result.valid) {
             errorMsg.textContent = result.messages[0];
             errorBox.classList.remove('hidden');
@@ -34,11 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const formData = new FormData(form);
-
-        if (!formData.get('_token')) {
-            console.error('CSRF token missing');
-            return;
-        }
 
         try {
             const response = await fetch(action, {
@@ -67,8 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorText);
             }
 
-            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'create-event' }));
-            form.reset();
+            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'update-club' }));
 
         } catch (err) {
             errorMsg.textContent = err.message;

@@ -92,7 +92,7 @@ class ClubController extends Controller
 
     private function authorizeAdmin()
     {
-        if (!Auth::user() || Auth::user()->role !== 'admin') {
+        if (!Auth::user() || Auth::user()->isAdmin() === false) {
             abort(403, 'Unauthorized');
         }
     }

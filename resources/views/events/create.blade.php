@@ -1,26 +1,20 @@
 @push('scripts')
-    @vite(['resources/js/event-create.js'])
+    @vite(['resources/js/events/event-create.js'])
 @endpush
 
 <x-app-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <h1 class="text-2xl font-bold mb-4">{{ __('Create Event') }}</h1>
+        <h1 class="my-heading">{{ __('Create Event') }}</h1>
 
         <form id="eventCreateForm" data-action="{{ route('events.store') }}" method="POST" class="space-y-4">
             @csrf
 
-            <div id="formErrorBox" class="hidden mx-auto mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-1 rounded relative w-fit max-w-lg">
-                <div class="flex items-center">
-                    <span id="formErrorMessage" class="text-sm flex-1"></span>
-                    <button type="button" id="formErrorClose" class="text-red-700 font-bold px-4 py-2 text-2xl">
-                        ×
-                    </button>
-                </div>
+            <div id="formErrorBox">
+                <span id="formErrorMessage"></span>
+                <button type="button" id="formErrorClose">×</button>
             </div>
 
-            <!-- Flex container pre ľavú a pravú časť -->
             <div class="flex flex-col lg:flex-row gap-6">
-                <!-- Ľavá časť: ostatné inputy -->
                 <div class="flex-1 space-y-4">
                     <div>
                         <x-input-label for="title" :value="__('Title')" />
@@ -60,7 +54,6 @@
                     </div>
                 </div>
 
-                <!-- Pravá časť: description -->
                 <div class="flex-1">
                     <x-input-label for="description" :value="__('Description')" />
                     <x-textarea-input id="description" name="description" class="h-full" />

@@ -1,22 +1,18 @@
 @push('scripts')
-    @vite(['resources/js/event-update.js'])
+    @vite(['resources/js/events/event-update.js'])
 @endpush
 
 <x-app-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <h1 class="text-2xl font-bold mb-4">Edit Event</h1>
+        <h1 class="my-heading">Edit Event</h1>
 
         <form id="updateEventForm" data-action="{{ route('events.update', $event) }}" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
 
-            <div id="formErrorBox" class="hidden mx-auto mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-1 rounded relative w-fit max-w-lg">
-                <div class="flex items-center">
-                    <span id="formErrorMessage" class="text-sm flex-1"></span>
-                    <button type="button" id="formErrorClose" class="text-red-700 font-bold px-4 py-2 text-2xl">
-                        ×
-                    </button>
-                </div>
+            <div id="formErrorBox">
+                <span id="formErrorMessage"></span>
+                <button type="button" id="formErrorClose">×</button>
             </div>
             
             <div class="flex flex-col lg:flex-row gap-6">

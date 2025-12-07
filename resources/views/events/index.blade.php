@@ -1,5 +1,5 @@
 @push('scripts')
-    @vite(['resources/js/event-search.js'])
+    @vite(['resources/js/events/event-search.js'])
 @endpush
 
 <x-app-layout>
@@ -21,7 +21,7 @@
                 </form>
 
                 @auth
-                    @if(auth()->user()->role === 'coach' || auth()->user()->role === 'admin')
+                    @if(auth()->user()->isCoach() || auth()->user()->isAdmin())
                         <x-primary-button :href="route('events.create')">
                             {{ __('Create event') }}
                         </x-primary-button>
@@ -32,43 +32,34 @@
 
 
         <div class="border border-gray-300 rounded-md overflow-hidden mt-6 shadow-md">
-            <table class="w-full event-table">
+            <table class="w-full data-table">
                 <thead class="bg-gray-100">
                     <tr class="border-b">
-                        <th class="p-3 text-left">{{__('Title') }}</th>
-                        <th class="p-3 text-left">{{__('Location') }}</th>
-                        <th class="p-3 text-left">{{__('Start date') }}</th>
-                        <th class="p-3 text-right">{{__('Actions') }}</th>
+                        <th class="p-3 text-left">{{ __('Title') }}</th>
+                        <th class="p-3 text-left">{{ __('Location') }}</th>
+                        <th class="p-3 text-left">{{ __('Start date') }}</th>
+                        <th class="p-3 text-right">{{ __('Actions') }}</th>
                     </tr>   
                 </thead>
                 <tbody>
                     @foreach($events as $event)
-                        <tr class="event-row" 
+                        <tr class="data-row"
                             data-title="{{ strtolower($event->title) }}" 
                             data-location="{{ strtolower($event->location) }}">
-                            <td class="p-3">{{ $event->title }}</td>
-                            <td class="p-3">{{ $event->location }}</td>
-                            <td class="p-3">{{ $event->start_date }}</td>
+                            <td>{{ $event->title }}</td>
+                            <td>{{ $event->location }}</td>
+                            <td>{{ $event->start_date }}</td>
 
-                            <td class="p-3 text-right">
-                                <a href="{{ route('events.show', $event) }}"
-                                    class="text-blue-600 mr-3 hover:underline">
-                                    {{ __('View') }}
-                                </a>
+                            <td class="text-right">
+                                <a href="{{ route('events.show', $event) }}" class="table-action view">{{ __('View') }}</a>
+
                                 @auth
-                                    @if(auth()->user()->role === 'admin' || auth()->id() === $event->user_id)
+                                    @if(auth()->user()->isAdmin() || auth()->id() === $event->user_id)
+                                        <a href="{{ route('events.edit', $event) }}" class="table-action edit">{{ __('Edit') }}</a>
 
-                                        <a href="{{ route('events.edit', $event) }}"
-                                        class="text-yellow-600 mr-3 hover:underline">
-                                        {{ __('Edit') }}
-                                        </a>
-
-                                        <button
-                                            type="button"
-                                            class="text-red-600 hover:underline"
-                                            x-data
-                                            x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')"
-                                        >
+                                        <button type="button" class="table-action delete"
+                                                x-data
+                                                x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')">
                                             {{ __('Delete') }}
                                         </button>
 
@@ -77,11 +68,11 @@
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <h2 class="text-lg font-medium text-gray-900">
+                                                <h2 class="my-heading">
                                                     {{ __('Are you sure you want to delete this event?') }}
                                                 </h2>
 
-                                                <p class="mt-1 text-sm text-gray-600">
+                                                <p class="my-text">
                                                     {{ __('Once deleted, this event cannot be recovered.') }}
                                                 </p>
 
@@ -96,15 +87,15 @@
                                                 </div>
                                             </form>
                                         </x-modal>
-
                                     @endif
                                 @endauth
                             </td>
-
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
 
             <div class="mt-4">
                 {{ $events->links() }}

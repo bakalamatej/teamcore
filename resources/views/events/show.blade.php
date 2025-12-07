@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <h1 class="text-2xl font-bold mb-2">{{ $event->title }}</h1>
+        <h1 class="my-heading">{{ $event->title }}</h1>
 
         <div class="mb-2">
             <p><strong>Location (Sport Field):</strong> {{ $event->sportField?->name ?? 'N/A' }}</p>
