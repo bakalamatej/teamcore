@@ -36,18 +36,15 @@ Route::prefix('clubs')->middleware(['auth','admin'])->group(function () {
 Route::prefix('clubs')->group(function () {
     Route::get('/', [ClubController::class, 'index'])->name('clubs.index');
     Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
+    Route::get('/my-club', [ClubController::class, 'myClub'])->name('clubs.my');
 });
 
 // --------------------------------------------------
 // PANEL ROUTES
 // --------------------------------------------------
 Route::prefix('panel')->middleware('auth')->group(function () {
-
     Route::get('/', [PanelController::class, 'index'])->name('panel.index');
-
     Route::get('/stats', [PanelController::class, 'stats'])->name('panel.stats');
-
-    Route::get('/profile', [PanelController::class, 'profile'])->name('panel.profile');
     Route::patch('/profile', [PanelController::class, 'update'])->name('panel.profile.update');
     Route::delete('/profile', [PanelController::class, 'destroy'])->name('panel.profile.destroy');
 });

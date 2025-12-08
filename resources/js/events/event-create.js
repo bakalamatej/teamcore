@@ -34,12 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const formData = new FormData(form);
-
-        if (!formData.get('_token')) {
-            console.error('CSRF token missing');
-            return;
-        }
-
+        
         try {
             const response = await fetch(action, {
                 method: 'POST',
@@ -71,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form.reset();
 
         } catch (err) {
-            errorMsg.textContent = err.message;
+            errorMsg.textContent = 'Unknown error';
             errorBox.classList.remove('show');
             errorBox.classList.add('show');
         }

@@ -4,11 +4,11 @@
 
 <x-app-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <h1 class="my-heading">Edit Event</h1>
+        <h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
         <form id="updateEventForm" data-action="{{ route('events.update', $event) }}" method="POST" class="space-y-4">
             @csrf
-            @method('PUT')
+            @method('PATCH')
 
             <div id="formErrorBox">
                 <span id="formErrorMessage"></span>
@@ -73,8 +73,8 @@
 
         <x-modal name="update-event" :show="false">
             <div class="p-4">
-                <h2 class="text-lg font-semibold mb-2">Event updated successfully!</h2>
-                <p class="text-sm text-gray-700">Your changes have been saved.</p>
+                <h2 class="text-lg font-semibold mb-2">{{ __('Event updated successfully!') }}</h2>
+                <p class="text-sm text-gray-700">{{ __('Your changes have been saved.') }}</p>
                 <div class="mt-4 text-right">
                     <button
                         x-on:click="$dispatch('close-modal', 'update-event')"

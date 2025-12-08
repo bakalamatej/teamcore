@@ -12,22 +12,12 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Event::query()->latest();
+        $query = Event::query();
 
         if ($request->has('my_events') && Auth::check() && Auth::user()->member) {
-            $member = Auth::user()->member;
-
-            $clubIds = $member->activeClubs->pluck('id');
-
-            $query->where(function($q) use ($member, $clubIds) {
-                $q->whereHas('members', function($q2) use ($member) {
-                    $q2->where('member_id', $member->id)
-                    ->whereNull('member_event.deleted_at');
-                })
-                ->orWhereHas('clubs', function($q2) use ($clubIds) {
-                    $q2->whereIn('clubs.id', $clubIds);
-                });
-            });
+            $query = Auth::user()->member->myEvents();
+        } else {
+            $query = $query->latest();
         }
 
         $events = $query->paginate(10);

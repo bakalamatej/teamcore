@@ -19,14 +19,6 @@
                         {{ __('My Events') }}
                     </x-secondary-button>
                 </form>
-
-                @auth
-                    @if(auth()->user()->isCoach() || auth()->user()->isAdmin())
-                        <x-primary-button :href="route('events.create')">
-                            {{ __('Create event') }}
-                        </x-primary-button>
-                    @endif
-                @endauth
             </div>
         </div>
 
@@ -95,8 +87,6 @@
                 </tbody>
             </table>
         </div>
-
-
             <div class="mt-4">
                 {{ $events->links() }}
             </div>

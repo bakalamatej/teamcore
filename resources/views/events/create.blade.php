@@ -2,7 +2,7 @@
     @vite(['resources/js/events/event-create.js'])
 @endpush
 
-<x-app-layout>
+<x-panel-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Create Event') }}</h1>
 
@@ -62,7 +62,7 @@
 
             <div class="flex gap-4 mt-4">
                 <x-primary-button>{{ __('Save') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('events.index') }}'">
+                <x-danger-button type="button" onclick="window.location='{{ route('panel.index') }}'">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>
@@ -83,4 +83,4 @@
             </div>
         </x-modal>
     </div>
-</x-app-layout>
+</x-panel-layout>

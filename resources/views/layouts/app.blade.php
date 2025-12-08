@@ -21,7 +21,7 @@
     </head>
     <body class="font-sans antialiased bg-neutral-300">
         <div class="w-[90%] lg:w-[70%] mx-auto ">
-            @include('layouts.navigation')
+            @include('layouts.navigation-layout')
 
             <!-- Page Content -->
             <main class="pt-[128px]" >

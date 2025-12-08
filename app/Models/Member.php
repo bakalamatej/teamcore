@@ -50,6 +50,22 @@ class Member extends Model
                     ->withPivot('deleted_at');
     }
 
+    public function myEvents()
+    {
+        $clubIds = $this->activeClubs()->get()->pluck('id');
+
+        return Event::whereHas('members', function($q) {
+                    $q->where('member_id', $this->id)
+                    ->whereNull('member_event.deleted_at');
+                })
+                ->orWhereHas('clubs', function($q) use ($clubIds) {
+                    $q->whereIn('clubs.id', $clubIds)
+                    ->whereNull('event_club.deleted_at');
+                })
+                ->latest();
+    }
+
+
     // -----------------------
     // Methods
     // -----------------------
@@ -67,7 +83,10 @@ class Member extends Model
      */
     public function activeClubs()
     {
-        return $this->clubs()->wherePivotNull('deleted_at')->wherePivotNull('left_at');
+        return $this->belongsToMany(Club::class, 'member_club', 'member_id', 'club_id')
+                    ->withPivot('deleted_at', 'left_at')
+                    ->wherePivotNull('deleted_at')
+                    ->wherePivotNull('left_at');
     }
 
     /**

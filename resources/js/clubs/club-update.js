@@ -10,30 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMsg = document.getElementById('formErrorMessage');
     const closeBtn = document.getElementById('formErrorClose');
 
+    const showError = (msg) => {
+        errorMsg.textContent = msg;
+        errorBox.classList.add('show');
+    };
+
+    const hideError = () => {
+        errorMsg.textContent = '';
+        errorBox.classList.remove('show');
+    };
+
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            errorBox.classList.add('hidden');
-            errorBox.classList.remove('block');
-            errorMsg.textContent = '';
-        });
+        closeBtn.addEventListener('click', hideError);
     }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        errorBox.classList.add('hidden');
-        errorBox.classList.remove('block');
-        errorMsg.textContent = '';
+        hideError();
 
         const result = validateClubForm(form);
         if (!result.valid) {
-            errorMsg.textContent = result.messages[0];
-            errorBox.classList.remove('hidden');
-            errorBox.classList.add('block');
+            showError(result.messages[0]);
             return;
         }
 
         const formData = new FormData(form);
+        formData.set('_method', 'PATCH');
 
         try {
             const response = await fetch(action, {
@@ -48,26 +51,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 if (response.status === 422) {
                     const data = await response.json();
-
                     if (data.errors) {
                         const firstError = Object.values(data.errors)[0][0];
-                        errorMsg.textContent = firstError;
-                        errorBox.classList.remove('hidden');
-                        errorBox.classList.add('block');
+                        showError(firstError);
                         return;
                     }
                 }
 
-                const errorText = await response.text();
-                throw new Error(errorText);
+                showError('Unknown error');
+                return;
             }
 
             window.dispatchEvent(new CustomEvent('open-modal', { detail: 'update-club' }));
-
-        } catch (err) {
-            errorMsg.textContent = err.message;
-            errorBox.classList.remove('hidden');
-            errorBox.classList.add('block');
+        } catch {
+            showError('Unknown error');
         }
     });
 });

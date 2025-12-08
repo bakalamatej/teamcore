@@ -12,14 +12,6 @@
                 placeholder="Search..."
                 class="w-1/3"
             />
-
-            @auth
-                @if(auth()->user()->isAdmin())
-                    <x-primary-button :href="route('clubs.create')">
-                        {{ __('Add Club') }}
-                    </x-primary-button>
-                @endif
-            @endauth
         </div>
 
         <div class="border border-gray-300 rounded-md overflow-hidden mt-6 shadow-md">
@@ -91,8 +83,6 @@
                 </tbody>
             </table>
         </div>
-
-
             <div class="mt-4">
                 {{ $clubs->links() }}
             </div>

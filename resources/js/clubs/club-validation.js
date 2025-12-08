@@ -16,7 +16,7 @@ export function validateClubForm(form) {
     if (!phone.value || !phonePattern.test(phone.value)) {
         phone.classList.add('border-red-500');
         valid = false;
-        messages.push('Phone must be valid and up to 20 characters.');
+        messages.push('Phone must be valid.');
     }
 
     const email = form.querySelector('[name="email"]');
@@ -24,7 +24,7 @@ export function validateClubForm(form) {
     if (!email.value || !emailPattern.test(email.value) || email.value.length > 56) {
         email.classList.add('border-red-500');
         valid = false;
-        messages.push('Email must be valid and up to 56 characters.');
+        messages.push('Email must be valid.');
     }
 
     const webpage = form.querySelector('[name="webpage"]');

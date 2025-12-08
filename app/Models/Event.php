@@ -80,6 +80,11 @@ class Event extends Model
         return $this->clubs()->wherePivotNull('deleted_at');
     }
 
+    public function allClubs()
+    {
+        return $this->clubs();
+    }
+
     /**
      * Returns sport field name
      */

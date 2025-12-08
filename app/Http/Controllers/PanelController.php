@@ -12,7 +12,7 @@ class PanelController extends Controller
 {
     public function index(Request $request)
     {
-        return view('panel.profile', [
+        return view('panel.index', [
             'user' => $request->user(),
         ]);
     }
