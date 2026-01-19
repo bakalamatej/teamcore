@@ -24,7 +24,7 @@
             @include('layouts.navigation-layout')
 
             <!-- Page Content -->
-            <main class="pt-[128px]" >
+            <main class="pt-[128px] pb-12" >
                 {{ $slot }}
             </main>
         </div>

@@ -6,7 +6,7 @@
         </div>
 
         {{-- Content --}}
-        <main class="flex-1 pb-12 pl-0 xl:pl-[280px]">
+        <main class="flex-1 pl-0 xl:pl-[280px]">
             {{ $slot }}
         </main>
     </div>
