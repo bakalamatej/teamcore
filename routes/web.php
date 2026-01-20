@@ -32,10 +32,9 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------
     Route::prefix('clubs')->group(function () {
         Route::get('/', [ClubController::class, 'index'])->name('clubs.index');
-        Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
         Route::get('/my-club', [ClubController::class, 'myClub'])->name('clubs.my');
         
-        // Admin only
+        // Admin only - SPECIFIC ROUTES BEFORE {club}
         Route::middleware('admin')->group(function () {
             Route::get('/create', [ClubController::class, 'create'])->name('clubs.create');
             Route::post('/', [ClubController::class, 'store'])->name('clubs.store');
@@ -43,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{club}', [ClubController::class, 'update'])->name('clubs.update');
             Route::delete('/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
         });
+        
+        // Generic route at the end
+        Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
     });
 
     // --------------------------------------------------
@@ -80,9 +82,8 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');
-        Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
         
-        // Admin & Coach only
+        // Admin & Coach only - SPECIFIC ROUTES BEFORE {event}
         Route::middleware('admin_or_coach')->group(function () {
             Route::get('/create', [EventController::class, 'create'])->name('events.create');
             Route::post('/', [EventController::class, 'store'])->name('events.store');
@@ -90,6 +91,9 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{event}', [EventController::class, 'update'])->name('events.update');
             Route::delete('/{event}', [EventController::class, 'destroy'])->name('events.destroy');
         });
+        
+        // Generic route at the end
+        Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
     });
 });
 
