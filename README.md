@@ -143,19 +143,6 @@ No SQL import is required. All tables are created automatically.
 
 ---
 
-## 🎯 Features
-
-✅ User authentication (Login/Register)  
-✅ Role-based authorization (Admin, Coach, Player)  
-✅ Club management (CRUD)  
-✅ Event management (CRUD)  
-✅ Member management  
-✅ Search & filtering  
-✅ Responsive design  
-✅ Real-time validation  
-✅ File upload support  
-
----
 
 ## 📝 License
 
