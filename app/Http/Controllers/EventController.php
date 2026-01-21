@@ -12,6 +12,9 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
+        $sportFields = SportField::all();
+        $eventTypes = EventType::all();
+        
         $query = Event::query();
 
         if ($request->has('my_events') && Auth::check() && Auth::user()->member) {
@@ -20,16 +23,36 @@ class EventController extends Controller
             $query = $query->latest();
         }
 
+        // Filtrovanie podľa search
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // Filtrovanie podľa sport field
+        if ($request->filled('sport_field_id')) {
+            $query->where('sport_field_id', $request->sport_field_id);
+        }
+
+        // Filtrovanie podľa status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filtrovanie podľa type
+        if ($request->filled('type')) {
+            $query->where('event_type_id', $request->type);
+        }
+
         $events = $query->paginate(10);
 
-        return view('events.index', compact('events'));
+        return view('events.index', compact('events', 'sportFields', 'eventTypes'));
     }
 
     public function create()
     {
         $sportFields = SportField::all();
         $eventTypes = EventType::all();
-        return view('events.create', compact('sportFields', 'eventTypes'));
+        return view('panel.events.create', compact('sportFields', 'eventTypes'));
     }
 
     public function store(Request $request)
@@ -65,13 +88,12 @@ class EventController extends Controller
     }
 
     public function edit(Event $event)
-        {
-            $sportFields = SportField::all();
-            $eventTypes = EventType::all();
+    {
+        $sportFields = SportField::all();
+        $eventTypes = EventType::all();
 
-            return view('events.edit', compact('event', 'sportFields', 'eventTypes'));
-        }
-
+        return view('panel.events.edit', compact('event', 'sportFields', 'eventTypes'));
+    }
 
     public function update(Request $request, Event $event)
     {
@@ -98,6 +120,10 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
+        if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->isCoach())) {
+            abort(403);
+        }
+
         $event->delete();
         return redirect()->route('events.index');
     }

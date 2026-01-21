@@ -11,19 +11,24 @@ class ClubController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Club::with('address');
-
-        if ($request->has('search') && $request->search != '') {
-            $search = strtolower($request->search);
-            $query->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
-                  ->orWhereHas('address', function($q) use ($search) {
-                      $q->whereRaw('LOWER(city) LIKE ?', ["%{$search}%"]);
-                  });
+        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cityOptions = array_combine($cities, $cities);
+        
+        $clubs = Club::query();
+        
+        if ($request->filled('search')) {
+            $clubs->where('name', 'like', '%' . $request->search . '%');
         }
-
-        $clubs = $query->orderBy('name')->paginate(10);
-
-        return view('clubs.index', compact('clubs'));
+        
+        if ($request->filled('city')) {
+            $clubs->whereHas('address', function($q) {
+                $q->where('city', request('city'));
+            });
+        }
+        
+        $clubs = $clubs->paginate(10);
+        
+        return view('clubs.index', compact('clubs', 'cityOptions'));
     }
 
     public function show(Club $club)
@@ -36,7 +41,7 @@ class ClubController extends Controller
         $this->authorizeAdmin();
 
         $addresses = Address::orderBy('city')->get();
-        return view('clubs.create', compact('addresses'));
+        return view('panel.clubs.create', compact('addresses'));
     }
 
     public function store(Request $request)
@@ -61,7 +66,7 @@ class ClubController extends Controller
         $this->authorizeAdmin();
 
         $addresses = Address::orderBy('city')->get();
-        return view('clubs.edit', compact('club', 'addresses'));
+        return view('panel.clubs.edit', compact('club', 'addresses'));
     }
 
     public function update(Request $request, Club $club)

@@ -65,7 +65,7 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
                         {{ __('Add club') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
+                    <x-responsive-nav-link :href="route('panel.users.index')" :active="request()->routeIs('panel.users.index')">
                         {{ __('Users') }}
                     </x-responsive-nav-link>
 

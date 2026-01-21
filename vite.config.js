@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/clubs/club-search.js',
                 'resources/js/clubs/club-create.js',
                 'resources/js/clubs/club-update.js',
+                'resources/js/users/user-search.js',
             ],
             refresh: true,
         }),

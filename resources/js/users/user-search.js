@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         rows.forEach(row => {
             const name = row.dataset.name || '';
-            const city = row.dataset.city || '';            
-            row.style.display = name.includes(q) || city.includes(q) ? "" : "none";
+            const email = row.dataset.email || '';            
+            row.style.display = name.includes(q) || email.includes(q) ? "" : "none";
         });
     });
 });

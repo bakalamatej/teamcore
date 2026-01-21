@@ -3,93 +3,103 @@
 @endpush
 
 <x-app-layout>
-    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <div class="flex items-center justify-between mb-6">
-            <x-text-input
-                id="search"
-                type="text"
-                name="search"
-                placeholder="Search..."
-                class="w-1/3"
-            />
+    <div class="flex min-h-screen">
+        {{-- Sidebar --}}
+        <div class="hidden xl:block">
+            @include('events.sidebar')
+        </div>
 
-            <div class="flex items-center space-x-3">
-                <form method="GET" action="{{ route('events.index') }}">
-                    <x-secondary-button type="submit" name="my_events" value="1">
-                        {{ __('My Events') }}
-                    </x-secondary-button>
-                </form>
+        {{-- Content --}}    
+        <main class="flex-1 pl-0 xl:pl-[280px]">
+            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="my-heading text-2xl">{{ __('Events') }}</h1>
+                    <span class="text-sm text-gray-600">{{ $events->total() }} {{ __('events total') }}</span>
+                </div>
+
+                <div class="border border-gray-300 rounded-md overflow-hidden shadow-md">
+                    <table class="w-full data-table">
+                        <thead class="bg-gray-100">
+                            <tr class="border-b">
+                                <th class="p-3 text-left">{{ __('Title') }}</th>
+                                <th class="p-3 text-left">{{ __('Location') }}</th>
+                                <th class="p-3 text-left">{{ __('Start Date') }}</th>
+                                <th class="p-3 text-center">{{ __('Status') }}</th>
+                                <th class="p-3 text-right">{{ __('Actions') }}</th>
+                            </tr>   
+                        </thead>
+                        <tbody>
+                            @forelse($events as $event)
+                                <tr class="border-b hover:bg-gray-50 data-row"
+                                    data-title="{{ strtolower($event->title) }}" 
+                                    data-location="{{ strtolower($event->location) }}">
+                                    <td class="p-3 font-medium">{{ $event->title }}</td>
+                                    <td class="p-3 text-sm text-gray-600">{{ $event->location }}</td>
+                                    <td class="p-3 text-sm text-gray-600">{{ $event->start_date->format('d.m.Y H:i') }}</td>
+                                    <td class="p-3 text-center">
+                                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                            @if($event->status === 'finished') bg-gray-200 text-gray-800
+                                            @elseif($event->status === 'cancelled') bg-red-200 text-red-800
+                                            @else bg-green-200 text-green-800
+                                            @endif">
+                                            {{ ucfirst($event->status) }}
+                                        </span>
+                                    </td>
+
+                                    <td class="p-3 text-right">
+                                        <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
+
+                                        @auth
+                                            @if(auth()->user()->isAdmin() || auth()->user()->isCoach())
+                                                <a href="{{ route('events.edit', $event) }}" class="table-action edit mr-2">{{ __('Edit') }}</a>
+
+                                                <button type="button" class="table-action delete"
+                                                        x-data
+                                                        x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')">
+                                                    {{ __('Delete') }}
+                                                </button>
+
+                                                <x-modal name="confirm-event-deletion-{{ $event->id }}" :show="false" focusable>
+                                                    <form method="POST" action="{{ route('events.destroy', $event) }}" class="p-6 text-left">
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <h2 class="my-heading">{{ __('Delete Event') }}</h2>
+                                                        <p class="my-text">
+                                                            {{ __('Are you sure you want to delete') }} <strong>{{ $event->title }}</strong>?
+                                                            {{ __('This action cannot be undone.') }}
+                                                        </p>
+
+                                                        <div class="flex justify-end gap-3 mt-6">
+                                                            <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                                                {{ __('Cancel') }}
+                                                            </x-secondary-button>
+
+                                                            <x-danger-button type="submit">
+                                                                {{ __('Delete Event') }}
+                                                            </x-danger-button>
+                                                        </div>
+                                                    </form>
+                                                </x-modal>
+                                            @endif
+                                        @endauth
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="p-4 text-center text-gray-500">
+                                        {{ __('No events found') }}
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                    <div class="mt-4">
+                        {{ $events->links() }}
+                    </div>
+                </div>
             </div>
-        </div>
-
-
-        <div class="border border-gray-300 rounded-md overflow-hidden mt-6 shadow-md">
-            <table class="w-full data-table">
-                <thead class="bg-gray-100">
-                    <tr class="border-b">
-                        <th class="p-3 text-left">{{ __('Title') }}</th>
-                        <th class="p-3 text-left">{{ __('Location') }}</th>
-                        <th class="p-3 text-left">{{ __('Start date') }}</th>
-                        <th class="p-3 text-right">{{ __('Actions') }}</th>
-                    </tr>   
-                </thead>
-                <tbody>
-                    @foreach($events as $event)
-                        <tr class="data-row"
-                            data-title="{{ strtolower($event->title) }}" 
-                            data-location="{{ strtolower($event->location) }}">
-                            <td>{{ $event->title }}</td>
-                            <td>{{ $event->location }}</td>
-                            <td>{{ $event->start_date }}</td>
-
-                            <td class="text-right">
-                                <a href="{{ route('events.show', $event) }}" class="table-action view">{{ __('View') }}</a>
-
-                                @auth
-                                    @if(auth()->user()->isAdmin() || auth()->id() === $event->user_id)
-                                        <a href="{{ route('events.edit', $event) }}" class="table-action edit">{{ __('Edit') }}</a>
-
-                                        <button type="button" class="table-action delete"
-                                                x-data
-                                                x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')">
-                                            {{ __('Delete') }}
-                                        </button>
-
-                                        <x-modal name="confirm-event-deletion-{{ $event->id }}" :show="false" focusable>
-                                            <form method="POST" action="{{ route('events.destroy', $event) }}" class="p-6 text-left">
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <h2 class="my-heading">
-                                                    {{ __('Are you sure you want to delete this event?') }}
-                                                </h2>
-
-                                                <p class="my-text">
-                                                    {{ __('Once deleted, this event cannot be recovered.') }}
-                                                </p>
-
-                                                <div class="flex justify-end gap-3 mt-6">
-                                                    <x-secondary-button type="button" x-on:click="$dispatch('close')">
-                                                        {{ __('Cancel') }}
-                                                    </x-secondary-button>
-
-                                                    <x-danger-button type="submit">
-                                                        {{ __('Delete Event') }}
-                                                    </x-danger-button>
-                                                </div>
-                                            </form>
-                                        </x-modal>
-                                    @endif
-                                @endauth
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-            <div class="mt-4">
-                {{ $events->links() }}
-            </div>
-        </div>
+        </main>    
     </div>    
 </x-app-layout>

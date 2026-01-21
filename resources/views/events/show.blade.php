@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8 pb-12">
+    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <!-- Header -->
         <div class="mb-8 pb-6 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
@@ -117,7 +117,7 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="lg:col-span-1">
+            <div class="lg:col-span-1 flex flex-col">
                 <!-- Event Duration -->
                 <div class="sidebar-card sidebar-card-blue">
                     <h3 class="sidebar-card-title">{{ __('Duration') }}</h3>
@@ -149,7 +149,7 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="space-y-3">
+                <div class="space-y-3 mt-auto">
                     @auth
                         @if(auth()->user()->isAdmin() || auth()->user()->isCoach())
                             <x-primary-button class="w-full justify-center" :href="route('events.edit', $event)">
@@ -183,10 +183,6 @@
                             </x-modal>
                         @endif
                     @endauth
-
-                    <x-secondary-button class="w-full justify-center" :href="route('events.index')">
-                        {{ __('Back to Events') }}
-                    </x-secondary-button>
                 </div>
             </div>
         </div>

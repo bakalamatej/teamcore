@@ -18,47 +18,47 @@
             <div class="flex flex-col lg:flex-row gap-6">
                 <div class="flex-1 space-y-4">
                     <div>
-                        <x-input-label for="title" :value="__('Title')" />
+                        <x-input-label :value="__('Title')" />
                         <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" value="{{ $event->title }}" required />
                     </div>
 
                     <div>
-                        <x-input-label for="sport_field_id" :value="__('Sport Field')" />
+                        <x-input-label :value="__('Sport Field')" />
                         <x-select-input
                             id="sport_field_id"
                             name="sport_field_id"
                             :options="$sportFields->mapWithKeys(fn($f) => [$f->id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
                             :selected="$event->sport_field_id"
-                            placeholder="-- Select location --"
+                            placeholder="Select location"
                         />
                     </div>
 
                     <div>
-                        <x-input-label for="event_type_id" :value="__('Event Type')" />
+                        <x-input-label :value="__('Event Type')" />
                         <x-select-input
                             id="event_type_id"
                             name="event_type_id"
                             :options="$eventTypes->pluck('name','id')"
                             :selected="$event->event_type_id"
-                            placeholder="-- Select type --"
+                            placeholder="Select type"
                         />
                     </div>
 
                     <div>
-                        <x-input-label for="start_date" :value="__('Start Date')" />
+                        <x-input-label :value="__('Start Date')" />
                         <x-text-input id="start_date" name="start_date" type="datetime-local" class="mt-1 block w-full"
                             value="{{ $event->start_date->format('Y-m-d\TH:i') }}" required />
                     </div>
 
                     <div>
-                        <x-input-label for="end_date" :value="__('End Date')" />
+                        <x-input-label :value="__('End Date')" />
                         <x-text-input id="end_date" name="end_date" type="datetime-local" class="mt-1 block w-full"
                             value="{{ $event->end_date->format('Y-m-d\TH:i') }}" required />
                     </div>
                 </div>
 
                 <div class="flex-1">
-                    <x-input-label for="description" :value="__('Description')" />
+                    <x-input-label :value="__('Description')" />
                     <x-textarea-input id="description" name="description" :value="$event->description" class="h-full" />
                 </div>
             </div>
