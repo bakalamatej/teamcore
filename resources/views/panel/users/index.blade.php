@@ -1,15 +1,16 @@
+<!-- Load user search JS for real-time filtering -->
 @push('scripts')
     @vite(['resources/js/users/user-search.js'])
 @endpush
 
 <x-app-layout>
     <div class="flex min-h-screen">
-        {{-- Sidebar --}}
+        <!-- Admin panel sidebar navigation -->
         <div class="hidden xl:block">
             @include('panel.sidebar')
         </div>
 
-        {{-- Content --}}
+        <!-- Main content: users list with search/filter -->
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
                 <div class="flex justify-between items-center mb-6">
@@ -17,7 +18,7 @@
                     <span class="text-sm text-gray-600">{{ $users->total() }} {{ __('users total') }}</span>
                 </div>
 
-                <!-- Filter Sidebar -->
+                <!-- Search & role filter section -->
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                     <form method="GET" class="flex flex-col sm:flex-row gap-4">
                         <div class="flex-1">

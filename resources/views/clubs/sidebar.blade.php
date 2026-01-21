@@ -1,5 +1,7 @@
 <x-sidebar :title="__('Filters')">
+    <!-- Search & filter form -->
     <form method="GET" class="space-y-4">
+        <!-- Search by club name -->
         <div>
             <x-input-label :value="__('Search')" />
             <x-text-input
@@ -12,6 +14,7 @@
             />
         </div>    
 
+        <!-- Filter by city -->
         <div>
             <x-input-label :value="__('City')" />
             <x-select-input
@@ -24,6 +27,7 @@
             />
         </div>
 
+        <!-- Submit button -->
         <x-primary-button type="submit" class="w-full justify-center mt-6">
             {{ __('Filter') }}
         </x-primary-button>

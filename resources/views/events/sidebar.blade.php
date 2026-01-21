@@ -1,5 +1,7 @@
 <x-sidebar :title="__('Filters')">
+    <!-- Search & filter form -->
     <form method="GET" class="space-y-4">
+        <!-- Search by event title -->
         <div>
             <x-input-label :value="__('Search')" />
             <x-text-input
@@ -12,6 +14,7 @@
             />
         </div>     
 
+        <!-- Filter by location (sport field) -->
         <div>
             <x-input-label :value="__('Location')" />
             <x-select-input

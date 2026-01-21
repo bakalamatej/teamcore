@@ -10,6 +10,7 @@ use App\Models\SportField;
 
 class EventController extends Controller
 {
+    // List all events with optional filtering and pagination
     public function index(Request $request)
     {
         $sportFields = SportField::all();
@@ -17,28 +18,29 @@ class EventController extends Controller
         
         $query = Event::query();
 
+        // Show user's events if requested, otherwise latest events
         if ($request->has('my_events') && Auth::check() && Auth::user()->member) {
             $query = Auth::user()->member->myEvents();
         } else {
             $query = $query->latest();
         }
 
-        // Filtrovanie podľa search
+        // Search by title
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%');
         }
 
-        // Filtrovanie podľa sport field
+        // Filter by sport field location
         if ($request->filled('sport_field_id')) {
             $query->where('sport_field_id', $request->sport_field_id);
         }
 
-        // Filtrovanie podľa status
+        // Filter by event status (scheduled/cancelled/finished)
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filtrovanie podľa type
+        // Filter by event type (training/match/competition)
         if ($request->filled('type')) {
             $query->where('event_type_id', $request->type);
         }
@@ -48,6 +50,7 @@ class EventController extends Controller
         return view('events.index', compact('events', 'sportFields', 'eventTypes'));
     }
 
+    // Show create event form
     public function create()
     {
         $sportFields = SportField::all();
@@ -55,8 +58,10 @@ class EventController extends Controller
         return view('panel.events.create', compact('sportFields', 'eventTypes'));
     }
 
+    // Store new event in database
     public function store(Request $request)
     {
+        // Validate event data
         $request->validate([
             'title' => 'required|min:5|max:80',
             'sport_field_id' => 'required|exists:sport_fields,id',
@@ -75,6 +80,7 @@ class EventController extends Controller
             'description' => $request->description,
         ]);
 
+        // Return JSON for AJAX or redirect
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(['success' => true, 'event' => $event], 201);
         }
@@ -82,11 +88,13 @@ class EventController extends Controller
         return redirect()->route('events.index');
     }
 
+    // Display event details
     public function show(Event $event)
     {
         return view('events.show', compact('event'));
     }
 
+    // Show edit event form
     public function edit(Event $event)
     {
         $sportFields = SportField::all();
@@ -95,8 +103,10 @@ class EventController extends Controller
         return view('panel.events.edit', compact('event', 'sportFields', 'eventTypes'));
     }
 
+    // Update event in database
     public function update(Request $request, Event $event)
     {
+        // Validate event data
         $request->validate([
             'title' => 'required|min:5|max:80',
             'sport_field_id' => 'required|exists:sport_fields,id',
@@ -118,6 +128,7 @@ class EventController extends Controller
         return redirect()->route('events.index');
     }
 
+    // Delete event (admin/coach only)
     public function destroy(Event $event)
     {
         if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->isCoach())) {

@@ -1,22 +1,25 @@
+<!-- Load club search JS for real-time filtering -->
 @push('scripts')
     @vite(['resources/js/clubs/club-search.js'])
 @endpush
 
 <x-app-layout>
     <div class="flex min-h-screen">
-        {{-- Sidebar --}}
+        <!-- Filter sidebar: search by name/city (hidden on mobile) -->
         <div class="hidden xl:block">
             @include('clubs.sidebar')
         </div>
 
-        {{-- Content --}}
+        <!-- Main content area with clubs table -->
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+                <!-- Header: title + club count -->
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="my-heading text-2xl">{{ __('Clubs') }}</h1>
                     <span class="text-sm text-gray-600">{{ $clubs->total() }} {{ __('clubs total') }}</span>
                 </div>
 
+                <!-- Clubs table with search functionality -->
                 <div class="border border-gray-300 rounded-md overflow-hidden shadow-md">
                     <table class="w-full data-table">
                         <thead class="bg-gray-100">
