@@ -52,7 +52,7 @@ class Member extends Model
 
     public function myEvents()
     {
-        $clubIds = $this->activeClubs()->get()->pluck('id');
+        $clubIds = $this->activeClubs()->pluck('id');
 
         return Event::whereHas('members', function($q) {
                     $q->where('member_id', $this->id)
@@ -62,6 +62,7 @@ class Member extends Model
                     $q->whereIn('clubs.id', $clubIds)
                     ->whereNull('event_club.deleted_at');
                 })
+                ->with('clubs', 'members', 'sportField', 'eventType')
                 ->latest();
     }
 

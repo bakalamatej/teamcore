@@ -28,7 +28,7 @@ class UserController extends Controller
             $query->where('role', $request->role);
         }
 
-        $users = $query->paginate(15);
+        $users = $query->with('member')->paginate(15);
 
         return view('panel.users.index', compact('users'));
     }
@@ -40,6 +40,7 @@ class UserController extends Controller
             abort(403);
         }
 
+        $user->load('member');
         return view('panel.users.show', compact('user'));
     }
 
@@ -50,6 +51,7 @@ class UserController extends Controller
             abort(403);
         }
 
+        $user->load('member');
         return view('panel.users.edit', compact('user'));
     }
 

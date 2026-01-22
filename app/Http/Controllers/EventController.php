@@ -45,7 +45,7 @@ class EventController extends Controller
             $query->where('event_type_id', $request->type);
         }
 
-        $events = $query->paginate(10);
+        $events = $query->with('sportField', 'eventType')->paginate(10);
 
         return view('events.index', compact('events', 'sportFields', 'eventTypes'));
     }
@@ -91,6 +91,7 @@ class EventController extends Controller
     // Display event details
     public function show(Event $event)
     {
+        $event->load('clubs', 'members', 'sportField', 'eventType');
         return view('events.show', compact('event'));
     }
 

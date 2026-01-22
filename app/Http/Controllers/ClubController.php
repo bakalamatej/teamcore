@@ -30,7 +30,7 @@ class ClubController extends Controller
             });
         }
         
-        $clubs = $clubs->paginate(10);
+        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
         
         return view('clubs.index', compact('clubs', 'cityOptions'));
     }
@@ -38,6 +38,7 @@ class ClubController extends Controller
     // Display club details and members
     public function show(Club $club)
     {
+        $club->load('address', 'activeMembers', 'activeEvents');
         return view('clubs.show', compact('club'));
     }
 
