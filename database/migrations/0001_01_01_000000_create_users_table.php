@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('role', 20)->default('player');
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index('role');
+            $table->index(['name', 'email']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

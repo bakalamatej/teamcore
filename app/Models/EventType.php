@@ -10,6 +10,7 @@ class EventType extends Model
 
     protected $fillable = [
         'name',
+        'sport_id',
     ];
 
     public $timestamps = false;
@@ -24,6 +25,11 @@ class EventType extends Model
     // -----------------------
     // Relationships
     // -----------------------
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
     public function events()
     {
         return $this->hasMany(Event::class, 'event_type_id');

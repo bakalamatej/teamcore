@@ -23,6 +23,8 @@ return new class extends Migration
             $table->foreign('club_id')->references('id')->on('clubs')->onDelete('cascade');
 
             $table->unique(['event_id', 'club_id']);
+            $table->index('event_id');
+            $table->index('club_id');
 
             $table->softDeletes();
             $table->timestamps();

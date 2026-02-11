@@ -26,4 +26,9 @@ class Address extends Model
     {
         return $this->hasMany(Club::class, 'address_id');
     }
+
+    public function sportFields()
+    {
+        return $this->hasMany(SportField::class, 'address_id');
+    }
 }

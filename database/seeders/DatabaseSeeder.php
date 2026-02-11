@@ -10,6 +10,10 @@ use App\Models\Event;
 use App\Models\SportField;
 use App\Models\Address;
 use App\Models\EventClub;
+use App\Models\Sport;
+use App\Models\MemberEvent;
+use App\Models\EventMemberResult;
+use App\Models\EventClubResult;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,6 +26,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // -----------------------
+        // Sports
+        // -----------------------
+        $sportFootball = Sport::create(['name' => 'Football']);
+        $sportBasketball = Sport::create(['name' => 'Basketball']);
+        $sportVolleyball = Sport::create(['name' => 'Volleyball']);
+
         // -----------------------
         // Addresses
         // -----------------------
@@ -82,18 +93,6 @@ class DatabaseSeeder extends Seeder
             'phone' => '0900654321',
         ]);
 
-        // -----------------------  
-        // Event types
-        // -----------------------
-        EventType::insert([
-            ['name' => 'Training'],
-            ['name' => 'Match'],
-            ['name' => 'Tournament'],
-        ]);
-
-        $type1 = EventType::where('name', 'Training')->first();
-        $type2 = EventType::where('name', 'Match')->first();
-
         // -----------------------
         // Sport fields
         // -----------------------
@@ -110,6 +109,30 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // -----------------------
+        // Sport fields - sports associations
+        // -----------------------
+        $field1->sports()->attach($sportFootball->id);
+        $field2->sports()->attach($sportFootball->id);
+
+        // -----------------------  
+        // Event types
+        // -----------------------
+        $type1 = EventType::create([
+            'name' => 'Training',
+            'sport_id' => $sportFootball->id,
+        ]);
+
+        $type2 = EventType::create([
+            'name' => 'Match',
+            'sport_id' => $sportFootball->id,
+        ]);
+
+        $type3 = EventType::create([
+            'name' => 'Tournament',
+            'sport_id' => $sportFootball->id,
+        ]);
+
+        // -----------------------
         // Clubs
         // -----------------------
         $club1 = Club::create([
@@ -118,6 +141,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'info@acsparta.com',
             'webpage' => 'https://acsparta.com',
             'address_id' => $address1->id,
+            'sport_id' => $sportFootball->id,
         ]);
 
         $club2 = Club::create([
@@ -126,6 +150,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'info@fcdynamo.com',
             'webpage' => 'https://fcdynamo.com',
             'address_id' => $address2->id,
+            'sport_id' => $sportFootball->id,
         ]);
 
         // -----------------------
@@ -135,7 +160,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Morning Training',
             'description' => 'Regular morning training session for all players.',
             'event_type_id' => $type1->id,
-            'status' => Event::STATUS_SCHEDULED,
+            'status' => 'scheduled',
             'start_date' => now()->addDays(1)->setHour(9),
             'end_date' => now()->addDays(1)->setHour(11),
             'sport_field_id' => $field1->id,
@@ -145,7 +170,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Friendly Match',
             'description' => 'Friendly match against local rivals.',
             'event_type_id' => $type2->id,
-            'status' => Event::STATUS_SCHEDULED,
+            'status' => 'scheduled',
             'start_date' => now()->addDays(3)->setHour(15),
             'end_date' => now()->addDays(3)->setHour(17),
             'sport_field_id' => $field2->id,
@@ -154,9 +179,37 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         // Event club associations
         // -----------------------
-        $club_event1 = EventClub::create([
+        EventClub::create([
+            'event_id' => $event1->id,
+            'club_id' => $club1->id,
+        ]);
+
+        EventClub::create([
             'event_id' => $event2->id,
             'club_id' => $club1->id,
+        ]);
+
+        EventClub::create([
+            'event_id' => $event2->id,
+            'club_id' => $club2->id,
+        ]);
+
+        // -----------------------
+        // Member - event associations
+        // -----------------------
+        MemberEvent::create([
+            'member_id' => $member->id,
+            'event_id' => $event1->id,
+        ]);
+
+        MemberEvent::create([
+            'member_id' => $member->id,
+            'event_id' => $event2->id,
+        ]);
+
+        MemberEvent::create([
+            'member_id' => $coachMember->id,
+            'event_id' => $event2->id,
         ]);
 
         // -----------------------
@@ -164,5 +217,51 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         $member->clubs()->attach($club1->id, ['joined_at' => now()]);
         $coachMember->clubs()->attach($club2->id, ['joined_at' => now()]);
+
+        // -----------------------
+        // Event member results
+        // -----------------------
+        EventMemberResult::create([
+            'event_id' => $event1->id,
+            'member_id' => $member->id,
+            'score' => 85,
+            'ranking' => 1,
+            'note' => 'Excellent performance during training.',
+        ]);
+
+        EventMemberResult::create([
+            'event_id' => $event2->id,
+            'member_id' => $member->id,
+            'score' => 92,
+            'ranking' => 1,
+            'note' => 'Man of the match.',
+        ]);
+
+        EventMemberResult::create([
+            'event_id' => $event2->id,
+            'member_id' => $coachMember->id,
+            'score' => 88,
+            'ranking' => 2,
+            'note' => 'Good performance as goalkeeper.',
+        ]);
+
+        // -----------------------
+        // Event club results
+        // -----------------------
+        EventClubResult::create([
+            'event_id' => $event2->id,
+            'club_id' => $club1->id,
+            'score' => 3,
+            'ranking' => 1,
+            'note' => 'Victory against FC Dynamo.',
+        ]);
+
+        EventClubResult::create([
+            'event_id' => $event2->id,
+            'club_id' => $club2->id,
+            'score' => 1,
+            'ranking' => 2,
+            'note' => 'Second place in friendly match.',
+        ]);
     }
 }

@@ -21,6 +21,8 @@ return new class extends Migration
 
             $table->foreign('member_club_id')->references('id')->on('member_club')->onDelete('cascade');
 
+            $table->index('member_club_id');
+
             $table->timestamps();
         });
     }

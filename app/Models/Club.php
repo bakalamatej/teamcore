@@ -14,6 +14,7 @@ class Club extends Model
 
     protected $fillable = [
         'address_id',
+        'sport_id',
         'name',
         'phone',
         'email',
@@ -26,6 +27,11 @@ class Club extends Model
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id');
+    }
+
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
     }
 
     public function memberMemberships()

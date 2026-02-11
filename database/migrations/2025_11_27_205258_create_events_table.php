@@ -26,6 +26,11 @@ return new class extends Migration
 
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('sport_field_id');
+            $table->index('event_type_id');
+            $table->index('status');
+            $table->index('start_date');
         });
 
     }

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
 
             $table->unique(['event_id', 'member_id']);
+            $table->index('event_id');
+            $table->index('member_id');
 
             $table->softDeletes();
             $table->timestamps();
