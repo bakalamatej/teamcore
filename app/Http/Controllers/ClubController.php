@@ -35,6 +35,63 @@ class ClubController extends Controller
         return view('clubs.index', compact('clubs', 'cityOptions'));
     }
 
+    // List all clubs for admin panel with search and city filtering
+    public function adminIndex(Request $request)
+    {
+        $this->authorizeAdmin();
+
+        // Get unique cities for filter dropdown
+        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cityOptions = array_combine($cities, $cities);
+        
+        $clubs = Club::query();
+        
+        // Search by club name
+        if ($request->filled('search')) {
+            $clubs->where('name', 'like', '%' . $request->search . '%');
+        }
+        
+        // Filter by city
+        if ($request->filled('city')) {
+            $clubs->whereHas('address', function($q) {
+                $q->where('city', request('city'));
+            });
+        }
+        
+        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
+        
+        return view('panel.clubs.index', compact('clubs', 'cityOptions'));
+    }
+
+    // List user's clubs (clubs where user is a member)
+    public function myClub(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Get unique cities for filter dropdown
+        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cityOptions = array_combine($cities, $cities);
+        
+        // Get user's active clubs (or empty query if user has no member record)
+        $clubs = $user->activeClubs() ?? Club::query()->whereRaw('1=0');
+        
+        // Search by club name
+        if ($request->filled('search')) {
+            $clubs->where('name', 'like', '%' . $request->search . '%');
+        }
+        
+        // Filter by city
+        if ($request->filled('city')) {
+            $clubs->whereHas('address', function($q) {
+                $q->where('city', request('city'));
+            });
+        }
+        
+        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
+        
+        return view('clubs.index', compact('clubs', 'cityOptions'));
+    }
+
     // Display club details and members
     public function show(Club $club)
     {

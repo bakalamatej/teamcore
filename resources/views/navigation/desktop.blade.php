@@ -13,8 +13,8 @@
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-nav-link>
-                <x-nav-link :href="route('clubs.index')" :active="request()->routeIs('clubs.index')">
-                    {{ __('Clubs') }}
+                <x-nav-link :href="route('clubs.my')" :active="request()->routeIs('clubs.my')">
+                    {{ __('My Clubs') }}
                 </x-nav-link>
                 <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                     {{ __('Events') }}
@@ -23,7 +23,7 @@
                     {{ __('Calendar') }}
                 </x-nav-link>
                 <x-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
-                    {{ __('Gallery') }}
+                    {{ __('Media') }}
                 </x-nav-link>
                 
             </div>

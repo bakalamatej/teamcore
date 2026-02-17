@@ -4,7 +4,6 @@ use App\Http\Controllers\ClubController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
@@ -87,10 +86,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('panel.users.edit');
         Route::patch('/users/{user}', [UserController::class, 'update'])->name('panel.users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('panel.users.destroy');
-        Route::get('/clubs', [AdminController::class, 'clubs'])->name('admin.clubs');
-        Route::get('/events', [AdminController::class, 'events'])->name('admin.events');
-        Route::get('/types', [AdminController::class, 'types'])->name('admin.types');
-        Route::get('/fields', [AdminController::class, 'fields'])->name('admin.fields');
+        Route::get('/clubs', [ClubController::class, 'adminIndex'])->name('panel.clubs.index');
+        Route::get('/events', [EventController::class, 'index'])->name('panel.events.index');
     });
 
     // --------------------------------------------------

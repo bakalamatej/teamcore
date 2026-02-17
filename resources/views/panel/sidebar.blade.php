@@ -28,8 +28,7 @@
     @if($role === 'admin')
         <a href="{{ route('clubs.create') }}" class="sidebar-link">{{ __('Add club') }}</a>
         <a href="{{ route('panel.users.index') }}" class="sidebar-link">{{ __('Users') }}</a>
+        <a href="{{ route('panel.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
         <a href="{{ route('events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
-        <a href="{{ route('admin.types') }}" class="sidebar-link">{{ __('Event Types') }}</a>
-        <a href="{{ route('admin.fields') }}" class="sidebar-link">{{ __('Fields') }}</a>
     @endif
 </x-sidebar>

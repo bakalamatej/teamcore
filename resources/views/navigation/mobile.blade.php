@@ -17,8 +17,8 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
         <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
         </x-responsive-nav-link>
-        <x-responsive-nav-link :href="route('clubs.index')" :active="request()->routeIs('clubs.index')">
-            {{ __('Clubs') }}
+        <x-responsive-nav-link :href="route('clubs.my')" :active="request()->routeIs('clubs.my')">
+            {{ __('My Clubs') }}
         </x-responsive-nav-link>
         <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
             {{ __('Events') }}
@@ -27,7 +27,7 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
             {{ __('Calendar') }}
         </x-responsive-nav-link>
         <x-responsive-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
-            {{ __('Gallery') }}
+            {{ __('Media') }}
         </x-responsive-nav-link>
     </div>
 
@@ -73,13 +73,6 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
                         {{ __('Create event') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('admin.types')" :active="request()->routeIs('admin.types')">
-                        {{ __('Event Types') }}
-                    </x-responsive-nav-link>
-
-                    <x-responsive-nav-link :href="route('admin.fields')" :active="request()->routeIs('admin.fields')">
-                        {{ __('Fields') }}
-                    </x-responsive-nav-link>
                 @endif  
             @endif
         </div>

@@ -14,6 +14,8 @@ use App\Models\Sport;
 use App\Models\MemberEvent;
 use App\Models\EventMemberResult;
 use App\Models\EventClubResult;
+use App\Models\File;
+use App\Models\FileRelation;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -262,6 +264,40 @@ class DatabaseSeeder extends Seeder
             'score' => 1,
             'ranking' => 2,
             'note' => 'Second place in friendly match.',
+        ]);
+
+        // -----------------------
+        // Files
+        // -----------------------
+        $file1 = File::create([
+            'file_name' => 'event_photo.jpg',
+            'file_path' => 'files/event_photo_1739816492_1234.jpg',
+            'file_type' => 'image/jpeg',
+            'file_size' => 2048576,
+        ]);
+
+        $file2 = File::create([
+            'file_name' => 'club_document.pdf',
+            'file_path' => 'files/club_document_1739816493_5678.pdf',
+            'file_type' => 'application/pdf',
+            'file_size' => 1024000,
+        ]);
+
+        // -----------------------
+        // File relations - attach files to models
+        // -----------------------
+        FileRelation::create([
+            'file_id' => $file1->id,
+            'fileable_type' => Event::class,
+            'fileable_id' => $event1->id,
+            'file_category' => 'photo',
+        ]);
+
+        FileRelation::create([
+            'file_id' => $file2->id,
+            'fileable_type' => Club::class,
+            'fileable_id' => $club1->id,
+            'file_category' => 'document',
         ]);
     }
 }
