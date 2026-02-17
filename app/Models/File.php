@@ -24,11 +24,11 @@ class File extends Model
     // -----------------------
 
     /**
-     * Polymorphic relation to owner models (Event, Member, etc.)
+     * Get all file relations for this file.
      */
-    public function fileable(): MorphTo
+    public function fileRelations()
     {
-        return $this->morphTo();
+        return $this->hasMany(FileRelation::class, 'file_id');
     }
 
     // -----------------------

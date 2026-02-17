@@ -3,51 +3,90 @@
 namespace App\Models\Traits;
 
 use App\Models\File;
+use App\Models\FileRelation;
 
 trait HasFiles
 {
     /**
-     * Polymorphic relationship: returns all files associated with this model.
+     * Get all file relations for this model (polymorphic).
      */
-    public function files()
+    public function fileRelations()
     {
-        return $this->morphMany(File::class, 'fileable');
+        return $this->morphMany(FileRelation::class, 'fileable');
     }
 
     /**
-     * Attach a file to this model.
+     * Get all files associated with this model through FileRelation.
+     */
+    public function files()
+    {
+        return $this->hasManyThrough(
+            File::class,
+            FileRelation::class,
+            'fileable_id',
+            'id',
+            $this->getKeyName(),
+            'file_id'
+        )->where('file_relations.fileable_type', static::class);
+    }
+
+    /**
+     * Get files of a specific category (logo, document, photo, training_plan, etc.)
+     *
+     * @param string $category
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function filesByCategory(string $category)
+    {
+        return $this->fileRelations()
+                    ->where('file_category', $category)
+                    ->with('file')
+                    ->get()
+                    ->pluck('file');
+    }
+
+    /**
+     * Attach a file to this model with a category.
      *
      * @param File $file
-     * @return void
+     * @param string $category
+     * @return FileRelation
      */
-    public function attachFile(File $file)
+    public function attachFile(File $file, string $category = 'document')
     {
-        $this->files()->save($file);
+        return FileRelation::create([
+            'file_id' => $file->id,
+            'fileable_type' => static::class,
+            'fileable_id' => $this->id,
+            'file_category' => $category,
+        ]);
     }
 
     /**
      * Detach a file from this model.
      *
-     * @param File $file
-     * @return void
+     * @param File|int $file
+     * @return int
      */
-    public function detachFile(File $file)
+    public function detachFile($file)
     {
-        $this->files()->where('id', $file->id)->delete();
+        $fileId = $file instanceof File ? $file->id : $file;
+        
+        return $this->fileRelations()
+                    ->where('file_id', $fileId)
+                    ->delete();
     }
 
     /**
-     * Get files of a specific type.
+     * Check if this model has files of a specific category.
      *
-     * @param string|null $type
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     * @param string $category
+     * @return bool
      */
-    public function filesByType(?string $type = null)
+    public function hasFileCategory(string $category): bool
     {
-        $query = $this->files();
-        if ($type) {
-            $query->where('file_type', $type);
-        }
-        return $query;
+        return $this->fileRelations()
+                    ->where('file_category', $category)
+                    ->exists();
     }
 }

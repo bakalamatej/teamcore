@@ -12,6 +12,7 @@ class FileRelation extends Model
         'file_id',
         'fileable_type',
         'fileable_id',
+        'file_category',
     ];
 
     // -----------------------

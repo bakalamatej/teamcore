@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('file_id');
             $table->string('fileable_type', 50);
             $table->unsignedBigInteger('fileable_id');
+            $table->string('file_category', 30);
 
             $table->foreign('file_id')->references('id')->on('files')->onDelete('cascade');
 

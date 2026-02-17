@@ -6,6 +6,7 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -107,6 +108,26 @@ Route::middleware(['auth'])->group(function () {
         
         // Generic route at the end
         Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
+    });
+
+    // --------------------------------------------------
+    // FILE ROUTES
+    // --------------------------------------------------
+    Route::prefix('files')->group(function () {
+        // Upload file to a model (event, member, club)
+        Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
+        
+        // List all files for a model
+        Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
+        
+        // List files by category
+        Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
+        
+        // Delete file from model
+        Route::delete('/{modelType}/{modelId}/{fileRelationId}', [FileController::class, 'delete'])->name('files.delete');
+        
+        // Download file
+        Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
     });
 });
 
