@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('members', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id')->unique();
-            $table->string('name', 30);
-            $table->string('surname', 30);
-            $table->string('email', 56);
-            $table->string('phone', 20)->nullable();
+            $table->string('first_name', 30);
+            $table->string('last_name', 30);
+            $table->string('phone_number', 20)->nullable();
+            $table->date('date_of_birth')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('user_id');
-            $table->index(['name', 'surname']);
+            $table->index(['first_name', 'last_name']);
         });
 
     }

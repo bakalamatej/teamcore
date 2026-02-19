@@ -105,8 +105,8 @@
                         <div class="space-y-2">
                             @foreach($event->activeMembers as $member)
                                 <div class="detail-list-item">
-                                    <span class="font-medium text-gray-900">{{ $member->full_name ?? $member->name }}</span>
-                                    <span class="detail-list-secondary">{{ $member->email }}</span>
+                                    <span class="font-medium text-gray-900">{{ $member->full_name }}</span>
+                                    <span class="detail-list-secondary">{{ $member->user?->email ?? 'N/A' }}</span>
                                 </div>
                             @endforeach
                         </div>

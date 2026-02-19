@@ -18,10 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
-        'role',
+        'is_admin',
     ];
 
     /**
@@ -84,24 +83,45 @@ class User extends Authenticatable
      */
     public function fullName()
     {
-        return $this->member?->full_name;
+        return $this->member ? "{$this->member->first_name} {$this->member->last_name}" : null;
     }
 
     // -----------------------
     // Role helpers
     // -----------------------
+    
+    /**
+     * Get user's primary role (admin takes precedence)
+     */
+    public function getRole(): string
+    {
+        if ($this->is_admin) {
+            return 'admin';
+        }
+
+        if (!$this->member) {
+            return 'player';
+        }
+        
+        $role = $this->member->activeClubs()
+            ->orderBy('member_club.created_at', 'asc')
+            ->first()?->pivot->role ?? 'player';
+        
+        return $role;
+    }
+
     public function isPlayer(): bool
     {
-        return $this->role === 'player';
+        return $this->getRole() === 'player';
     }
 
     public function isCoach(): bool
     {
-        return $this->role === 'coach';
+        return $this->getRole() === 'coach';
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->is_admin;
     }
 }

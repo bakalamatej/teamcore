@@ -89,7 +89,7 @@
                                                     {{ $member->user?->email ?? '-' }}
                                                 </a>
                                             </td>
-                                            <td class="py-3 px-4">{{ $member->phone ?? '-' }}</td>
+                                            <td class="py-3 px-4">{{ $member->phone_number ?? '-' }}</td>
                                             <td class="py-3 px-4">
                                                 <span class="position-badge 
                                                     {{ $member->position === 'coach' ? 'position-coach' : 'position-player' }}">

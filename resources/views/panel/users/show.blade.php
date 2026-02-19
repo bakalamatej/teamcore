@@ -10,15 +10,15 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
                 <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="my-heading text-2xl">{{ $user->name }}</h1>
+                <h1 class="my-heading text-2xl">{{ $user->member?->full_name ?? 'N/A' }}</h1>
                 <p class="text-gray-600">{{ $user->email }}</p>
             </div>
             <span class="px-3 py-1 rounded-full text-sm font-semibold
-                @if($user->role === 'admin') bg-red-200 text-red-800
-                @elseif($user->role === 'coach') bg-blue-200 text-blue-800
+                @if($user->getRole() === 'admin') bg-red-200 text-red-800
+                @elseif($user->getRole() === 'coach') bg-blue-200 text-blue-800
                 @else bg-green-200 text-green-800
                 @endif">
-                {{ ucfirst($user->role) }}
+                {{ ucfirst($user->getRole()) }}
             </span>
         </div>
 
@@ -31,8 +31,13 @@
                     
                     <div class="space-y-4">
                         <div class="detail-item">
-                            <span class="detail-item-label">{{ __('Name:') }}</span>
-                            <span class="detail-item-value">{{ $user->name }}</span>
+                            <span class="detail-item-label">{{ __('First Name:') }}</span>
+                            <span class="detail-item-value">{{ $user->member?->first_name ?? 'N/A' }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-item-label">{{ __('Last Name:') }}</span>
+                            <span class="detail-item-value">{{ $user->member?->last_name ?? 'N/A' }}</span>
                         </div>
 
                         <div class="detail-item">
@@ -41,8 +46,29 @@
                         </div>
 
                         <div class="detail-item">
-                            <span class="detail-item-label">{{ __('Role:') }}</span>
-                            <span class="detail-item-value">{{ ucfirst($user->role) }}</span>
+                            <span class="detail-item-label">{{ __('Phone:') }}</span>
+                            <span class="detail-item-value">{{ $user->member?->phone_number ?? 'N/A' }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-item-label">{{ __('Date of Birth:') }}</span>
+                            <span class="detail-item-value">{{ $user->member?->date_of_birth?->format('d.m.Y') ?? 'N/A' }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-item-label">{{ __('Admin Status:') }}</span>
+                            <span class="detail-item-value">
+                                @if($user->is_admin)
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-200 text-red-800">{{ __('Admin') }}</span>
+                                @else
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-200 text-green-800">{{ __('User') }}</span>
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-item-label">{{ __('Primary Role:') }}</span>
+                            <span class="detail-item-value">{{ ucfirst($user->getRole()) }}</span>
                         </div>
 
                         <div class="detail-item-divider">

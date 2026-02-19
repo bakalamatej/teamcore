@@ -56,6 +56,25 @@
                                         <!-- View button (all users) -->
                                         <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
 
+                                        <!-- Register button (if event is from user's club and not yet registered) -->
+                                        @auth
+                                            @if(auth()->user()->member)
+                                                @php
+                                                    $userClubIds = auth()->user()->member->activeClubs()->pluck('clubs.id')->toArray();
+                                                    $eventClubIds = $event->activeClubs()->pluck('clubs.id')->toArray();
+                                                    $eventBelongsToUserClub = !empty(array_intersect($userClubIds, $eventClubIds));
+                                                    $isRegistered = auth()->user()->member->activeEvents()->where('event_id', $event->id)->exists();
+                                                @endphp
+
+                                                @if($eventBelongsToUserClub && !$isRegistered)
+                                                    <form method="POST" action="{{ route('events.register', $event) }}" class="inline-block">
+                                                        @csrf
+                                                        <button type="submit" class="table-action register mr-2">{{ __('Register') }}</button>
+                                                    </form>
+                                                @endif
+                                            @endif
+                                        @endauth
+
                                         <!-- Edit/Delete buttons (admin or coach only) -->
                                         @auth
                                             @if(auth()->user()->isAdmin() || auth()->user()->isCoach())

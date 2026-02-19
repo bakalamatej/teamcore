@@ -15,15 +15,15 @@ class Member extends Model
 
     protected $fillable = [
         'user_id',
-        'name',
-        'surname',
-        'email',
-        'phone',
+        'first_name',
+        'last_name',
+        'phone_number',
+        'date_of_birth',
     ];
 
-    // -----------------------
-    // Relationships
-    // -----------------------
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
 
     public function user()
     {
@@ -52,7 +52,7 @@ class Member extends Model
 
     public function myEvents()
     {
-        $clubIds = $this->activeClubs()->pluck('id');
+        $clubIds = $this->activeClubs()->pluck('clubs.id');
 
         return Event::whereHas('members', function($q) {
                     $q->where('member_id', $this->id)
@@ -76,7 +76,7 @@ class Member extends Model
      */
     public function getFullNameAttribute()
     {
-        return "{$this->name} {$this->surname}";
+        return "{$this->first_name} {$this->last_name}";
     }
 
     /**

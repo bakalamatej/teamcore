@@ -16,13 +16,15 @@ class EventController extends Controller
         $sportFields = SportField::all();
         $eventTypes = EventType::all();
         
-        $query = Event::query();
-
-        // Show user's events if requested, otherwise latest events
-        if ($request->has('my_events') && Auth::check() && Auth::user()->member) {
+        if (Auth::user()->isAdmin()) {
+            // Admin - show all events
+            $query = Event::query();
+        } elseif (Auth::user()->member) {
+            // Member - show only their events (registered + club events)
             $query = Auth::user()->member->myEvents();
         } else {
-            $query = $query->latest();
+            // User without member profile - no access
+            $query = Event::query()->whereRaw('1=0');
         }
 
         // Search by title
@@ -138,5 +140,40 @@ class EventController extends Controller
 
         $event->delete();
         return redirect()->route('events.index');
+    }
+
+    // Register user to event (if event belongs to user's club and user not registered yet)
+    public function register(Event $event)
+    {
+        // Check if user is authenticated and has member profile
+        if (!Auth::check() || !Auth::user()->member) {
+            abort(403);
+        }
+
+        $member = Auth::user()->member;
+        
+        // Check if event belongs to one of user's clubs
+        $userClubIds = $member->activeClubs()->pluck('clubs.id')->toArray();
+        $eventClubIds = $event->activeClubs()->pluck('clubs.id')->toArray();
+        
+        $eventBelongsToUserClub = !empty(array_intersect($userClubIds, $eventClubIds));
+        
+        if (!$eventBelongsToUserClub) {
+            abort(403, 'This event does not belong to your club');
+        }
+
+        // Check if user is already registered for this event
+        $alreadyRegistered = $member->activeEvents()
+            ->where('event_id', $event->id)
+            ->exists();
+        
+        if ($alreadyRegistered) {
+            return redirect()->route('events.index')->with('info', 'You are already registered for this event');
+        }
+
+        // Register user to event
+        $member->events()->attach($event->id);
+
+        return redirect()->route('events.index')->with('success', 'You have successfully registered for the event!');
     }
 }

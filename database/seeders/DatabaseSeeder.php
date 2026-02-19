@@ -56,24 +56,21 @@ class DatabaseSeeder extends Seeder
         // Users
         // -----------------------
         $user = User::factory()->create([
-            'name' => 'Test User',
             'email' => 'test@example.com',
-            'role' => 'player',
             'password' => bcrypt('password'),
+            'is_admin' => false,
         ]);
 
         $coach = User::factory()->create([
-            'name' => 'Coach User',
             'email' => 'coach@example.com',
-            'role' => 'coach',
             'password' => bcrypt('password'),
+            'is_admin' => false,
         ]);
 
         $admin = User::factory()->create([
-            'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'role' => 'admin',
             'password' => bcrypt('password'),
+            'is_admin' => true,
         ]);
 
         // -----------------------
@@ -81,18 +78,26 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         $member = Member::create([
             'user_id' => $user->id,
-            'name' => 'John',
-            'surname' => 'Doe',
-            'email' => 'john.doe@example.com',
-            'phone' => '0900123456',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone_number' => '0900123456',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $coachMember = Member::create([
             'user_id' => $coach->id,
-            'name' => 'Jane',
-            'surname' => 'Smith',
-            'email' => 'jane.smith@example.com',
-            'phone' => '0900654321',
+            'first_name' => 'Jane',
+            'last_name' => 'Smith',
+            'phone_number' => '0900654321',
+            'date_of_birth' => '1988-03-20',
+        ]);
+
+        $adminMember = Member::create([
+            'user_id' => $admin->id,
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'phone_number' => '0900999999',
+            'date_of_birth' => '1985-01-10',
         ]);
 
         // -----------------------
@@ -217,8 +222,9 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         // Attach members to clubs
         // -----------------------
-        $member->clubs()->attach($club1->id, ['joined_at' => now()]);
-        $coachMember->clubs()->attach($club2->id, ['joined_at' => now()]);
+        $member->clubs()->attach($club1->id, ['joined_at' => now(), 'role' => 'player']);
+        $coachMember->clubs()->attach($club2->id, ['joined_at' => now(), 'role' => 'coach']);
+        $adminMember->clubs()->attach($club1->id, ['joined_at' => now(), 'role' => 'admin']);
 
         // -----------------------
         // Event member results

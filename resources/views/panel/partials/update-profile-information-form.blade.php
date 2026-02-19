@@ -19,9 +19,27 @@
 
         <div class="flex flex-col gap-4">
             <div>
-                <x-input-label for="name" :value="__('Name')" />
-                <x-text-input id="name" name="name" type="text" class="mt-1 block w-[70%]" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-                <x-input-error class="mt-2" :messages="$errors->get('name')" />
+                <x-input-label for="first_name" :value="__('First Name')" />
+                <x-text-input id="first_name" name="first_name" type="text" class="mt-1 block w-[70%]" :value="old('first_name', $user->member?->first_name ?? '')" required autofocus />
+                <x-input-error class="mt-2" :messages="$errors->get('first_name')" />
+            </div>
+
+            <div>
+                <x-input-label for="last_name" :value="__('Last Name')" />
+                <x-text-input id="last_name" name="last_name" type="text" class="mt-1 block w-[70%]" :value="old('last_name', $user->member?->last_name ?? '')" required />
+                <x-input-error class="mt-2" :messages="$errors->get('last_name')" />
+            </div>
+
+            <div>
+                <x-input-label for="phone_number" :value="__('Phone Number')" />
+                <x-text-input id="phone_number" name="phone_number" type="tel" class="mt-1 block w-[70%]" :value="old('phone_number', $user->member?->phone_number ?? '')" />
+                <x-input-error class="mt-2" :messages="$errors->get('phone_number')" />
+            </div>
+
+            <div>
+                <x-input-label for="date_of_birth" :value="__('Date of Birth')" />
+                <x-text-input id="date_of_birth" name="date_of_birth" type="date" class="mt-1 block w-[70%]" :value="old('date_of_birth', $user->member?->date_of_birth?->format('Y-m-d') ?? '')" />
+                <x-input-error class="mt-2" :messages="$errors->get('date_of_birth')" />
             </div>
 
             <div>

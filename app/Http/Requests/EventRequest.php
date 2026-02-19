@@ -17,7 +17,7 @@ class EventRequest extends FormRequest
             return false;
         }
 
-        return in_array($user->role, ['coach', 'admin']);
+        return $user->isCoach() || $user->isAdmin();
     } 
 
     /**

@@ -13,7 +13,7 @@ class ClubController extends Controller
     public function index(Request $request)
     {
         // Get unique cities for filter dropdown
-        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
         $clubs = Club::query();
@@ -41,7 +41,7 @@ class ClubController extends Controller
         $this->authorizeAdmin();
 
         // Get unique cities for filter dropdown
-        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
         $clubs = Club::query();
@@ -69,7 +69,7 @@ class ClubController extends Controller
         $user = Auth::user();
         
         // Get unique cities for filter dropdown
-        $cities = \App\Models\Address::distinct()->pluck('city')->toArray();
+        $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
         // Get user's active clubs (or empty query if user has no member record)

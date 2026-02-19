@@ -33,18 +33,7 @@
                             />
                         </div>
 
-                        <div class="flex-1">
-                            <x-input-label :value="__('Role')" />
-                            <x-select-input
-                                id="role"
-                                name="role"
-                                :options="['' => __('All roles'), 'player' => __('Player'), 'coach' => __('Coach'), 'admin' => __('Admin')]"
-                                :selected="request('role')"
-                                class="mt-1 block w-full text-sm"
-                            />
-                        </div>
-
-                        <!-- ZMENENÉ - Pridajte mt-7 aby bol button zarovnaný s inputmi -->
+                        <!-- Filter button -->
                         <div class="flex items-end">
                             <x-primary-button type="submit" class="mt-7">
                                 {{ __('Filter') }}
@@ -68,17 +57,17 @@
                         <tbody>
                             @forelse($users as $user)
                                 <tr class="border-b hover:bg-gray-50 data-row"
-                                    data-name="{{ strtolower($user->name) }}"
+                                    data-name="{{ strtolower($user->member?->full_name ?? '') }}"
                                     data-email="{{ strtolower($user->email) }}">
-                                    <td class="p-3 font-medium">{{ $user->name }}</td>
+                                    <td class="p-3 font-medium">{{ $user->member?->full_name ?? 'N/A' }}</td>
                                     <td class="p-3 text-sm text-gray-600">{{ $user->email }}</td>
                                     <td class="p-3 text-center">
                                         <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                            @if($user->role === 'admin') bg-red-200 text-red-800
-                                            @elseif($user->role === 'coach') bg-blue-200 text-blue-800
+                                            @if($user->getRole() === 'admin') bg-red-200 text-red-800
+                                            @elseif($user->getRole() === 'coach') bg-blue-200 text-blue-800
                                             @else bg-green-200 text-green-800
                                             @endif">
-                                            {{ ucfirst($user->role) }}
+                                            {{ ucfirst($user->getRole()) }}
                                         </span>
                                     </td>
                                     <td class="p-3 text-sm text-gray-600">{{ $user->created_at->format('d.m.Y') }}</td>

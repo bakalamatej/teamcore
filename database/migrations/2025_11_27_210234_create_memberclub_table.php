@@ -15,6 +15,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('member_id');
             $table->unsignedBigInteger('club_id');
+            $table->string('role', 20)->default('player');
 
             $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
             $table->foreign('club_id')->references('id')->on('clubs')->onDelete('cascade');
@@ -27,6 +28,7 @@ return new class extends Migration
 
             $table->index('member_id');
             $table->index('club_id');
+            $table->index('role');
         });
     }
 

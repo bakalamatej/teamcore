@@ -19,13 +19,11 @@ class UserController extends Controller
 
         // Search by name or email
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-        }
-
-        // Filter by role (player/coach/admin)
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
+            $query->whereHas('member', function($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('last_name', 'like', '%' . $request->search . '%');
+            })
+            ->orWhere('email', 'like', '%' . $request->search . '%');
         }
 
         $users = $query->with('member')->paginate(15);
@@ -62,14 +60,23 @@ class UserController extends Controller
             abort(403);
         }
 
-        // Validate user data
+        // Validate user and member data
         $request->validate([
-            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:player,coach,admin',
+            'first_name' => 'required|string|max:30',
+            'last_name' => 'required|string|max:30',
+            'phone_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'is_admin' => 'nullable|boolean',
         ]);
 
-        $user->update($request->only(['name', 'email', 'role']));
+        // Update user email and is_admin
+        $user->update($request->only(['email', 'is_admin']));
+
+        // Update member data if member exists
+        if ($user->member) {
+            $user->member->update($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+        }
 
         // Return JSON for AJAX or redirect
         if ($request->ajax() || $request->expectsJson()) {

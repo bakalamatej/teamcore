@@ -18,17 +18,26 @@ class PanelController extends Controller
         ]);
     }
 
-    // Update user profile (name, email)
+    // Update user profile (email and member information)
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        // Update user email
+        $user = $request->user();
+        $user->fill($request->only('email'));
 
         // Reset email verification if email changed
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
+        $user->save();
 
-        $request->user()->save();
+        // Update or create member information
+        if ($user->member) {
+            $user->member->update($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+        } else {
+            // Create member if doesn't exist
+            $user->member()->create($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+        }
 
         return Redirect::route('panel.index')
             ->with('status', 'profile-updated');

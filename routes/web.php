@@ -19,7 +19,6 @@ Route::get('/', function () {
 // PROTECTED ROUTES 
 // --------------------------------------------------
 Route::middleware(['auth'])->group(function () {
-    // Calendar & Gallery
     Route::get('/calendar', function () {
         return view('calendar');
     })->name('calendar');
@@ -42,7 +41,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
         });
         
-        // Generic route at the end
+        // Generic route
         Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
     });
 
@@ -95,6 +94,7 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::post('/{event}/register', [EventController::class, 'register'])->name('events.register');
         
         // Admin & Coach only - Edit & Delete
         Route::middleware('admin_or_coach')->group(function () {
@@ -103,7 +103,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{event}', [EventController::class, 'destroy'])->name('events.destroy');
         });
         
-        // Generic route at the end
+        // Generic route
         Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
     });
 
@@ -111,19 +111,10 @@ Route::middleware(['auth'])->group(function () {
     // FILE ROUTES
     // --------------------------------------------------
     Route::prefix('files')->group(function () {
-        // Upload file to a model (event, member, club)
         Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
-        
-        // List all files for a model
         Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
-        
-        // List files by category
         Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
-        
-        // Delete file from model
         Route::delete('/{modelType}/{modelId}/{fileRelationId}', [FileController::class, 'delete'])->name('files.delete');
-        
-        // Download file
         Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
     });
 });

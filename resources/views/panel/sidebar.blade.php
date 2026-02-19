@@ -1,6 +1,6 @@
 @php
     // Determine user role for conditional menu display
-    $role = Auth::user()->role ?? null;
+    $role = Auth::user()->getRole() ?? 'player';
     $panelLabel = match ($role) {
         'admin' => 'Admin panel',
         'coach' => 'Coach panel',
