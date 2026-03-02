@@ -12,22 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_club_results', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('event_id');
-            $table->unsignedBigInteger('club_id');
-            $table->integer('score')->nullable(); 
-            $table->integer('ranking')->nullable(); 
-            $table->text('note')->nullable();
+            $table->id('result_id');
 
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-            $table->foreign('club_id')->references('id')->on('clubs')->onDelete('cascade');
+            $table->foreignId('event_id')
+                ->constrained('events', 'event_id')
+                ->cascadeOnDelete();
+
+            $table->foreignId('club_id')
+                ->constrained('clubs', 'club_id')
+                ->cascadeOnDelete();
+
+            $table->integer('score')->nullable();
+            $table->integer('ranking')->nullable();
+            $table->longText('note')->nullable();
+            $table->timestamps();
 
             $table->unique(['event_id', 'club_id']);
-            $table->index('event_id');
             $table->index('club_id');
-
-            $table->softDeletes();
-            $table->timestamps();
         });
 
     }
@@ -37,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('clubresults');
+        Schema::dropIfExists('event_club_results');
     }
 };

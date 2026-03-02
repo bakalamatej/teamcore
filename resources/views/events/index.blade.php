@@ -1,6 +1,6 @@
 <!-- Load event search JS for real-time filtering -->
 @push('scripts')
-    @vite(['resources/js/events/event-search.js'])
+    @vite(['resources/js/shared/table-search.js'])
 @endpush
 
 <x-app-layout>
@@ -56,7 +56,7 @@
                                         <!-- View button (all users) -->
                                         <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
 
-                                        <!-- Register button (if event is from user's club and not yet registered) -->
+                                        <!-- Register/Unregister button (if event is from user's club) -->
                                         @auth
                                             @if(auth()->user()->member)
                                                 @php
@@ -66,48 +66,21 @@
                                                     $isRegistered = auth()->user()->member->activeEvents()->where('event_id', $event->id)->exists();
                                                 @endphp
 
-                                                @if($eventBelongsToUserClub && !$isRegistered)
-                                                    <form method="POST" action="{{ route('events.register', $event) }}" class="inline-block">
-                                                        @csrf
-                                                        <button type="submit" class="table-action register mr-2">{{ __('Register') }}</button>
-                                                    </form>
+                                                @if($eventBelongsToUserClub)
+                                                    @if($isRegistered)
+                                                        <!-- Unregister button -->
+                                                        <form method="POST" action="{{ route('events.unregister', $event) }}" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit" class="table-action unregister mr-2">{{ __('Unregister') }}</button>
+                                                        </form>
+                                                    @else
+                                                        <!-- Register button -->
+                                                        <form method="POST" action="{{ route('events.register', $event) }}" class="inline-block">
+                                                            @csrf
+                                                            <button type="submit" class="table-action register mr-2">{{ __('Register') }}</button>
+                                                        </form>
+                                                    @endif
                                                 @endif
-                                            @endif
-                                        @endauth
-
-                                        <!-- Edit/Delete buttons (admin or coach only) -->
-                                        @auth
-                                            @if(auth()->user()->isAdmin() || auth()->user()->isCoach())
-                                                <a href="{{ route('events.edit', $event) }}" class="table-action edit mr-2">{{ __('Edit') }}</a>
-
-                                                <button type="button" class="table-action delete"
-                                                        x-data
-                                                        x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')">
-                                                    {{ __('Delete') }}
-                                                </button>
-
-                                                <x-modal name="confirm-event-deletion-{{ $event->id }}" :show="false" focusable>
-                                                    <form method="POST" action="{{ route('events.destroy', $event) }}" class="p-6 text-left">
-                                                        @csrf
-                                                        @method('DELETE')
-
-                                                        <h2 class="my-heading">{{ __('Delete Event') }}</h2>
-                                                        <p class="my-text">
-                                                            {{ __('Are you sure you want to delete') }} <strong>{{ $event->title }}</strong>?
-                                                            {{ __('This action cannot be undone.') }}
-                                                        </p>
-
-                                                        <div class="flex justify-end gap-3 mt-6">
-                                                            <x-secondary-button type="button" x-on:click="$dispatch('close')">
-                                                                {{ __('Cancel') }}
-                                                            </x-secondary-button>
-
-                                                            <x-danger-button type="submit">
-                                                                {{ __('Delete Event') }}
-                                                            </x-danger-button>
-                                                        </div>
-                                                    </form>
-                                                </x-modal>
                                             @endif
                                         @endauth
                                     </td>
@@ -129,4 +102,4 @@
             </div>
         </main>    
     </div>    
-</x-app-layout>
+</x-app-layout> 

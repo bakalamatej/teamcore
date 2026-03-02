@@ -1,6 +1,6 @@
 <!-- Load user search JS for real-time filtering -->
 @push('scripts')
-    @vite(['resources/js/users/user-search.js'])
+    @vite(['resources/js/shared/table-search.js'])
 @endpush
 
 <x-app-layout>
@@ -56,9 +56,7 @@
                         </thead>
                         <tbody>
                             @forelse($users as $user)
-                                <tr class="border-b hover:bg-gray-50 data-row"
-                                    data-name="{{ strtolower($user->member?->full_name ?? '') }}"
-                                    data-email="{{ strtolower($user->email) }}">
+                                <tr class="border-b hover:bg-gray-50 data-row">
                                     <td class="p-3 font-medium">{{ $user->member?->full_name ?? 'N/A' }}</td>
                                     <td class="p-3 text-sm text-gray-600">{{ $user->email }}</td>
                                     <td class="p-3 text-center">

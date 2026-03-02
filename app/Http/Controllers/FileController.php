@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\Member;
 use App\Models\Club;
 use App\Models\File;
 use App\Http\Requests\FileUploadRequest;
@@ -23,10 +22,10 @@ class FileController extends Controller
     }
 
     /**
-     * Upload file for a model (Event, Member, Club)
+     * Upload file for a model (Event, Club, MemberClub)
      *
      * @param FileUploadRequest $request
-     * @param string $modelType (event, member, club)
+     * @param string $modelType (event, club, member_club)
      * @param int $modelId
      * @return JsonResponse
      */
@@ -61,8 +60,8 @@ class FileController extends Controller
                 $request->file('file')
             );
 
-            // Attach file to model
-            $model->attachFile($file, $request->input('category'));
+            // Attach file to model using appropriate relationship
+            $this->attachFileToModel($model, $file, $request->input('category'), $modelType);
 
             return response()->json([
                 'success' => true,
@@ -79,9 +78,9 @@ class FileController extends Controller
     }
 
     /**
-     * Get all files for a model (Event, Member, Club)
+     * Get all files for a model (Event, Club, MemberClub)
      *
-     * @param string $modelType (event, member, club)
+     * @param string $modelType (event, club, member_club)
      * @param int $modelId
      * @return JsonResponse
      */
@@ -97,22 +96,24 @@ class FileController extends Controller
                 ], 404);
             }
 
-            $fileRelations = $model->fileRelations()
-                                   ->with('file')
-                                   ->get();
+            $files = $this->getFilesForModel($model, $modelType);
 
             return response()->json([
                 'success' => true,
-                'files' => $fileRelations->map(function ($relation) {
+                'files' => $files->map(function ($item) {
+                    // Pivot table result
+                    $file = $item->file;
+                    $category = $item->pivot->file_category;
+                    $created_at = $item->pivot->created_at;
+
                     return [
-                        'id' => $relation->id,
-                        'file_id' => $relation->file_id,
-                        'file_name' => $relation->file->file_name,
-                        'file_size' => $relation->file->file_size,
-                        'file_type' => $relation->file->file_type,
-                        'category' => $relation->file_category,
-                        'created_at' => $relation->created_at,
-                        'url' => $this->fileService->getDownloadUrl($relation->file),
+                        'file_id' => $file->id,
+                        'file_name' => $file->file_name,
+                        'file_size' => $file->file_size,
+                        'file_type' => $file->file_type,
+                        'category' => $category,
+                        'created_at' => $created_at,
+                        'url' => $this->fileService->getDownloadUrl($file),
                     ];
                 })
             ]);
@@ -128,7 +129,7 @@ class FileController extends Controller
     /**
      * Get files of specific category for a model
      *
-     * @param string $modelType (event, member, club)
+     * @param string $modelType (event, club, member_club)
      * @param int $modelId
      * @param string $category
      * @return JsonResponse
@@ -145,12 +146,18 @@ class FileController extends Controller
                 ], 404);
             }
 
-            $files = $model->filesByCategory($category);
+            $files = $this->getFilesForModel($model, $modelType, $category);
 
             return response()->json([
                 'success' => true,
                 'category' => $category,
-                'files' => $files->map(function ($file) {
+                'files' => $files->map(function ($item) use ($modelType) {
+                    if ($modelType === 'member') {
+                        $file = $item->file;
+                    } else {
+                        $file = $item->file;
+                    }
+
                     return [
                         'id' => $file->id,
                         'file_name' => $file->file_name,
@@ -172,12 +179,12 @@ class FileController extends Controller
     /**
      * Delete a file from a model
      *
-     * @param string $modelType (event, member, club)
+     * @param string $modelType (event, club, member_club)
      * @param int $modelId
-     * @param int $fileRelationId
+     * @param int $fileId
      * @return JsonResponse
      */
-    public function delete(string $modelType, int $modelId, int $fileRelationId): JsonResponse
+    public function delete(string $modelType, int $modelId, int $fileId): JsonResponse
     {
         try {
             $model = $this->getModel($modelType, $modelId);
@@ -189,29 +196,22 @@ class FileController extends Controller
                 ], 404);
             }
 
-            // Find and verify the file relation belongs to this model
-            $fileRelation = $model->fileRelations()
-                                 ->where('id', $fileRelationId)
-                                 ->first();
-
-            if (!$fileRelation) {
+            $file = File::find($fileId);
+            if (!$file) {
                 return response()->json([
                     'success' => false,
                     'message' => FileMessages::FILE_NOT_FOUND
                 ], 404);
             }
 
-            // Get the file before deleting relation
-            $file = $fileRelation->file;
-
-            // Delete the relation
-            $fileRelation->delete();
+            // Detach file from model using appropriate relationship
+            $this->detachFileFromModel($model, $file, $modelType);
 
             // Check if this file is used by other models
-            $otherRelations = $file->fileRelations()->count();
+            $otherUsages = $this->countFileUsages($file);
 
-            // If no other relations, delete the file
-            if ($otherRelations === 0) {
+            // If no other usages, delete the file
+            if ($otherUsages === 0) {
                 $this->fileService->deleteFile($file);
             }
 
@@ -256,9 +256,80 @@ class FileController extends Controller
     {
         return match ($modelType) {
             'event' => Event::find($modelId),
-            'member' => Member::find($modelId),
             'club' => Club::find($modelId),
+            'member_club' => \App\Models\MemberClub::find($modelId),
             default => null,
         };
+    }
+
+    /**
+     * Attach file to model using appropriate relationship
+     *
+     * @param mixed $model
+     * @param File $file
+     * @param string $category
+     * @param string $modelType
+     */
+    private function attachFileToModel($model, File $file, string $category, string $modelType): void
+    {
+        match ($modelType) {
+            'event' => $model->eventFiles()->attach($file->id, ['file_category' => $category]),
+            'club' => $model->clubFiles()->attach($file->id, ['file_category' => $category]),
+            'member_club' => $model->memberClubFiles()->attach($file->id, ['file_category' => $category]),
+        };
+    }
+
+    /**
+     * Detach file from model using appropriate relationship
+     *
+     * @param mixed $model
+     * @param File $file
+     * @param string $modelType
+     */
+    private function detachFileFromModel($model, File $file, string $modelType): void
+    {
+        match ($modelType) {
+            'event' => $model->eventFiles()->detach($file->id),
+            'club' => $model->clubFiles()->detach($file->id),
+            'member_club' => $model->memberClubFiles()->detach($file->id),
+        };
+    }
+
+    /**
+     * Get files for a model, filtered by category if provided
+     *
+     * @param mixed $model
+     * @param string $modelType
+     * @param string|null $category
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private function getFilesForModel($model, string $modelType, ?string $category = null)
+    {
+        $files = match ($modelType) {
+            'event' => $model->eventFiles()->with('file'),
+            'club' => $model->clubFiles()->with('file'),
+            'member_club' => $model->memberClubFiles()->with('file'),
+        };
+
+        if ($category) {
+            $files = $files->wherePivot('file_category', $category);
+        }
+
+        return $files->get();
+    }
+
+    /**
+     * Count how many models use a file
+     *
+     * @param File $file
+     * @return int
+     */
+    private function countFileUsages(File $file): int
+    {
+        $count = 0;
+        $count += $file->clubs()->count();
+        $count += $file->events()->count();
+        $count += $file->memberClubs()->count();
+        return $count;
     }
 }

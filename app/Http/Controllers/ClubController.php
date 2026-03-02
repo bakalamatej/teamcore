@@ -4,19 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Club;
 use App\Models\Address;
+use App\Models\Sport;
+use App\Http\Requests\ClubRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ClubController extends Controller
 {
-    // List all clubs with search and city filtering
+    // List user's clubs with search and city filtering
     public function index(Request $request)
     {
+        $user = Auth::user();
+        
         // Get unique cities for filter dropdown
         $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
-        $clubs = Club::query();
+        // Get user's active clubs (or empty query if user has no member record)
+        $clubs = $user->activeClubs() ?? Club::query()->whereRaw('1=0');
         
         // Search by club name
         if ($request->filled('search')) {
@@ -44,6 +49,10 @@ class ClubController extends Controller
         $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
+        // Get unique sports for filter dropdown
+        $sports = Sport::whereHas('clubs')->orderBy('name')->pluck('name', 'id')->toArray();
+        $sportOptions = $sports;
+        
         $clubs = Club::query();
         
         // Search by club name
@@ -58,9 +67,14 @@ class ClubController extends Controller
             });
         }
         
-        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
+        // Filter by sport
+        if ($request->filled('sport')) {
+            $clubs->where('sport_id', request('sport'));
+        }
         
-        return view('panel.clubs.index', compact('clubs', 'cityOptions'));
+        $clubs = $clubs->with('address', 'sport', 'members', 'events')->paginate(10);
+        
+        return view('panel.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
     }
 
     // List user's clubs (clubs where user is a member)
@@ -105,24 +119,14 @@ class ClubController extends Controller
         $this->authorizeAdmin();
 
         $addresses = Address::orderBy('city')->get();
-        return view('panel.clubs.create', compact('addresses'));
+        $sports = Sport::all();
+        return view('panel.clubs.create', compact('addresses', 'sports'));
     }
 
     // Store new club in database (admin only)
-    public function store(Request $request)
+    public function store(ClubRequest $request)
     {
-        $this->authorizeAdmin();
-
-        // Validate club data
-        $request->validate([
-            'name' => 'required|string|max:30|unique:clubs,name',
-            'phone' => 'required|string|max:20|unique:clubs,phone',
-            'email' => 'required|email|max:56|unique:clubs,email',
-            'webpage' => 'nullable|url|max:255',
-            'address_id' => 'nullable|exists:addresses,id',
-        ]);
-
-        Club::create($request->only(['name','phone','email','webpage','address_id']));
+        Club::create($request->validated());
 
         return redirect()->route('clubs.index')->with('success', 'Club created successfully!');
     }
@@ -133,24 +137,14 @@ class ClubController extends Controller
         $this->authorizeAdmin();
 
         $addresses = Address::orderBy('city')->get();
-        return view('panel.clubs.edit', compact('club', 'addresses'));
+        $sports = Sport::all();
+        return view('panel.clubs.edit', compact('club', 'addresses', 'sports'));
     }
 
     // Update club in database (admin only)
-    public function update(Request $request, Club $club)
+    public function update(ClubRequest $request, Club $club)
     {
-        $this->authorizeAdmin();
-
-        // Validate club data (unique excluding current club)
-        $request->validate([
-            'name' => 'required|string|max:30|unique:clubs,name,' . $club->id,
-            'phone' => 'required|string|max:20|unique:clubs,phone,' . $club->id,
-            'email' => 'required|email|max:56|unique:clubs,email,' . $club->id,
-            'webpage' => 'nullable|url|max:255',
-            'address_id' => 'nullable|exists:addresses,id',
-        ]);
-
-        $club->update($request->only(['name','phone','email','webpage','address_id']));
+        $club->update($request->validated());
 
         return redirect()->route('clubs.index')->with('success', 'Club updated successfully!');
     }

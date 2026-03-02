@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasFiles;
+use App\Models\EventFile;
 
 class Event extends Model
 {
     use SoftDeletes, HasFiles;
 
     protected $table = 'events';
+    protected $primaryKey = 'event_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'sport_field_id',
@@ -62,6 +66,14 @@ class Event extends Model
                     ->using(MemberEvent::class)
                     ->withTimestamps()
                     ->withPivot('deleted_at');
+    }
+
+    public function eventFiles()
+    {
+        return $this->belongsToMany(File::class, 'event_files', 'event_id', 'file_id')
+                    ->using(EventFile::class)
+                    ->withPivot('file_category')
+                    ->withTimestamps();
     }
 
     /**

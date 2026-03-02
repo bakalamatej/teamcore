@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Sport extends Model
 {
     protected $table = 'sports';
+    protected $primaryKey = 'sport_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'name',

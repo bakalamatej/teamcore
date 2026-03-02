@@ -12,13 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('files', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('file_name');
-            $table->string('file_path', 500);
-            $table->string('file_type', 20)->nullable();
-            $table->integer('file_size')->nullable();
-            
+            $table->id('file_id');
+
+            $table->foreignId('uploaded_by_user_id')
+                ->constrained('users', 'user_id')
+                ->restrictOnDelete();
+
+            $table->string('file_name', 300);     // original name
+            $table->string('file_path', 500);     // stored path
+            $table->string('file_type', 50);      // mime type
+            $table->unsignedBigInteger('file_size');
             $table->timestamps();
+
+            $table->index('uploaded_by_user_id');
+            $table->index('file_type');
         });
 
     }

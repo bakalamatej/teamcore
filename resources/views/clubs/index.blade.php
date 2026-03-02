@@ -1,6 +1,6 @@
 <!-- Load club search JS for real-time filtering -->
 @push('scripts')
-    @vite(['resources/js/clubs/club-search.js'])
+    @vite(['resources/js/shared/table-search.js'])
 @endpush
 
 <x-app-layout>
@@ -40,41 +40,6 @@
                                     <td class="p-3 text-sm text-gray-600">{{ $club->address->city ?? '-' }}</td>
                                     <td class="p-3 text-right">
                                         <a href="{{ route('clubs.show', $club) }}" class="table-action view mr-2">{{ __('View') }}</a>
-
-                                        @auth
-                                            @if(auth()->user()->isAdmin())
-                                                <a href="{{ route('clubs.edit', $club) }}" class="table-action edit mr-2">{{ __('Edit') }}</a>
-
-                                                <button type="button" class="table-action delete"
-                                                        x-data
-                                                        x-on:click="$dispatch('open-modal', 'confirm-club-deletion-{{ $club->id }}')">
-                                                    {{ __('Delete') }}
-                                                </button>
-
-                                                <x-modal name="confirm-club-deletion-{{ $club->id }}" :show="false" focusable>
-                                                    <form method="POST" action="{{ route('clubs.destroy', $club) }}" class="p-6 text-left">
-                                                        @csrf
-                                                        @method('DELETE')
-
-                                                        <h2 class="my-heading">{{ __('Delete Club') }}</h2>
-                                                        <p class="my-text">
-                                                            {{ __('Are you sure you want to delete') }} <strong>{{ $club->name }}</strong>?
-                                                            {{ __('This action cannot be undone.') }}
-                                                        </p>
-
-                                                        <div class="flex justify-end gap-3 mt-6">
-                                                            <x-secondary-button type="button" x-on:click="$dispatch('close')">
-                                                                {{ __('Cancel') }}
-                                                            </x-secondary-button>
-
-                                                            <x-danger-button type="submit">
-                                                                {{ __('Delete Club') }}
-                                                            </x-danger-button>
-                                                        </div>
-                                                    </form>
-                                                </x-modal>
-                                            @endif
-                                        @endauth
                                     </td>
                                 </tr>
                             @empty

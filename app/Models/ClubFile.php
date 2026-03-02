@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ClubFile extends Model
+{
+    protected $table = 'club_files';
+
+    protected $fillable = [
+        'club_id',
+        'file_id',
+        'file_category',
+    ];
+
+    // -----------------------
+    // Relationships
+    // -----------------------
+
+    /**
+     * Get the club associated with this file relationship.
+     */
+    public function club()
+    {
+        return $this->belongsTo(Club::class, 'club_id');
+    }
+
+    /**
+     * Get the file associated with this relationship.
+     */
+    public function file()
+    {
+        return $this->belongsTo(File::class, 'file_id');
+    }
+}

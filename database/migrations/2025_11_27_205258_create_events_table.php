@@ -12,21 +12,33 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('sport_field_id')->nullable();
-            $table->unsignedBigInteger('event_type_id')->nullable();
+            $table->id('event_id');
+
+            $table->foreignId('parent_event_id')
+                ->nullable()
+                ->constrained('events', 'event_id')
+                ->nullOnDelete();
+
+            $table->foreignId('sport_field_id')
+                ->constrained('sport_fields', 'sport_field_id')
+                ->restrictOnDelete();
+
+            $table->foreignId('event_type_id')
+                ->constrained('event_types', 'event_type_id')
+                ->restrictOnDelete();
+
             $table->string('title', 80);
-            $table->text('description')->nullable();
-            $table->string('status', 20)->default('scheduled');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->longText('description')->nullable();
 
-            $table->foreign('sport_field_id')->references('id')->on('sport_fields')->onDelete('set null');
-            $table->foreign('event_type_id')->references('id')->on('event_types')->onDelete('set null');
+            $table->enum('status', ['scheduled', 'canceled', 'finished', 'ongoing'])
+                ->default('scheduled');
 
-            $table->softDeletes();
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
+            $table->softDeletes();
 
+            $table->index('parent_event_id');
             $table->index('sport_field_id');
             $table->index('event_type_id');
             $table->index('status');

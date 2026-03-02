@@ -12,20 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('members', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->id('member_id');
+
+            $table->foreignId('user_id')
+                ->constrained('users', 'user_id')
+                ->cascadeOnDelete();
+
             $table->string('first_name', 30);
             $table->string('last_name', 30);
-            $table->string('phone_number', 20)->nullable();
+            $table->string('phone', 20)->nullable();
             $table->date('date_of_birth')->nullable();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->index('user_id');
-            $table->index(['first_name', 'last_name']);
+            $table->unique('user_id'); // 1:1 users -> members
+            $table->index(['last_name', 'first_name']);
         });
 
     }

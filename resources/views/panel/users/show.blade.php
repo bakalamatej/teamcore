@@ -101,7 +101,7 @@
                                 <span class="detail-item-value">{{ $user->member->phone ?? '-' }}</span>
                             </div>
 
-                            <div class="detail-item-divider">
+                            <div class="detail-item-divider detail-item">
                                 <span class="detail-item-label">{{ __('Clubs:') }}</span>
                                 <span class="detail-item-value">{{ $user->member->activeClubs->count() }}</span>
                             </div>

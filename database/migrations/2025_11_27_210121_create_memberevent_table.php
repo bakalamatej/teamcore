@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('member_event', function (Blueprint $table) {
-            $table->unsignedBigInteger('member_id');
-            $table->unsignedBigInteger('event_id');
+            $table->foreignId('member_club_id')
+                ->constrained('member_club', 'member_club_id')
+                ->cascadeOnDelete();
 
-            $table->primary(['member_id', 'event_id']);
+            $table->foreignId('event_id')
+                ->constrained('events', 'event_id')
+                ->cascadeOnDelete();
 
-            $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-
-            $table->softDeletes();
             $table->timestamps();
 
-            $table->index('member_id');
+            $table->primary(['member_club_id', 'event_id']);
             $table->index('event_id');
         });
 
@@ -34,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('memberevent');
+        Schema::dropIfExists('member_event');
     }
 };

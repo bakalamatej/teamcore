@@ -1,6 +1,6 @@
 <!-- Load club search JS for real-time filtering -->
 @push('scripts')
-    @vite(['resources/js/clubs/club-search.js'])
+    @vite(['resources/js/shared/table-search.js'])
 @endpush
 
 <x-app-layout>
@@ -45,11 +45,25 @@
                             />
                         </div>
 
+                        <div class="flex-1">
+                            <x-input-label :value="__('Sport')" />
+                            <x-select-input
+                                id="sport"
+                                name="sport"
+                                :options="$sportOptions"
+                                :selected="request('sport')"
+                                placeholder="{{ __('Select sport') }}"
+                                class="mt-1 block w-full text-sm"
+                            />
+                        </div>
+
                         <!-- Submit button aligned with inputs -->
-                        <div class="flex items-end">
-                            <x-primary-button type="submit" class="mt-7">
+                        <div class="flex items-end justify-end gap-3">
+                            <x-primary-button type="submit" class="!h-9">
                                 {{ __('Filter') }}
                             </x-primary-button>
+                            
+                            <x-add-button href="{{ route('clubs.create') }}" class="!h-9" />
                         </div>
                     </form>
                 </div>
@@ -60,21 +74,23 @@
                         <thead class="bg-gray-100">
                             <tr class="border-b">
                                 <th class="p-3 text-left">{{ __('Name') }}</th>
-                                <th class="p-3 text-left">{{ __('Email') }}</th>
-                                <th class="p-3 text-left">{{ __('City') }}</th>
-                                <th class="p-3 text-left">{{ __('Phone') }}</th>
+                                <th class="p-3 text-left">{{ __('Sport') }}</th>
+                                <th class="p-3 text-left">{{ __('Address') }}</th>
                                 <th class="p-3 text-right">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($clubs as $club)
-                                <tr class="border-b hover:bg-gray-50 data-row"
-                                    data-name="{{ strtolower($club->name) }}"
-                                    data-city="{{ strtolower($club->address->city ?? '') }}">
+                                <tr class="border-b hover:bg-gray-50 data-row">
                                     <td class="p-3 font-medium">{{ $club->name }}</td>
-                                    <td class="p-3 text-sm text-gray-600">{{ $club->email ?? '-' }}</td>
-                                    <td class="p-3 text-sm text-gray-600">{{ $club->address->city ?? '-' }}</td>
-                                    <td class="p-3 text-sm text-gray-600">{{ $club->phone ?? '-' }}</td>
+                                    <td class="p-3 text-sm text-gray-600">{{ $club->sport->name ?? '-' }}</td>
+                                    <td class="p-3 text-sm text-gray-600">
+                                        @if($club->address)
+                                            {{ $club->address->street }}, {{ $club->address->zip_code }} {{ $club->address->city }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                     <td class="p-3 text-right">
                                         <a href="{{ route('clubs.show', $club) }}" class="table-action view mr-2">
                                             {{ __('View') }}
@@ -116,7 +132,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="p-4 text-center text-gray-500">
+                                    <td colspan="4" class="p-4 text-center text-gray-500">
                                         {{ __('No clubs found') }}
                                     </td>
                                 </tr>

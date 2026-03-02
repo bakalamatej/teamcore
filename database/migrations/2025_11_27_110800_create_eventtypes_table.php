@@ -12,12 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_types', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('sport_id')->nullable();
-            $table->string('name', 30)->unique();
+            $table->id('event_type_id');
 
-            $table->foreign('sport_id')->references('id')->on('sports')->onDelete('set null');
+            $table->foreignId('sport_id')
+                ->constrained('sports', 'sport_id')
+                ->restrictOnDelete();
 
+            $table->string('name', 30);
+            $table->timestamps();
+
+            $table->unique(['sport_id', 'name']);
             $table->index('sport_id');
         });
     }
@@ -27,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('eventtypes');
+        Schema::dropIfExists('event_types');
     }
 };

@@ -4,23 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Event;
 use App\Models\EventType;
-use App\Models\SportField; 
+use App\Models\SportField;
+use App\Http\Requests\EventRequest; 
 
 class EventController extends Controller
 {
-    // List all events with optional filtering and pagination
+    // List user's events with optional filtering and pagination
     public function index(Request $request)
     {
         $sportFields = SportField::all();
         $eventTypes = EventType::all();
         
-        if (Auth::user()->isAdmin()) {
-            // Admin - show all events
-            $query = Event::query();
-        } elseif (Auth::user()->member) {
-            // Member - show only their events (registered + club events)
+        if (Auth::user()->member) {
+            // User with member profile - show only their events (registered + club events)
             $query = Auth::user()->member->myEvents();
         } else {
             // User without member profile - no access
@@ -52,6 +51,41 @@ class EventController extends Controller
         return view('events.index', compact('events', 'sportFields', 'eventTypes'));
     }
 
+    // List all events for admin panel with optional filtering and pagination
+    public function adminIndex(Request $request)
+    {
+        $this->authorizeAdmin();
+
+        $sportFields = SportField::all();
+        $eventTypes = EventType::all();
+        
+        $query = Event::query();
+
+        // Search by title
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // Filter by sport field location
+        if ($request->filled('sport_field_id')) {
+            $query->where('sport_field_id', $request->sport_field_id);
+        }
+
+        // Filter by event status (scheduled/cancelled/finished)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by event type (training/match/competition)
+        if ($request->filled('type')) {
+            $query->where('event_type_id', $request->type);
+        }
+
+        $events = $query->with('sportField', 'eventType')->paginate(10);
+
+        return view('panel.events.index', compact('events', 'sportFields', 'eventTypes'));
+    }
+
     // Show create event form
     public function create()
     {
@@ -61,26 +95,9 @@ class EventController extends Controller
     }
 
     // Store new event in database
-    public function store(Request $request)
+    public function store(EventRequest $request)
     {
-        // Validate event data
-        $request->validate([
-            'title' => 'required|min:5|max:80',
-            'sport_field_id' => 'required|exists:sport_fields,id',
-            'event_type_id' => 'nullable|exists:event_types,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|min:10'
-        ]);
-
-        $event = Event::create([
-            'title' => $request->title,
-            'sport_field_id' => $request->sport_field_id,
-            'event_type_id' => $request->event_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'description' => $request->description,
-        ]);
+        $event = Event::create($request->validated());
 
         // Return JSON for AJAX or redirect
         if ($request->ajax() || $request->expectsJson()) {
@@ -107,26 +124,9 @@ class EventController extends Controller
     }
 
     // Update event in database
-    public function update(Request $request, Event $event)
+    public function update(EventRequest $request, Event $event)
     {
-        // Validate event data
-        $request->validate([
-            'title' => 'required|min:5|max:80',
-            'sport_field_id' => 'required|exists:sport_fields,id',
-            'event_type_id' => 'nullable|exists:event_types,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|min:10'
-        ]);
-
-        $event->update([
-            'title' => $request->title,
-            'sport_field_id' => $request->sport_field_id,
-            'event_type_id' => $request->event_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'description' => $request->description,
-        ]);
+        $event->update($request->validated());
 
         return redirect()->route('events.index');
     }
@@ -162,7 +162,7 @@ class EventController extends Controller
             abort(403, 'This event does not belong to your club');
         }
 
-        // Check if user is already registered for this event
+        // Check if user is already registered for this event (active)
         $alreadyRegistered = $member->activeEvents()
             ->where('event_id', $event->id)
             ->exists();
@@ -171,9 +171,59 @@ class EventController extends Controller
             return redirect()->route('events.index')->with('info', 'You are already registered for this event');
         }
 
-        // Register user to event
-        $member->events()->attach($event->id);
+        // Check if there's a soft-deleted registration and restore it
+        $existingEntry = DB::table('member_event')
+            ->where('member_id', $member->id)
+            ->where('event_id', $event->id)
+            ->first();
+
+        if ($existingEntry) {
+            // Restore soft-deleted entry or update existing
+            DB::table('member_event')
+                ->where('member_id', $member->id)
+                ->where('event_id', $event->id)
+                ->update(['deleted_at' => null, 'updated_at' => now()]);
+        } else {
+            // Create new entry
+            $member->events()->attach($event->id);
+        }
 
         return redirect()->route('events.index')->with('success', 'You have successfully registered for the event!');
+    }
+
+    // Unregister user from event
+    public function unregister(Event $event)
+    {
+        // Check if user is authenticated and has member profile
+        if (!Auth::check() || !Auth::user()->member) {
+            abort(403);
+        }
+
+        $member = Auth::user()->member;
+
+        // Check if user is registered for this event
+        $isRegistered = $member->activeEvents()
+            ->where('event_id', $event->id)
+            ->exists();
+
+        if (!$isRegistered) {
+            return redirect()->route('events.index')->with('info', 'You are not registered for this event');
+        }
+
+        // Soft delete the registration by setting deleted_at
+        DB::table('member_event')
+            ->where('member_id', $member->id)
+            ->where('event_id', $event->id)
+            ->update(['deleted_at' => now(), 'updated_at' => now()]);
+
+        return redirect()->route('events.index')->with('success', 'You have successfully unregistered from the event!');
+    }
+
+    // Helper: Check if user is admin
+    private function authorizeAdmin()
+    {
+        if (!Auth::user() || Auth::user()->isAdmin() === false) {
+            abort(403, 'Unauthorized');
+        }
     }
 }

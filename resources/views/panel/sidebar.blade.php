@@ -24,11 +24,14 @@
         <a href="{{ route('events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
     @endif
 
-    <!-- Admin menu: clubs, users, events, types, fields -->
+    <!-- Admin menu: users, clubs, events -->
     @if($role === 'admin')
-        <a href="{{ route('clubs.create') }}" class="sidebar-link">{{ __('Add club') }}</a>
         <a href="{{ route('panel.users.index') }}" class="sidebar-link">{{ __('Users') }}</a>
         <a href="{{ route('panel.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
-        <a href="{{ route('events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
+        <a href="{{ route('panel.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
+        <a href="{{ route('panel.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>
+        <a href="{{ route('panel.sport-fields.index') }}" class="sidebar-link">{{ __('Sport Fields') }}</a>
+        <a href="{{ route('panel.addresses.index') }}" class="sidebar-link">{{ __('Addresses') }}</a>
+        <a href="{{ route('panel.event-types.index') }}" class="sidebar-link">{{ __('Event Types') }}</a>
     @endif
 </x-sidebar>

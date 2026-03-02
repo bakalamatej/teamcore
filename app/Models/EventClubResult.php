@@ -10,6 +10,9 @@ class EventClubResult extends Model
     use SoftDeletes;
 
     protected $table = 'event_club_results';
+    protected $primaryKey = 'result_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'event_id',

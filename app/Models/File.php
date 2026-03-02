@@ -4,13 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\ClubFile;
+use App\Models\EventFile;
+use App\Models\MemberClubFile;
 
 class File extends Model
 {
     use SoftDeletes;
 
     protected $table = 'files';
+    protected $primaryKey = 'file_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'file_name',
@@ -24,11 +29,36 @@ class File extends Model
     // -----------------------
 
     /**
-     * Get all file relations for this file.
+     * Get clubs that have this file.
      */
-    public function fileRelations()
+    public function clubs()
     {
-        return $this->hasMany(FileRelation::class, 'file_id');
+        return $this->belongsToMany(Club::class, 'club_files', 'file_id', 'club_id')
+                    ->using(ClubFile::class)
+                    ->withPivot('file_category')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get events that have this file.
+     */
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_files', 'file_id', 'event_id')
+                    ->using(EventFile::class)
+                    ->withPivot('file_category')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get member clubs that have this file.
+     */
+    public function memberClubs()
+    {
+        return $this->belongsToMany(MemberClub::class, 'member_club_files', 'file_id', 'member_club_id')
+                    ->using(MemberClubFile::class)
+                    ->withPivot('file_category')
+                    ->withTimestamps();
     }
 
     // -----------------------

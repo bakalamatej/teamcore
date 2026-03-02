@@ -2,22 +2,24 @@
 
 namespace App\Models;
 
-use App\Models\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Validator;
 
 class Member extends Model
 {
-    use SoftDeletes, HasFiles;
+    use SoftDeletes;
 
     protected $table = 'members';
+    protected $primaryKey = 'member_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'user_id',
         'first_name',
         'last_name',
-        'phone_number',
+        'phone',
         'date_of_birth',
     ];
 
@@ -104,8 +106,8 @@ class Member extends Model
     public function validate(array $data)
     {
         return Validator::make($data, [
-            'name' => 'required|string|max:30',
-            'surname' => 'required|string|max:30',
+            'first_name' => 'required|string|max:30',
+            'last_name' => 'required|string|max:30',
             'email' => 'required|email|max:56',
             'phone' => 'nullable|string|max:20',
         ]);

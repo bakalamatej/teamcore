@@ -12,17 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sport_fields', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('address_id')->nullable();
+            $table->id('sport_field_id');
+
+            $table->foreignId('address_id')
+                ->nullable()
+                ->constrained('addresses', 'address_id')
+                ->nullOnDelete();
+
             $table->string('name', 30);
             $table->string('field_type', 20);
-
-            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
 
             $table->softDeletes();
             $table->timestamps();
 
+            $table->unique(['address_id', 'name']);
             $table->index('address_id');
+            $table->index('field_type');
         });
     }
 

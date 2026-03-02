@@ -30,8 +30,8 @@ class EventRequest extends FormRequest
         return [
             'title' => 'required|string|min:5|max:80',
 
-            'sport_field_id' => 'nullable|integer|exists:sport_fields,id',
-            'event_type_id' => 'nullable|integer|exists:event_types,id',
+            'sport_field_id' => 'required|integer|exists:sport_fields,sport_field_id',
+            'event_type_id' => 'required|integer|exists:event_types,event_type_id',
 
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

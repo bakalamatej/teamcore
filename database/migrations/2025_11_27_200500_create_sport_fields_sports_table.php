@@ -12,20 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sport_fields_sports', function (Blueprint $table) {
-            $table->unsignedBigInteger('sport_field_id');
-            $table->unsignedBigInteger('sport_id');
+            $table->foreignId('sport_field_id')
+                ->constrained('sport_fields', 'sport_field_id')
+                ->cascadeOnDelete();
+
+            $table->foreignId('sport_id')
+                ->constrained('sports', 'sport_id')
+                ->cascadeOnDelete();
 
             $table->primary(['sport_field_id', 'sport_id']);
-
-            $table->foreign('sport_field_id')->references('id')->on('sport_fields')->onDelete('cascade');
-            $table->foreign('sport_id')->references('id')->on('sports')->onDelete('cascade');
 
             $table->timestamps();
 
             $table->index('sport_field_id');
             $table->index('sport_id');
         });
-    }
+    }   
 
     /**
      * Reverse the migrations.

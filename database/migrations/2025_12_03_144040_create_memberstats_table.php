@@ -12,18 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('member_statistics', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('member_club_id');            
-            $table->integer('events_attended')->default(0);
-            $table->integer('training_sessions')->default(0);
-            $table->integer('matches_played')->default(0);
-            $table->integer('goals_scored')->default(0);
+            $table->id('stat_id');
 
-            $table->foreign('member_club_id')->references('id')->on('member_club')->onDelete('cascade');
+            $table->foreignId('member_club_id')
+                ->constrained('member_club', 'member_club_id')
+                ->cascadeOnDelete();
 
-            $table->index('member_club_id');
-
+            $table->unsignedInteger('events_attended')->default(0);
+            $table->unsignedInteger('training_sessions')->default(0);
+            $table->unsignedInteger('matches_played')->default(0);
+            $table->unsignedInteger('goals_scored')->default(0);
             $table->timestamps();
+
+            $table->unique('member_club_id');
+            $table->index('member_club_id');
         });
     }
 
@@ -32,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('memberstats');
+        Schema::dropIfExists('member_statistics');
     }
 };

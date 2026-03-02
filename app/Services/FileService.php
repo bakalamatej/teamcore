@@ -80,8 +80,10 @@ class FileService
             Storage::disk($disk)->delete($file->file_path);
         }
 
-        // Delete file relations
-        $file->fileRelations()->delete();
+        // Delete pivot table relationships
+        $file->clubs()->detach();
+        $file->events()->detach();
+        $file->memberClubs()->detach();
 
         // Delete file record (soft delete)
         return $file->delete();
@@ -101,8 +103,10 @@ class FileService
             Storage::disk($disk)->delete($file->file_path);
         }
 
-        // Delete file relations
-        $file->fileRelations()->delete();
+        // Delete pivot table relationships
+        $file->clubs()->detach();
+        $file->events()->detach();
+        $file->memberClubs()->detach();
 
         // Force delete file record
         return $file->forceDelete();

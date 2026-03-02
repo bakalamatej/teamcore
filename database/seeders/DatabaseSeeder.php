@@ -15,7 +15,7 @@ use App\Models\MemberEvent;
 use App\Models\EventMemberResult;
 use App\Models\EventClubResult;
 use App\Models\File;
-use App\Models\FileRelation;
+use App\Models\MemberClub;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -290,20 +290,31 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // -----------------------
-        // File relations - attach files to models
+        // Attach files using the new pivot tables
         // -----------------------
-        FileRelation::create([
-            'file_id' => $file1->id,
-            'fileable_type' => Event::class,
-            'fileable_id' => $event1->id,
-            'file_category' => 'photo',
-        ]);
+        // Club files
+        $club1->clubFiles()->attach($file2->id, ['file_category' => 'document']);
+        $club2->clubFiles()->attach($file1->id, ['file_category' => 'photo']);
 
-        FileRelation::create([
-            'file_id' => $file2->id,
-            'fileable_type' => Club::class,
-            'fileable_id' => $club1->id,
-            'file_category' => 'document',
-        ]);
+        // Event files
+        $event1->eventFiles()->attach($file1->id, ['file_category' => 'photo']);
+        $event2->eventFiles()->attach($file2->id, ['file_category' => 'document']);
+
+        // Member club files
+        $memberClub1 = MemberClub::where('member_id', $member->id)
+                                 ->where('club_id', $club1->id)
+                                 ->first();
+        
+        if ($memberClub1) {
+            $memberClub1->memberClubFiles()->attach($file1->id, ['file_category' => 'document']);
+        }
+
+        $memberClubCoach = MemberClub::where('member_id', $coachMember->id)
+                                     ->where('club_id', $club2->id)
+                                     ->first();
+        
+        if ($memberClubCoach) {
+            $memberClubCoach->memberClubFiles()->attach($file2->id, ['file_category' => 'photo']);
+        }
     }
 }

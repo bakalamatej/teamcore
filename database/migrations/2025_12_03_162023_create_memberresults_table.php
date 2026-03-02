@@ -12,22 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_member_results', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('event_id');
-            $table->unsignedBigInteger('member_id');
-            $table->integer('score')->nullable();   
+            $table->id('result_id');
+
+            $table->foreignId('event_id')
+                ->constrained('events', 'event_id')
+                ->cascadeOnDelete();
+
+            $table->foreignId('member_club_id')
+                ->constrained('member_club', 'member_club_id')
+                ->cascadeOnDelete();
+
+            $table->integer('score')->nullable();
             $table->integer('ranking')->nullable();
-            $table->text('note')->nullable();
-            
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-            $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
-
-            $table->unique(['event_id', 'member_id']);
-            $table->index('event_id');
-            $table->index('member_id');
-
-            $table->softDeletes();
+            $table->longText('note')->nullable();
             $table->timestamps();
+
+            $table->unique(['event_id', 'member_club_id']);
+            $table->index('member_club_id');
         });
 
     }
@@ -37,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('memberresults');
+        Schema::dropIfExists('event_member_results');
     }
 };

@@ -12,22 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clubs', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('address_id')->nullable();
-            $table->unsignedBigInteger('sport_id')->nullable();
-            $table->string('name', 30)->unique();
-            $table->string('phone', 20)->unique();
-            $table->string('email', 56)->unique();
-            $table->string('webpage')->nullable ();
+            $table->id('club_id');
 
-            $table->foreign('address_id')->references('id')->on('addresses')->onDelete('set null');
-            $table->foreign('sport_id')->references('id')->on('sports')->onDelete('set null');
+            $table->foreignId('address_id')
+                ->constrained('addresses', 'address_id')
+                ->restrictOnDelete();
 
-            $table->softDeletes();
+            $table->foreignId('sport_id')
+                ->constrained('sports', 'sport_id')
+                ->restrictOnDelete();
+
+            $table->string('name', 30);
+            $table->string('phone', 20)->nullable();
+            $table->string('email', 56)->nullable();
+            $table->string('webpage', 255)->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->index('address_id');
             $table->index('sport_id');
+            $table->index('address_id');
             $table->index('name');
         });
 

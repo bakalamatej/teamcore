@@ -6,6 +6,10 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\SportController;
+use App\Http\Controllers\SportFieldController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\EventTypeController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -85,8 +89,37 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('panel.users.edit');
         Route::patch('/users/{user}', [UserController::class, 'update'])->name('panel.users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('panel.users.destroy');
+        
         Route::get('/clubs', [ClubController::class, 'adminIndex'])->name('panel.clubs.index');
-        Route::get('/events', [EventController::class, 'index'])->name('panel.events.index');
+        Route::get('/events', [EventController::class, 'adminIndex'])->name('panel.events.index');
+        
+        Route::get('/sports', [SportController::class, 'index'])->name('panel.sports.index');
+        Route::get('/sports/create', [SportController::class, 'create'])->name('panel.sports.create');
+        Route::post('/sports', [SportController::class, 'store'])->name('panel.sports.store');
+        Route::get('/sports/{sport}/edit', [SportController::class, 'edit'])->name('panel.sports.edit');
+        Route::patch('/sports/{sport}', [SportController::class, 'update'])->name('panel.sports.update');
+        Route::delete('/sports/{sport}', [SportController::class, 'destroy'])->name('panel.sports.destroy');
+        
+        Route::get('/sport-fields', [SportFieldController::class, 'index'])->name('panel.sport-fields.index');
+        Route::get('/sport-fields/create', [SportFieldController::class, 'create'])->name('panel.sport-fields.create');
+        Route::post('/sport-fields', [SportFieldController::class, 'store'])->name('panel.sport-fields.store');
+        Route::get('/sport-fields/{sportField}/edit', [SportFieldController::class, 'edit'])->name('panel.sport-fields.edit');
+        Route::patch('/sport-fields/{sportField}', [SportFieldController::class, 'update'])->name('panel.sport-fields.update');
+        Route::delete('/sport-fields/{sportField}', [SportFieldController::class, 'destroy'])->name('panel.sport-fields.destroy');
+        
+        Route::get('/addresses', [AddressController::class, 'index'])->name('panel.addresses.index');
+        Route::get('/addresses/create', [AddressController::class, 'create'])->name('panel.addresses.create');
+        Route::post('/addresses', [AddressController::class, 'store'])->name('panel.addresses.store');
+        Route::get('/addresses/{address}/edit', [AddressController::class, 'edit'])->name('panel.addresses.edit');
+        Route::patch('/addresses/{address}', [AddressController::class, 'update'])->name('panel.addresses.update');
+        Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('panel.addresses.destroy');
+        
+        Route::get('/event-types', [EventTypeController::class, 'index'])->name('panel.event-types.index');
+        Route::get('/event-types/create', [EventTypeController::class, 'create'])->name('panel.event-types.create');
+        Route::post('/event-types', [EventTypeController::class, 'store'])->name('panel.event-types.store');
+        Route::get('/event-types/{eventType}/edit', [EventTypeController::class, 'edit'])->name('panel.event-types.edit');
+        Route::patch('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('panel.event-types.update');
+        Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('panel.event-types.destroy');
     });
 
     // --------------------------------------------------
@@ -95,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');
         Route::post('/{event}/register', [EventController::class, 'register'])->name('events.register');
+        Route::post('/{event}/unregister', [EventController::class, 'unregister'])->name('events.unregister');
         
         // Admin & Coach only - Edit & Delete
         Route::middleware('admin_or_coach')->group(function () {
@@ -114,7 +148,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
         Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
         Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
-        Route::delete('/{modelType}/{modelId}/{fileRelationId}', [FileController::class, 'delete'])->name('files.delete');
+        Route::delete('/{modelType}/{modelId}/{fileId}', [FileController::class, 'delete'])->name('files.delete');
         Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
     });
 });

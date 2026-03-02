@@ -10,6 +10,9 @@ class Address extends Model
     use SoftDeletes;
     
     protected $table = 'addresses';
+    protected $primaryKey = 'address_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'country',

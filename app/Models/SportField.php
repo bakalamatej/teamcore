@@ -10,6 +10,9 @@ class SportField extends Model
     use SoftDeletes;
 
     protected $table = 'sport_fields';
+    protected $primaryKey = 'sport_field_id';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'address_id',
