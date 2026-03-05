@@ -3,21 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\ClubFile;
 use App\Models\EventFile;
 use App\Models\MemberClubFile;
 
 class File extends Model
 {
-    use SoftDeletes;
 
     protected $table = 'files';
     protected $primaryKey = 'file_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
+        'uploaded_by_user_id',
         'file_name',
         'file_path',
         'file_type',
@@ -27,6 +24,14 @@ class File extends Model
     // -----------------------
     // Relationships
     // -----------------------
+
+    /**
+     * Get the user who uploaded this file.
+     */
+    public function uploadedByUser()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by_user_id');
+    }
 
     /**
      * Get clubs that have this file.
@@ -60,8 +65,4 @@ class File extends Model
                     ->withPivot('file_category')
                     ->withTimestamps();
     }
-
-    // -----------------------
-    // Methods
-    // -----------------------
 }

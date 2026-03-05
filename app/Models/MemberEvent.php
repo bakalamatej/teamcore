@@ -3,24 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MemberEvent extends Pivot
 {
-    use SoftDeletes;
-
     protected $table = 'member_event';
 
     protected $fillable = [
-        'member_id',
+        'member_club_id',
         'event_id',
     ];
 
-    protected $dates = ['deleted_at'];
-
-    public function member()
+    public function memberClub()
     {
-        return $this->belongsTo(Member::class, 'member_id');
+        return $this->belongsTo(MemberClub::class, 'member_club_id');
     }
 
     public function event()

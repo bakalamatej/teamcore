@@ -3,20 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EventMemberResult extends Model
 {
-    use SoftDeletes;
 
     protected $table = 'event_member_results';
     protected $primaryKey = 'result_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'event_id',
-        'member_id',
+        'member_club_id',
         'score',
         'ranking',
         'note',
@@ -35,11 +31,19 @@ class EventMemberResult extends Model
     }
 
     /**
-     * Belongs to a specific member
+     * Belongs to a specific member club
+     */
+    public function memberClub()
+    {
+        return $this->belongsTo(MemberClub::class, 'member_club_id');
+    }
+
+    /**
+     * Get member through member club
      */
     public function member()
     {
-        return $this->belongsTo(Member::class, 'member_id');
+        return $this->memberClub->member();
     }
 
     // -----------------------

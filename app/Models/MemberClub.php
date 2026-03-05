@@ -13,8 +13,6 @@ class MemberClub extends Model
 
     protected $table = 'member_club';
     protected $primaryKey = 'member_club_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'member_id',
@@ -25,6 +23,29 @@ class MemberClub extends Model
     ];
 
     protected $dates = ['joined_at', 'left_at', 'deleted_at'];
+
+    // -----------------------
+    // Scopes
+    // -----------------------
+    public function scopeByClub($query, $clubId)
+    {
+        return $query->where('club_id', $clubId);
+    }
+
+    public function scopeByMember($query, $memberId)
+    {
+        return $query->where('member_id', $memberId);
+    }
+
+    public function scopeByRole($query, $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('left_at');
+    }
 
     // -----------------------
     // Relationships

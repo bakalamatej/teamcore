@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Model;
 
-class EventClub extends Pivot
+class EventStatistic extends Model
 {
-
-    protected $table = 'event_club';
+    protected $table = 'event_statistics';
+    protected $primaryKey = 'stat_id';
 
     protected $fillable = [
         'event_id',
-        'club_id',
+        'total_participants',
+        'total_teams',
     ];
 
     // -----------------------
@@ -21,10 +22,5 @@ class EventClub extends Pivot
     public function event()
     {
         return $this->belongsTo(Event::class, 'event_id');
-    }
-
-    public function club()
-    {
-        return $this->belongsTo(Club::class, 'club_id');
     }
 }

@@ -8,15 +8,13 @@ class MemberStatistic extends Model
 {
     protected $table = 'member_statistics';
     protected $primaryKey = 'stat_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'member_club_id',
         'events_attended',
         'training_sessions',
         'matches_played',
-        'goals_scored',
+        'total_wins',
     ];
 
     // -----------------------

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class MemberClubFile extends Model
+class MemberClubFile extends Pivot
 {
     protected $table = 'member_club_files';
 
