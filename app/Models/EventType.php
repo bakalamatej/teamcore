@@ -16,8 +16,6 @@ class EventType extends Model
         'sport_id',
     ];
 
-    public $timestamps = false;
-
     // -----------------------
     // Type constants
     // -----------------------

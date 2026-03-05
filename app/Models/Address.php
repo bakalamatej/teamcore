@@ -11,8 +11,6 @@ class Address extends Model
     
     protected $table = 'addresses';
     protected $primaryKey = 'address_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'country',

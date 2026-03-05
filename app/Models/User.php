@@ -14,8 +14,6 @@ class User extends Authenticatable
 
     protected $table = 'users';
     protected $primaryKey = 'user_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     /**
      * The attributes that are mass assignable.
@@ -61,6 +59,14 @@ class User extends Authenticatable
     public function member()
     {
         return $this->hasOne(Member::class, 'user_id');
+    }
+
+    /**
+     * Get files uploaded by this user
+     */
+    public function uploadedFiles()
+    {
+        return $this->hasMany(File::class, 'uploaded_by_user_id');
     }
 
     // -----------------------

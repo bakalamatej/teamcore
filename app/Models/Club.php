@@ -13,8 +13,7 @@ class Club extends Model
 
     protected $table = 'clubs';
     protected $primaryKey = 'club_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
+    public $timestamps = true;
 
     protected $fillable = [
         'address_id',
@@ -25,9 +24,16 @@ class Club extends Model
         'webpage',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
     // -----------------------
     // Relationships
     // -----------------------
+    
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id');
@@ -47,7 +53,23 @@ class Club extends Model
     {
         return $this->belongsToMany(Member::class, 'member_club', 'club_id', 'member_id')
                     ->withTimestamps()
-                    ->withPivot('deleted_at', 'left_at');
+                    ->withPivot('deleted_at', 'left_at', 'role');
+    }
+
+    public function coaches()
+    {
+        return $this->members()
+                    ->wherePivot('role', 'coach')
+                    ->wherePivotNull('deleted_at')
+                    ->wherePivotNull('left_at');
+    }
+
+    public function players()
+    {
+        return $this->members()
+                    ->wherePivot('role', 'player')
+                    ->wherePivotNull('deleted_at')
+                    ->wherePivotNull('left_at');
     }
 
     public function events()
@@ -64,60 +86,112 @@ class Club extends Model
                     ->withTimestamps();
     }
 
+    public function clubStatistic()
+    {
+        return $this->hasOne(ClubStatistic::class, 'club_id');
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'club_id');
+    }
+
+    // -----------------------
+    // Scopes
+    // -----------------------
+    
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('name', 'like', "%{$search}%")
+                     ->orWhere('email', 'like', "%{$search}%")
+                     ->orWhere('phone', 'like', "%{$search}%");
+    }
+
+    public function scopeByCity($query, $city)
+    {
+        if (!$city) return $query;
+        
+        return $query->whereHas('address', function($q) use ($city) {
+            $q->where('city', $city);
+        });
+    }
+
+    public function scopeByCountry($query, $country)
+    {
+        if (!$country) return $query;
+        
+        return $query->whereHas('address', function($q) use ($country) {
+            $q->where('country', $country);
+        });
+    }
+
+    public function scopeBySport($query, $sportId)
+    {
+        return $sportId ? $query->where('sport_id', $sportId) : $query;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeSortBy($query, $sort = 'name', $order = 'asc')
+    {
+        $allowed = ['name', 'created_at', 'email', 'phone'];
+        
+        if (!in_array($sort, $allowed)) {
+            return $query->orderBy('name', 'asc');
+        }
+        
+        $order = in_array($order, ['asc', 'desc']) ? $order : 'asc';
+        return $query->orderBy($sort, $order);
+    }
+
+    public function scopeWithRelations($query)
+    {
+        return $query->with('address', 'sport', 'members', 'clubFiles');
+    }
+
     // -----------------------
     // Methods
     // -----------------------
 
-    /**
-     * Returns active events
-     */
-    public function activeEvents()
-    {
-        return $this->events()->wherePivotNull('deleted_at');
-    }
-
-    /**
-     * Returns active members
-     */
     public function activeMembers()
     {
-        return $this->members()->wherePivotNull('deleted_at')->wherePivotNull('left_at');
+        return $this->members()
+                    ->wherePivotNull('deleted_at')
+                    ->wherePivotNull('left_at');
     }
 
-    /**
-     * Validation rules
-     */
-    protected function validationRules(): array
+    public function getActiveMembersCount()
     {
-        return [
-            'name' => 'required|string|max:30|unique:clubs,name',
-            'phone' => 'required|string|max:20|unique:clubs,phone',
-            'email' => 'required|email|max:56|unique:clubs,email',
-            'webpage' => 'nullable|url|max:255',
-            'address_id' => 'nullable|exists:addresses,id',
-        ];
+        return $this->activeMembers()->count();
     }
 
-    /**
-     * Soft delete records of club
-     */
-    protected static function booted()
+    public function hasMember(Member $member)
     {
-        static::deleting(function ($club) {
-            if ($club->isForceDeleting()) return;
-
-            // Soft delete events
-            $club->events()->updateExistingPivot(
-                $club->events->pluck('id')->toArray(),
-                ['deleted_at' => now()]
-            );
-
-            // Soft delete memberships
-            $club->members()->updateExistingPivot(
-                $club->members->pluck('id')->toArray(),
-                ['deleted_at' => now()]
-            );
-        });
+        return $this->activeMembers()
+                    ->where('member_id', $member->member_id)
+                    ->exists();
     }
 
+    public function getMemberRole(Member $member)
+    {
+        return $this->members()
+                    ->where('member_id', $member->member_id)
+                    ->first()
+                    ?->pivot->role;
+    }
+
+    public function isCoach(Member $member)
+    {
+        return $this->getMemberRole($member) === 'coach';
+    }
+
+    public function activeEvents()
+    {
+        return $this->events();
+    }
 }

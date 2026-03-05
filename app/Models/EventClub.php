@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EventClub extends Pivot
 {
-    use SoftDeletes;
 
     protected $table = 'event_club';
 
@@ -15,8 +13,6 @@ class EventClub extends Pivot
         'event_id',
         'club_id',
     ];
-
-    protected $dates = ['deleted_at'];
 
     // -----------------------
     // Relationships

@@ -23,14 +23,14 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->enum('role', ['player', 'coach'])->default('player');
-            $table->date('joined_at')->nullable();
+            $table->date('joined_at');
             $table->date('left_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->unique(['member_id', 'club_id']);
-            $table->index('club_id');
-            $table->index('member_id');
-            $table->index('role');
+            $table->index(['member_id', 'club_id']);
+            $table->index(['club_id', 'role']);
+            $table->index('left_at'); 
         });
     }
 

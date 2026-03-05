@@ -13,10 +13,9 @@ class Event extends Model
 
     protected $table = 'events';
     protected $primaryKey = 'event_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
+        'parent_event_id',
         'sport_field_id',
         'event_type_id',
         'title',
@@ -35,8 +34,9 @@ class Event extends Model
     // Status constants
     // -----------------------
     const STATUS_SCHEDULED = 'scheduled';
-    const STATUS_CANCELLED = 'cancelled';
+    const STATUS_CANCELLED = 'canceled';
     const STATUS_FINISHED  = 'finished';
+    const STATUS_ONGOING   = 'ongoing';
 
     // -----------------------
     // Relationships
@@ -56,16 +56,14 @@ class Event extends Model
     {
         return $this->belongsToMany(Club::class, 'event_club', 'event_id', 'club_id')
                 ->using(EventClub::class) 
-                ->withTimestamps()
-                ->withPivot('deleted_at');
+                ->withTimestamps();
     }
 
-    public function members()
+    public function memberClubs()
     {
-        return $this->belongsToMany(Member::class, 'member_event', 'event_id', 'member_id')
+        return $this->belongsToMany(MemberClub::class, 'member_event', 'event_id', 'member_club_id')
                     ->using(MemberEvent::class)
-                    ->withTimestamps()
-                    ->withPivot('deleted_at');
+                    ->withTimestamps();
     }
 
     public function eventFiles()
@@ -76,12 +74,34 @@ class Event extends Model
                     ->withTimestamps();
     }
 
-    /**
-     * Returns active members
-     */
-    public function activeMembers()
+    public function eventStatistic()
     {
-        return $this->members()->wherePivotNull('deleted_at');
+        return $this->hasOne(EventStatistic::class, 'event_id');
+    }
+
+    public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class, 'reservation_event', 'event_id', 'reservation_id')
+                    ->using(ReservationEvent::class)
+                    ->withTimestamps();
+    }
+
+    public function parentEvent()
+    {
+        return $this->belongsTo(Event::class, 'parent_event_id');
+    }
+
+    public function childEvents()
+    {
+        return $this->hasMany(Event::class, 'parent_event_id');
+    }
+
+    /**
+     * Returns active member clubs (members attending this event)
+     */
+    public function activeMemberClubs()
+    {
+        return $this->memberClubs();
     }
 
     /**
@@ -89,7 +109,7 @@ class Event extends Model
      */
     public function activeClubs()
     {
-        return $this->clubs()->wherePivotNull('deleted_at');
+        return $this->clubs();
     }
 
     public function allClubs()
@@ -106,18 +126,11 @@ class Event extends Model
     }
 
     /**
-     * Soft delete records of event
+     * Event soft deletes are handled automatically
      */
     protected static function booted()
     {
-        static::deleting(function ($event) {
-            if ($event->isForceDeleting()) return;
-
-            $event->clubs()->updateExistingPivot(
-                $event->clubs->pluck('id')->toArray(),
-                ['deleted_at' => now()]
-            );
-        });
+        // No custom cascade behavior needed for event_club (hard delete only)
     }
 
     protected $casts = [

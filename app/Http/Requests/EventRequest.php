@@ -27,15 +27,16 @@ class EventRequest extends FormRequest
      */
     public function rules()
     {
+        $eventId = $this->route('event')?->event_id;
+
         return [
             'title' => 'required|string|min:5|max:80',
-
             'sport_field_id' => 'required|integer|exists:sport_fields,sport_field_id',
             'event_type_id' => 'required|integer|exists:event_types,event_type_id',
-
-            'start_date' => 'required|date',
+            'parent_event_id' => 'nullable|integer|exists:events,event_id',
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
-
+            'status' => 'required|in:scheduled,canceled,finished,ongoing',
             'description' => 'nullable|string|min:10',
         ];
     }

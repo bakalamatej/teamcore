@@ -13,8 +13,6 @@ class SportFieldSport extends Pivot
         'sport_id',
     ];
 
-    public $timestamps = true;
-
     public function sportField()
     {
         return $this->belongsTo(SportField::class, 'sport_field_id');

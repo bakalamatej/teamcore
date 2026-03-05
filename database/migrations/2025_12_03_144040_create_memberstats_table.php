@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('events_attended')->default(0);
             $table->unsignedInteger('training_sessions')->default(0);
             $table->unsignedInteger('matches_played')->default(0);
-            $table->unsignedInteger('goals_scored')->default(0);
+            $table->unsignedInteger('total_wins')->default(0);
             $table->timestamps();
 
             $table->unique('member_club_id');

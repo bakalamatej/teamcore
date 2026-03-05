@@ -8,8 +8,6 @@ class Sport extends Model
 {
     protected $table = 'sports';
     protected $primaryKey = 'sport_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'name',
@@ -20,7 +18,9 @@ class Sport extends Model
      */
     public function sportFields()
     {
-        return $this->belongsToMany(SportField::class, 'sport_fields_sports', 'sport_id', 'sport_field_id');
+        return $this->belongsToMany(SportField::class, 'sport_fields_sports', 'sport_id', 'sport_field_id')
+                    ->using(SportFieldSport::class)
+                    ->withTimestamps();
     }
 
     /**

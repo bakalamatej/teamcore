@@ -12,8 +12,6 @@ class Member extends Model
 
     protected $table = 'members';
     protected $primaryKey = 'member_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'user_id',
@@ -41,31 +39,19 @@ class Member extends Model
     {
         return $this->belongsToMany(Club::class, 'member_club', 'member_id', 'club_id')
                     ->withTimestamps()
-                    ->withPivot('deleted_at');
+                    ->withPivot('deleted_at', 'left_at');
     }
 
+    /**
+     * Get events through active club memberships
+     */
     public function events()
     {
-        return $this->belongsToMany(Event::class, 'member_event', 'member_id', 'event_id')
-                    ->using(MemberEvent::class)
-                    ->withTimestamps()
-                    ->withPivot('deleted_at');
-    }
-
-    public function myEvents()
-    {
-        $clubIds = $this->activeClubs()->pluck('clubs.id');
-
-        return Event::whereHas('members', function($q) {
-                    $q->where('member_id', $this->id)
-                    ->whereNull('member_event.deleted_at');
-                })
-                ->orWhereHas('clubs', function($q) use ($clubIds) {
-                    $q->whereIn('clubs.id', $clubIds)
-                    ->whereNull('event_club.deleted_at');
-                })
-                ->with('clubs', 'members', 'sportField', 'eventType')
-                ->latest();
+        return Event::whereHas('memberClubs', function($query) {
+            $query->whereHas('memberClub', function($subQuery) {
+                $subQuery->where('member_id', $this->member_id);
+            });
+        });
     }
 
 
@@ -92,12 +78,25 @@ class Member extends Model
                     ->wherePivotNull('left_at');
     }
 
+    public function coachEvaluations()
+    {
+        return $this->hasMany(CoachEvaluation::class, 'coach_id');
+    }
+
+    public function memberEvaluations()
+    {
+        return $this->hasMany(CoachEvaluation::class, 'evaluated_by_member_id');
+    }
+
     /**
-     * Returns active events
+     * Returns active events through active club memberships (member_club NOT soft deleted)
      */
     public function activeEvents()
     {
-        return $this->events()->wherePivotNull('deleted_at');
+        return $this->events()
+                    ->whereHas('memberClubs', function($q) {
+                        $q->whereNull('member_club.deleted_at');
+                    });
     }
 
     /**
@@ -122,7 +121,7 @@ class Member extends Model
             if ($member->isForceDeleting()) return;
 
             $member->clubs()->updateExistingPivot(
-                $member->clubs->pluck('id')->toArray(),
+                $member->clubs->pluck('club_id')->toArray(),
                 ['deleted_at' => now()]
             );
         });

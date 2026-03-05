@@ -20,7 +20,7 @@ class EventTypeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $eventTypeId = $this->route('event_type')?->type_id;
+        $eventTypeId = $this->route('event_type')?->event_type_id;
 
         return [
             'name' => 'required|string|max:30|unique:event_types,name' . ($eventTypeId ? ",$eventTypeId,type_id" : ''),
