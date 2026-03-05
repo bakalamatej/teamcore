@@ -11,22 +11,18 @@ class UserController extends Controller
     // List all users with search and role filtering (admin only)
     public function index(Request $request)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            abort(403);
-        }
+        // Check if UserPolicy exists and use it
+        $this->authorize('viewAny', User::class);
 
-        $query = User::query();
-
-        // Search by name or email
-        if ($request->filled('search')) {
-            $query->whereHas('member', function($q) use ($request) {
-                $q->where('first_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('last_name', 'like', '%' . $request->search . '%');
+        $users = User::query()
+            ->when($request->filled('search'), function($q) use ($request) {
+                return $q->whereHas('member', function($q) use ($request) {
+                    $q->where('first_name', 'like', '%' . $request->input('search') . '%')
+                      ->orWhere('last_name', 'like', '%' . $request->input('search') . '%');
+                })->orWhere('email', 'like', '%' . $request->input('search') . '%');
             })
-            ->orWhere('email', 'like', '%' . $request->search . '%');
-        }
-
-        $users = $query->with('member')->paginate(15);
+            ->with('member')
+            ->paginate(15);
 
         return view('panel.users.index', compact('users'));
     }

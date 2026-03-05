@@ -11,159 +11,122 @@ use Illuminate\Support\Facades\Auth;
 
 class ClubController extends Controller
 {
-    // List user's clubs with search and city filtering
+    /**
+     * Display a listing of user's clubs
+     */
     public function index(Request $request)
     {
         $user = Auth::user();
         
-        // Get unique cities for filter dropdown
         $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
-        // Get user's active clubs (or empty query if user has no member record)
-        $clubs = $user->activeClubs() ?? Club::query()->whereRaw('1=0');
-        
-        // Search by club name
-        if ($request->filled('search')) {
-            $clubs->where('name', 'like', '%' . $request->search . '%');
-        }
-        
-        // Filter by city
-        if ($request->filled('city')) {
-            $clubs->whereHas('address', function($q) {
-                $q->where('city', request('city'));
-            });
-        }
-        
-        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
-        
+        $clubs = $user->member?->clubs() ?? Club::query()->whereRaw('1=0');
+        $clubs = $clubs
+            ->when($request->filled('search'), 
+                fn($q) => $q->search($request->input('search')))
+            ->when($request->filled('city'), 
+                fn($q) => $q->byCity($request->input('city')))
+            ->with('address', 'members', 'events')
+            ->paginate(10);
+
         return view('clubs.index', compact('clubs', 'cityOptions'));
     }
 
-    // List all clubs for admin panel with search and city filtering
+    /**
+     * Display a listing of all clubs for admin
+     */
     public function adminIndex(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorize('viewAny', Club::class);
 
-        // Get unique cities for filter dropdown
         $cities = Address::distinct()->pluck('city')->toArray();
         $cityOptions = array_combine($cities, $cities);
         
-        // Get unique sports for filter dropdown
-        $sports = Sport::whereHas('clubs')->orderBy('name')->pluck('name', 'id')->toArray();
+        $sports = Sport::whereHas('clubs')->orderBy('name')->pluck('name', 'sport_id')->toArray();
         $sportOptions = $sports;
         
-        $clubs = Club::query();
-        
-        // Search by club name
-        if ($request->filled('search')) {
-            $clubs->where('name', 'like', '%' . $request->search . '%');
-        }
-        
-        // Filter by city
-        if ($request->filled('city')) {
-            $clubs->whereHas('address', function($q) {
-                $q->where('city', request('city'));
-            });
-        }
-        
-        // Filter by sport
-        if ($request->filled('sport')) {
-            $clubs->where('sport_id', request('sport'));
-        }
-        
-        $clubs = $clubs->with('address', 'sport', 'members', 'events')->paginate(10);
-        
+        $clubs = Club::active()
+            ->when($request->filled('search'), 
+                fn($q) => $q->search($request->input('search')))
+            ->when($request->filled('city'), 
+                fn($q) => $q->byCity($request->input('city')))
+            ->when($request->filled('sport'), 
+                fn($q) => $q->bySport($request->input('sport')))
+            ->with('address', 'sport', 'members', 'events')
+            ->paginate(10);
+
         return view('panel.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
     }
 
-    // List user's clubs (clubs where user is a member)
-    public function myClub(Request $request)
-    {
-        $user = Auth::user();
-        
-        // Get unique cities for filter dropdown
-        $cities = Address::distinct()->pluck('city')->toArray();
-        $cityOptions = array_combine($cities, $cities);
-        
-        // Get user's active clubs (or empty query if user has no member record)
-        $clubs = $user->activeClubs() ?? Club::query()->whereRaw('1=0');
-        
-        // Search by club name
-        if ($request->filled('search')) {
-            $clubs->where('name', 'like', '%' . $request->search . '%');
-        }
-        
-        // Filter by city
-        if ($request->filled('city')) {
-            $clubs->whereHas('address', function($q) {
-                $q->where('city', request('city'));
-            });
-        }
-        
-        $clubs = $clubs->with('address', 'members', 'events')->paginate(10);
-        
-        return view('clubs.index', compact('clubs', 'cityOptions'));
-    }
-
-    // Display club details and members
+    /**
+     * Display club details
+     */
     public function show(Club $club)
     {
-        $club->load('address', 'activeMembers', 'activeEvents');
+        $this->authorize('view', $club);
+        
+        $club->load('address', 'members', 'events');
         return view('clubs.show', compact('club'));
     }
 
-    // Show create club form (admin only)
+    /**
+     * Show create form
+     */
     public function create()
     {
-        $this->authorizeAdmin();
+        $this->authorize('create', Club::class);
 
         $addresses = Address::orderBy('city')->get();
         $sports = Sport::all();
         return view('panel.clubs.create', compact('addresses', 'sports'));
     }
 
-    // Store new club in database (admin only)
+    /**
+     * Store new club
+     */
     public function store(ClubRequest $request)
     {
+        $this->authorize('create', Club::class);
+        
         Club::create($request->validated());
 
         return redirect()->route('clubs.index')->with('success', 'Club created successfully!');
     }
 
-    // Show edit club form (admin only)
+    /**
+     * Show edit form
+     */
     public function edit(Club $club)
     {
-        $this->authorizeAdmin();
+        $this->authorize('update', $club);
 
         $addresses = Address::orderBy('city')->get();
         $sports = Sport::all();
         return view('panel.clubs.edit', compact('club', 'addresses', 'sports'));
     }
 
-    // Update club in database (admin only)
+    /**
+     * Update club
+     */
     public function update(ClubRequest $request, Club $club)
     {
+        $this->authorize('update', $club);
+        
         $club->update($request->validated());
 
         return redirect()->route('clubs.index')->with('success', 'Club updated successfully!');
     }
 
-    // Delete club (admin only)
+    /**
+     * Delete club
+     */
     public function destroy(Club $club)
     {
-        $this->authorizeAdmin();
+        $this->authorize('delete', $club);
 
         $club->delete();
 
         return redirect()->route('clubs.index')->with('success', 'Club deleted successfully!');
-    }
-
-    // Helper: Check if user is admin
-    private function authorizeAdmin()
-    {
-        if (!Auth::user() || Auth::user()->isAdmin() === false) {
-            abort(403, 'Unauthorized');
-        }
     }
 }

@@ -5,89 +5,84 @@ namespace App\Http\Controllers;
 use App\Models\Address;
 use App\Http\Requests\AddressRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
-    // List all addresses
+    /**
+     * Display a listing of addresses
+     */
     public function index(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorize('viewAny', Address::class);
 
-        $addresses = Address::query();
-
-        // Search by city or street
-        if ($request->filled('search')) {
-            $addresses->where('city', 'like', '%' . $request->search . '%')
-                     ->orWhere('street', 'like', '%' . $request->search . '%');
-        }
-
-        // Filter by country
-        if ($request->filled('country')) {
-            $addresses->where('country', $request->country);
-        }
-
-        // Filter by city
-        if ($request->filled('city')) {
-            $addresses->where('city', $request->city);
-        }
-
-        // Get unique countries and cities for filter dropdowns
         $countries = Address::distinct()->pluck('country')->sort()->values();
         $cities = Address::distinct()->pluck('city')->sort()->values();
 
-        $addresses = $addresses->paginate(10);
+        $addresses = Address::active()
+            ->when($request->filled('search'), 
+                fn($q) => $q->search($request->input('search')))
+            ->when($request->filled('country'), 
+                fn($q) => $q->byCountry($request->input('country')))
+            ->when($request->filled('city'), 
+                fn($q) => $q->byCity($request->input('city')))
+            ->paginate(10);
 
         return view('panel.addresses.index', compact('addresses', 'countries', 'cities'));
     }
 
-    // Show create form
+    /**
+     * Show create form
+     */
     public function create()
     {
-        $this->authorizeAdmin();
+        $this->authorize('create', Address::class);
 
         return view('panel.addresses.create');
     }
 
-    // Store new address
+    /**
+     * Store new address
+     */
     public function store(AddressRequest $request)
     {
+        $this->authorize('create', Address::class);
+
         Address::create($request->validated());
 
         return redirect()->route('panel.addresses.index')->with('success', 'Address created successfully!');
     }
 
-    // Show edit form
+    /**
+     * Show edit form
+     */
     public function edit(Address $address)
     {
-        $this->authorizeAdmin();
+        $this->authorize('update', $address);
 
         return view('panel.addresses.edit', compact('address'));
     }
 
-    // Update address
+    /**
+     * Update address
+     */
     public function update(AddressRequest $request, Address $address)
     {
+        $this->authorize('update', $address);
+
         $address->update($request->validated());
 
         return redirect()->route('panel.addresses.index')->with('success', 'Address updated successfully!');
     }
 
-    // Delete address
+    /**
+     * Delete address
+     */
     public function destroy(Address $address)
     {
-        $this->authorizeAdmin();
+        $this->authorize('delete', $address);
 
         $address->delete();
 
         return redirect()->route('panel.addresses.index')->with('success', 'Address deleted successfully!');
-    }
-
-    // Helper: Check if user is admin
-    private function authorizeAdmin()
-    {
-        if (!Auth::user() || Auth::user()->isAdmin() === false) {
-            abort(403, 'Unauthorized');
-        }
     }
 }

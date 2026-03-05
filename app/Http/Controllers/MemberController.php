@@ -6,59 +6,87 @@ use App\Models\Member;
 use App\Models\User;
 use App\Http\Requests\MemberRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
+    /**
+     * Display a listing of members
+     */
     public function index(Request $request)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('viewAny', Member::class);
 
-        $query = Member::query();
-
-        if ($request->filled('search')) {
-            $query->where('first_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('last_name', 'like', '%' . $request->search . '%');
-        }
-
-        $members = $query->with('user')->paginate(15);
+        $members = Member::active()
+            ->when($request->filled('search'), 
+                fn($q) => $q->search($request->input('search')))
+            ->with('user')
+            ->orderByName()
+            ->paginate(15);
+        
         return view('members.index', compact('members'));
     }
 
+    /**
+     * Show create form
+     */
     public function create()
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('create', Member::class);
+        
         $users = User::doesntHave('member')->get();
         return view('members.create', compact('users'));
     }
 
+    /**
+     * Store new member
+     */
     public function store(MemberRequest $request)
     {
+        $this->authorize('create', Member::class);
+        
         $member = Member::create($request->validated());
         return redirect()->route('members.show', $member)->with('success', 'Member created successfully.');
     }
 
+    /**
+     * Display member details
+     */
     public function show(Member $member)
     {
+        $this->authorize('view', $member);
+        
         $member->load('user', 'clubMemberships.club');
         return view('members.show', compact('member'));
     }
 
+    /**
+     * Show edit form
+     */
     public function edit(Member $member)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('update', $member);
+        
         return view('members.edit', compact('member'));
     }
 
+    /**
+     * Update member
+     */
     public function update(MemberRequest $request, Member $member)
     {
+        $this->authorize('update', $member);
+        
         $member->update($request->validated());
         return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
     }
 
+    /**
+     * Delete member
+     */
     public function destroy(Member $member)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('delete', $member);
+        
         $member->delete();
         return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
     }

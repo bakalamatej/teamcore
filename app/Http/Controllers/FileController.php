@@ -42,6 +42,9 @@ class FileController extends Controller
                 ], 404);
             }
 
+            // Authorize file upload
+            $this->authorize('create', File::class);
+
             // Validate file
             $validation = $this->fileService->validateFile(
                 $request->file('file'),
@@ -95,6 +98,9 @@ class FileController extends Controller
                     'message' => FileMessages::MODEL_NOT_FOUND
                 ], 404);
             }
+
+            // Authorize file viewing
+            $this->authorize('viewAny', File::class);
 
             $files = $this->getFilesForModel($model, $modelType);
 
@@ -203,6 +209,9 @@ class FileController extends Controller
                     'message' => FileMessages::FILE_NOT_FOUND
                 ], 404);
             }
+
+            // Authorize file deletion
+            $this->authorize('delete', $file);
 
             // Detach file from model using appropriate relationship
             $this->detachFileFromModel($model, $file, $modelType);

@@ -25,6 +25,78 @@ class Member extends Model
         'date_of_birth' => 'date',
     ];
 
+    // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('first_name', 'like', "%{$search}%")
+                     ->orWhere('last_name', 'like', "%{$search}%")
+                     ->orWhere('phone', 'like', "%{$search}%");
+    }
+
+    public function scopeByClub($query, $clubId)
+    {
+        if (!$clubId) return $query;
+        
+        return $query->whereHas('clubs', function($q) use ($clubId) {
+            $q->where('club_id', $clubId);
+        });
+    }
+
+    public function scopeByRole($query, $clubId, $role)
+    {
+        if (!$clubId || !$role) return $query;
+        
+        return $query->whereHas('clubMemberships', function($q) use ($clubId, $role) {
+            $q->where('club_id', $clubId)->where('role', $role);
+        });
+    }
+
+    public function scopeCoaches($query, $clubId = null)
+    {
+        $query->whereHas('clubMemberships', function($q) {
+            $q->where('role', 'coach')->whereNull('deleted_at');
+        });
+        
+        if ($clubId) {
+            $query->where('club_id', $clubId);
+        }
+        
+        return $query;
+    }
+
+    public function scopePlayers($query, $clubId = null)
+    {
+        $query->whereHas('clubMemberships', function($q) {
+            $q->where('role', 'player')->whereNull('deleted_at');
+        });
+        
+        if ($clubId) {
+            $query->where('club_id', $clubId);
+        }
+        
+        return $query;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeOrderByName($query, $order = 'asc')
+    {
+        return $query->orderBy('last_name', $order)->orderBy('first_name', $order);
+    }
+
+    public function scopeWithClubs($query)
+    {
+        return $query->with('clubs');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

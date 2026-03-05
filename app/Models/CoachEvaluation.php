@@ -20,6 +20,88 @@ class CoachEvaluation extends Model
         'comment',
     ];
 
+    protected $casts = [
+        'rating' => 'integer',
+    ];
+
+    // -----------------------
+    // Rating constants (1-5 scale)
+    // -----------------------
+    const RATING_POOR = 1;
+    const RATING_FAIR = 2;
+    const RATING_GOOD = 3;
+    const RATING_VERY_GOOD = 4;
+    const RATING_EXCELLENT = 5;
+
+    // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeByCoach($query, $coachId)
+    {
+        if (!$coachId) return $query;
+        
+        return $query->where('coach_id', $coachId);
+    }
+
+    public function scopeByEvaluatedMember($query, $memberId)
+    {
+        if (!$memberId) return $query;
+        
+        return $query->where('evaluated_by_member_id', $memberId);
+    }
+
+    public function scopeByRating($query, $rating)
+    {
+        if (!$rating) return $query;
+        
+        return $query->where('rating', $rating);
+    }
+
+    public function scopeByRatingRange($query, $minRating, $maxRating = 5)
+    {
+        return $query->whereBetween('rating', [$minRating, $maxRating]);
+    }
+
+    public function scopeMinRating($query, $minRating)
+    {
+        if (!$minRating) return $query;
+        
+        return $query->where('rating', '>=', $minRating);
+    }
+
+    public function scopeByReservation($query, $reservationId)
+    {
+        if (!$reservationId) return $query;
+        
+        return $query->where('reservation_id', $reservationId);
+    }
+
+    public function scopeRecent($query, $days = 30)
+    {
+        return $query->where('created_at', '>=', now()->subDays($days));
+    }
+
+    public function scopeOrderByRating($query, $order = 'desc')
+    {
+        return $query->orderBy('rating', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    public function scopeOrderByDate($query, $order = 'desc')
+    {
+        return $query->orderBy('created_at', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeWithRelations($query)
+    {
+        return $query->with(['coach', 'evaluatedByMember', 'reservation']);
+    }
+
     // -----------------------
     // Relationships
     // -----------------------

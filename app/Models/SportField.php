@@ -21,6 +21,50 @@ class SportField extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('name', 'like', "%{$search}%");
+    }
+
+    public function scopeByFieldType($query, $fieldType)
+    {
+        if (!$fieldType) return $query;
+        
+        return $query->where('field_type', $fieldType);
+    }
+
+    public function scopeByAddress($query, $addressId)
+    {
+        if (!$addressId) return $query;
+        
+        return $query->where('address_id', $addressId);
+    }
+
+    public function scopeByCity($query, $city)
+    {
+        if (!$city) return $query;
+        
+        return $query->whereHas('address', function($q) use ($city) {
+            $q->where('city', 'like', "%{$city}%");
+        });
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeWithAddress($query)
+    {
+        return $query->with('address');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 
@@ -39,5 +83,10 @@ class SportField extends Model
     public function events()
     {
         return $this->hasMany(Event::class, 'sport_field_id');
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'sport_field_id');
     }
 }

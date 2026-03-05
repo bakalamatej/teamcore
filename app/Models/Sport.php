@@ -13,6 +13,22 @@ class Sport extends Model
         'name',
     ];
 
+    // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('name', 'like', "%{$search}%");
+    }
+
+    public function scopeOrderByName($query, $order = 'asc')
+    {
+        return $query->orderBy('name', in_array($order, ['asc', 'desc']) ? $order : 'asc');
+    }
+
     /**
      * Get the sport fields that have this sport.
      */

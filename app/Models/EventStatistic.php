@@ -16,6 +16,41 @@ class EventStatistic extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeByEvent($query, $eventId)
+    {
+        if (!$eventId) return $query;
+        
+        return $query->where('event_id', $eventId);
+    }
+
+    public function scopeByMinParticipants($query, $minParticipants)
+    {
+        if (!$minParticipants) return $query;
+        
+        return $query->where('total_participants', '>=', $minParticipants);
+    }
+
+    public function scopeByMinTeams($query, $minTeams)
+    {
+        if (!$minTeams) return $query;
+        
+        return $query->where('total_teams', '>=', $minTeams);
+    }
+
+    public function scopeOrderByParticipants($query, $order = 'desc')
+    {
+        return $query->orderBy('total_participants', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    public function scopeWithEvent($query)
+    {
+        return $query->with('event');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 

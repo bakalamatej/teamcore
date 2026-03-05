@@ -20,6 +20,44 @@ class Address extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeByCity($query, $city)
+    {
+        if (!$city) return $query;
+        
+        return $query->where('city', 'like', "%{$city}%");
+    }
+
+    public function scopeByCountry($query, $country)
+    {
+        if (!$country) return $query;
+        
+        return $query->where('country', 'like', "%{$country}%");
+    }
+
+    public function scopeByZipCode($query, $zipCode)
+    {
+        if (!$zipCode) return $query;
+        
+        return $query->where('zip_code', $zipCode);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('city', 'like', "%{$search}%")
+                    ->orWhere('street', 'like', "%{$search}%");
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 

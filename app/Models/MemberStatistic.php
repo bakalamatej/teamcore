@@ -18,6 +18,42 @@ class MemberStatistic extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeByMemberClub($query, $memberClubId)
+    {
+        if (!$memberClubId) return $query;
+        
+        return $query->where('member_club_id', $memberClubId);
+    }
+
+    public function scopeTopPerformers($query, $limit = 10)
+    {
+        return $query->orderBy('total_wins', 'desc')
+                     ->orderBy('matches_played', 'desc')
+                     ->limit($limit);
+    }
+
+    public function scopeMostActive($query, $limit = 10)
+    {
+        return $query->orderBy('events_attended', 'desc')
+                     ->limit($limit);
+    }
+
+    public function scopeByMinEventsAttended($query, $minEvents)
+    {
+        if (!$minEvents) return $query;
+        
+        return $query->where('events_attended', '>=', $minEvents);
+    }
+
+    public function scopeWithRelation($query)
+    {
+        return $query->with('memberClub');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 
@@ -57,15 +93,6 @@ class MemberStatistic extends Model
     public function incrementMatchesPlayed(int $amount = 1)
     {
         $this->matches_played += $amount;
-        $this->save();
-    }
-
-    /**
-     * Increment goals scored by 1 or custom amount
-     */
-    public function incrementGoalsScored(int $amount = 1)
-    {
-        $this->goals_scored += $amount;
         $this->save();
     }
 }

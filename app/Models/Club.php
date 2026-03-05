@@ -91,6 +91,11 @@ class Club extends Model
         return $this->hasOne(ClubStatistic::class, 'club_id');
     }
 
+    public function eventClubResults()
+    {
+        return $this->hasMany(EventClubResult::class, 'club_id');
+    }
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'club_id');

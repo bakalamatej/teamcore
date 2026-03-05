@@ -22,6 +22,46 @@ class File extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('file_name', 'like', "%{$search}%");
+    }
+
+    public function scopeByFileType($query, $fileType)
+    {
+        if (!$fileType) return $query;
+        
+        return $query->where('file_type', 'like', "%{$fileType}%");
+    }
+
+    public function scopeByUploadedUser($query, $userId)
+    {
+        if (!$userId) return $query;
+        
+        return $query->where('uploaded_by_user_id', $userId);
+    }
+
+    public function scopeRecent($query, $days = 30)
+    {
+        return $query->where('created_at', '>=', now()->subDays($days));
+    }
+
+    public function scopeOrderByDate($query, $order = 'desc')
+    {
+        return $query->orderBy('created_at', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    public function scopeOrderBySize($query, $order = 'desc')
+    {
+        return $query->orderBy('file_size', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 

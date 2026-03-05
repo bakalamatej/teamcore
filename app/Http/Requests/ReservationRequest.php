@@ -9,7 +9,7 @@ class ReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user() && (Auth::user()->isAdmin() || Auth::user()->isCoach());
+        return $this->user() !== null;
     }
 
     public function rules(): array

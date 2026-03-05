@@ -9,7 +9,7 @@ class CoachEvaluationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user() && Auth::user()->member !== null;
+        return $this->user() !== null;
     }
 
     public function rules(): array

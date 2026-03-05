@@ -10,7 +10,6 @@ export default defineConfig({
                 'resources/js/events/event-create.js',
                 'resources/js/clubs/club-create.js',
                 'resources/js/clubs/club-update.js',
-                'resources/js/users/user-search.js',
                 'resources/js/shared/table-search.js',
             ],
             refresh: true,

@@ -39,6 +39,104 @@ class Event extends Model
     const STATUS_ONGOING   = 'ongoing';
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('title', 'like', "%{$search}%")
+                     ->orWhere('description', 'like', "%{$search}%");
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        if (!$status) return $query;
+        
+        return $query->where('status', $status);
+    }
+
+    public function scopeScheduled($query)
+    {
+        return $query->where('status', self::STATUS_SCHEDULED);
+    }
+
+    public function scopeOngoing($query)
+    {
+        return $query->where('status', self::STATUS_ONGOING);
+    }
+
+    public function scopeFinished($query)
+    {
+        return $query->where('status', self::STATUS_FINISHED);
+    }
+
+    public function scopeCanceled($query)
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
+    public function scopeByEventType($query, $eventTypeId)
+    {
+        if (!$eventTypeId) return $query;
+        
+        return $query->where('event_type_id', $eventTypeId);
+    }
+
+    public function scopeBySportField($query, $sportFieldId)
+    {
+        if (!$sportFieldId) return $query;
+        
+        return $query->where('sport_field_id', $sportFieldId);
+    }
+
+    public function scopeByClub($query, $clubId)
+    {
+        if (!$clubId) return $query;
+        
+        return $query->whereHas('clubs', function($q) use ($clubId) {
+            $q->where('club_id', $clubId);
+        });
+    }
+
+    public function scopeByDateRange($query, $startDate, $endDate)
+    {
+        if ($startDate) {
+            $query->whereDate('start_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('end_date', '<=', $endDate);
+        }
+        return $query;
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_date', '>=', now());
+    }
+
+    public function scopePast($query)
+    {
+        return $query->where('end_date', '<', now());
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeWithRelations($query)
+    {
+        return $query->with(['sportField', 'eventType', 'clubs']);
+    }
+
+    public function scopeOrderByDate($query, $order = 'asc')
+    {
+        return $query->orderBy('start_date', in_array($order, ['asc', 'desc']) ? $order : 'asc');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 
@@ -77,6 +175,16 @@ class Event extends Model
     public function eventStatistic()
     {
         return $this->hasOne(EventStatistic::class, 'event_id');
+    }
+
+    public function eventMemberResults()
+    {
+        return $this->hasMany(EventMemberResult::class, 'event_id');
+    }
+
+    public function eventClubResults()
+    {
+        return $this->hasMany(EventClubResult::class, 'event_id');
     }
 
     public function reservations()

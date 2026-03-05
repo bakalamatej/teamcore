@@ -19,6 +19,39 @@ class EventMemberResult extends Model
     ];
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeByEvent($query, $eventId)
+    {
+        if (!$eventId) return $query;
+        
+        return $query->where('event_id', $eventId);
+    }
+
+    public function scopeByMemberClub($query, $memberClubId)
+    {
+        if (!$memberClubId) return $query;
+        
+        return $query->where('member_club_id', $memberClubId);
+    }
+
+    public function scopeOrderByRanking($query, $order = 'asc')
+    {
+        return $query->orderBy('ranking', in_array($order, ['asc', 'desc']) ? $order : 'asc');
+    }
+
+    public function scopeOrderByScore($query, $order = 'desc')
+    {
+        return $query->orderBy('score', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+    }
+
+    public function scopeWithRelations($query)
+    {
+        return $query->with(['event', 'memberClub']);
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 

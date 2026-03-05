@@ -25,6 +25,12 @@ class MemberClub extends Model
     protected $dates = ['joined_at', 'left_at', 'deleted_at'];
 
     // -----------------------
+    // Role constants
+    // -----------------------
+    const ROLE_PLAYER = 'player';
+    const ROLE_COACH = 'coach';
+
+    // -----------------------
     // Scopes
     // -----------------------
     public function scopeByClub($query, $clubId)

@@ -12,23 +12,23 @@ class ClubStatisticController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('viewAny', ClubStatistic::class);
 
-        $query = ClubStatistic::query();
-
-        if ($request->filled('search')) {
-            $query->whereHas('club', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $statistics = $query->with('club')->paginate(15);
+        $statistics = ClubStatistic::query()
+            ->when($request->filled('search'), function($q) use ($request) {
+                return $q->whereHas('club', function($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->input('search') . '%');
+                });
+            })
+            ->with('club')
+            ->paginate(15);
+        
         return view('club-statistics.index', compact('statistics'));
     }
 
     public function create()
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('create', ClubStatistic::class);
         $clubs = Club::all();
         return view('club-statistics.create', compact('clubs'));
     }
@@ -47,7 +47,7 @@ class ClubStatisticController extends Controller
 
     public function edit(ClubStatistic $statistic)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('update', $statistic);
         return view('club-statistics.edit', compact('statistic'));
     }
 
@@ -59,7 +59,7 @@ class ClubStatisticController extends Controller
 
     public function destroy(ClubStatistic $statistic)
     {
-        if (!Auth::user()->isAdmin()) abort(403);
+        $this->authorize('delete', $statistic);
         $statistic->delete();
         return redirect()->route('club-statistics.index')->with('success', 'Club statistic deleted successfully.');
     }

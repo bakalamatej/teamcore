@@ -50,6 +50,54 @@ class User extends Authenticatable
     }
 
     // -----------------------
+    // Scopes
+    // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+        
+        return $query->where('email', 'like', "%{$search}%");
+    }
+
+    public function scopeByEmail($query, $email)
+    {
+        if (!$email) return $query;
+        
+        return $query->where('email', $email);
+    }
+
+    public function scopeAdmins($query)
+    {
+        return $query->where('is_admin', true);
+    }
+
+    public function scopeRegularUsers($query)
+    {
+        return $query->where('is_admin', false);
+    }
+
+    public function scopeVerified($query)
+    {
+        return $query->whereNotNull('email_verified_at');
+    }
+
+    public function scopeUnverified($query)
+    {
+        return $query->whereNull('email_verified_at');
+    }
+
+    public function scopeOrderByEmail($query, $order = 'asc')
+    {
+        return $query->orderBy('email', in_array($order, ['asc', 'desc']) ? $order : 'asc');
+    }
+
+    public function scopeWithMember($query)
+    {
+        return $query->with('member');
+    }
+
+    // -----------------------
     // Relationships
     // -----------------------
 
