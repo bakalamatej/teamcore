@@ -18,10 +18,14 @@ use App\Models\File;
 use App\Models\MemberClub;
 use App\Models\MemberStatistic;
 use App\Models\Reservation;
-use App\Models\ReservationEvent;
 use App\Models\EventStatistic;
 use App\Models\CoachEvaluation;
 use App\Models\ClubStatistic;
+use App\Models\FieldType;
+use App\Models\FileCategory;
+use App\Enums\EventStatus;
+use App\Enums\ReservationStatus;
+use App\Enums\MemberClubRole;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -34,6 +38,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // -----------------------
+        // Field Types
+        // -----------------------
+        $fieldTypeIndoor = FieldType::create(['name' => 'indoor']);
+        $fieldTypeOutdoor = FieldType::create(['name' => 'outdoor']);
+
+        // -----------------------
+        // File Categories
+        // -----------------------
+        $catCertificate = FileCategory::create(['name' => 'certificate']);
+        $catContract = FileCategory::create(['name' => 'contract']);
+        $catPhoto = FileCategory::create(['name' => 'photo']);
+        $catDocument = FileCategory::create(['name' => 'document']);
+        $catReport = FileCategory::create(['name' => 'report']);
+
         // -----------------------
         // Sports
         // -----------------------
@@ -111,13 +130,13 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         $field1 = SportField::create([
             'name' => 'AC Sparta Stadium',
-            'field_type' => 'Football Stadium',
+            'field_type_id' => $fieldTypeOutdoor->field_type_id,
             'address_id' => $address1->address_id,
         ]);
 
         $field2 = SportField::create([
             'name' => 'FC Dynamo Arena',
-            'field_type' => 'Football Field',
+            'field_type_id' => $fieldTypeOutdoor->field_type_id,
             'address_id' => $address2->address_id,
         ]);
 
@@ -167,13 +186,20 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // -----------------------
+        // Attach sports to clubs
+        // -----------------------
+        $club1->sports()->attach($sportFootball->sport_id);
+        $club2->sports()->attach($sportFootball->sport_id);
+
+        // -----------------------
         // Events
         // -----------------------
         $event1 = Event::create([
             'title' => 'Morning Training',
             'description' => 'Regular morning training session for all players.',
+            'sport_id' => $sportFootball->sport_id,
             'event_type_id' => $type1->event_type_id,
-            'status' => 'scheduled',
+            'status' => EventStatus::SCHEDULED->value,
             'start_date' => now()->addDays(1)->setHour(9),
             'end_date' => now()->addDays(1)->setHour(11),
             'sport_field_id' => $field1->sport_field_id,
@@ -182,8 +208,9 @@ class DatabaseSeeder extends Seeder
         $event2 = Event::create([
             'title' => 'Friendly Match',
             'description' => 'Friendly match against local rivals.',
+            'sport_id' => $sportFootball->sport_id,
             'event_type_id' => $type2->event_type_id,
-            'status' => 'scheduled',
+            'status' => EventStatus::SCHEDULED->value,
             'start_date' => now()->addDays(3)->setHour(15),
             'end_date' => now()->addDays(3)->setHour(17),
             'sport_field_id' => $field2->sport_field_id,
@@ -208,13 +235,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // -----------------------
-        // Attach members to clubs (CREATE MEMBERCLUB RECORDS FIRST)
+        // Attach members to clubs
         // -----------------------
-        $member->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => 'player']);
-        $coachMember->clubs()->attach($club2->club_id, ['joined_at' => now(), 'role' => 'coach']);
-        $adminMember->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => 'coach']);
+        $member->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::PLAYER->value]);
+        $coachMember->clubs()->attach($club2->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value]);
+        $adminMember->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value]);
 
-        // Get the created MemberClub records
         $memberClub1 = MemberClub::where('member_id', $member->member_id)
                                  ->where('club_id', $club1->club_id)
                                  ->first();
@@ -314,53 +340,27 @@ class DatabaseSeeder extends Seeder
         // Attach files using the new pivot tables
         // -----------------------
         // Club files
-        $club1->clubFiles()->attach($file2->file_id, ['file_category' => 'document']);
-        $club2->clubFiles()->attach($file1->file_id, ['file_category' => 'photo']);
+        $club1->clubFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->category_id]);
+        $club2->clubFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->category_id]);
 
         // Event files
-        $event1->eventFiles()->attach($file1->file_id, ['file_category' => 'photo']);
-        $event2->eventFiles()->attach($file2->file_id, ['file_category' => 'document']);
+        $event1->eventFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->category_id]);
+        $event2->eventFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->category_id]);
 
         // Member club files
         if ($memberClub1) {
-            $memberClub1->memberClubFiles()->attach($file1->file_id, ['file_category' => 'document']);
+            $memberClub1->memberClubFiles()->attach($file1->file_id, ['file_category_id' => $catDocument->category_id]);
         }
         
         if ($memberClubCoach) {
-            $memberClubCoach->memberClubFiles()->attach($file2->file_id, ['file_category' => 'photo']);
+            $memberClubCoach->memberClubFiles()->attach($file2->file_id, ['file_category_id' => $catPhoto->category_id]);
         }
-
-        // -----------------------
-        // Member Statistics
-        // -----------------------
-        MemberStatistic::create([
-            'member_club_id' => $memberClub1->member_club_id,
-            'events_attended' => 2,
-            'training_sessions' => 10,
-            'matches_played' => 5,
-            'total_wins' => 3,
-        ]);
-
-        MemberStatistic::create([
-            'member_club_id' => $memberClubCoach->member_club_id,
-            'events_attended' => 1,
-            'training_sessions' => 12,
-            'matches_played' => 4,
-            'total_wins' => 2,
-        ]);
-
-        MemberStatistic::create([
-            'member_club_id' => $memberClubAdmin->member_club_id,
-            'events_attended' => 2,
-            'training_sessions' => 8,
-            'matches_played' => 2,
-            'total_wins' => 1,
-        ]);
 
         // -----------------------
         // Reservations
         // -----------------------
         $reservation1 = Reservation::create([
+            'sport_id' => $sportFootball->sport_id,
             'sport_field_id' => $field1->sport_field_id,
             'club_id' => $club1->club_id,
             'created_by_member_club_id' => $memberClub1->member_club_id,
@@ -368,10 +368,11 @@ class DatabaseSeeder extends Seeder
             'description' => 'Regular training session for all players of AC Sparta.',
             'start_date' => now()->addDays(2),
             'end_date' => now()->addDays(2)->addHours(2),
-            'status' => 'approved',
+            'status' => ReservationStatus::APPROVED->value,
         ]);
 
         $reservation2 = Reservation::create([
+            'sport_id' => $sportFootball->sport_id,
             'sport_field_id' => $field2->sport_field_id,
             'club_id' => $club2->club_id,
             'created_by_member_club_id' => $memberClubCoach->member_club_id,
@@ -379,10 +380,11 @@ class DatabaseSeeder extends Seeder
             'description' => 'Match preparation and training for upcoming friendly match.',
             'start_date' => now()->addDays(5),
             'end_date' => now()->addDays(5)->addHours(3),
-            'status' => 'pending',
+            'status' => ReservationStatus::PENDING->value,
         ]);
 
         $reservation3 = Reservation::create([
+            'sport_id' => $sportFootball->sport_id,
             'sport_field_id' => $field1->sport_field_id,
             'club_id' => $club1->club_id,
             'created_by_member_club_id' => $memberClubAdmin->member_club_id,
@@ -390,42 +392,14 @@ class DatabaseSeeder extends Seeder
             'description' => 'Training and preparation for upcoming youth tournament.',
             'start_date' => now()->addDays(7),
             'end_date' => now()->addDays(7)->addHours(4),
-            'status' => 'approved',
-        ]);
-
-        // -----------------------
-        // Reservation - Event associations
-        // -----------------------
-        ReservationEvent::create([
-            'reservation_id' => $reservation1->reservation_id,
-            'event_id' => $event1->event_id,
-        ]);
-
-        ReservationEvent::create([
-            'reservation_id' => $reservation2->reservation_id,
-            'event_id' => $event2->event_id,
-        ]);
-
-        // -----------------------
-        // Event Statistics
-        // -----------------------
-        EventStatistic::create([
-            'event_id' => $event1->event_id,
-            'total_participants' => 15,
-            'total_teams' => 1,
-        ]);
-
-        EventStatistic::create([
-            'event_id' => $event2->event_id,
-            'total_participants' => 22,
-            'total_teams' => 2,
+            'status' => ReservationStatus::APPROVED->value,
         ]);
 
         // -----------------------
         // Coach Evaluations
         // -----------------------
         CoachEvaluation::create([
-            'coach_id' => $coachMember->member_id,
+            'coach_member_club_id' => $coachMember->member_id,
             'evaluated_by_member_id' => $member->member_id,
             'reservation_id' => $reservation1->reservation_id,
             'rating' => 5,
@@ -433,7 +407,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         CoachEvaluation::create([
-            'coach_id' => $coachMember->member_id,
+            'coach_member_club_id' => $coachMember->member_id,
             'evaluated_by_member_id' => $adminMember->member_id,
             'reservation_id' => $reservation2->reservation_id,
             'rating' => 4,
@@ -441,34 +415,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         CoachEvaluation::create([
-            'coach_id' => $adminMember->member_id,
+            'coach_member_club_id' => $adminMember->member_id,
             'evaluated_by_member_id' => $member->member_id,
             'reservation_id' => $reservation3->reservation_id,
             'rating' => 4,
             'comment' => 'Solid coaching skills, good tactical knowledge.',
-        ]);
-
-        // -----------------------
-        // Club Statistics
-        // -----------------------
-        ClubStatistic::create([
-            'club_id' => $club1->club_id,
-            'active_members' => 3,
-            'total_coaches' => 2,
-            'total_events' => 2,
-            'total_wins' => 3,
-            'total_loses' => 1,
-            'total_draws' => 0,
-        ]);
-
-        ClubStatistic::create([
-            'club_id' => $club2->club_id,
-            'active_members' => 1,
-            'total_coaches' => 1,
-            'total_events' => 1,
-            'total_wins' => 1,
-            'total_loses' => 2,
-            'total_draws' => 1,
         ]);
     }
 }

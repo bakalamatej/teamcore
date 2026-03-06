@@ -18,12 +18,13 @@ return new class extends Migration
                 ->constrained('users', 'user_id')
                 ->restrictOnDelete();
 
-            $table->string('file_name', 300);     // original name
+            $table->string('file_name', 255);     // original name
             $table->string('file_path', 500);     // stored path
             $table->string('file_type', 50);      // mime type
-            $table->unsignedBigInteger('file_size');
+            $table->unsignedInteger('file_size');
             $table->timestamps();
 
+            $table->unique('file_path');
             $table->index('uploaded_by_user_id');
             $table->index('file_type');
         });

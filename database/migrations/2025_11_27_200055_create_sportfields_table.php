@@ -15,19 +15,20 @@ return new class extends Migration
             $table->id('sport_field_id');
 
             $table->foreignId('address_id')
-                ->nullable()
                 ->constrained('addresses', 'address_id')
-                ->nullOnDelete();
+                ->restrictOnDelete();
 
-            $table->string('name', 30);
-            $table->string('field_type', 20);
+            $table->string('name', 50);
+            $table->foreignId('field_type_id')
+                ->constrained('field_types', 'field_type_id')
+                ->restrictOnDelete();
 
             $table->softDeletes();
             $table->timestamps();
 
             $table->unique(['address_id', 'name']);
             $table->index('address_id');
-            $table->index('field_type');
+            $table->index('field_type_id');
         });
     }
 

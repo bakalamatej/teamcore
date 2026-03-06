@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasFiles;
 use App\Models\ClubFile;
+use App\Models\ClubSport;
 
 class Club extends Model
 {
@@ -13,7 +14,6 @@ class Club extends Model
 
     protected $table = 'clubs';
     protected $primaryKey = 'club_id';
-    public $timestamps = true;
 
     protected $fillable = [
         'address_id',
@@ -42,6 +42,12 @@ class Club extends Model
     public function sport()
     {
         return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
+    public function sports()
+    {
+        return $this->belongsToMany(Sport::class, 'club_sport', 'club_id', 'sport_id')
+                    ->using(ClubSport::class);
     }
 
     public function memberMemberships()

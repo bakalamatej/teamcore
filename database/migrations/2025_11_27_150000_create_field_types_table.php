@@ -11,17 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_types', function (Blueprint $table) {
-            $table->id('event_type_id');
-
-            $table->foreignId('sport_id')
-                ->constrained('sports', 'sport_id')
-                ->restrictOnDelete();
-
+        Schema::create('field_types', function (Blueprint $table) {
+            $table->id('field_type_id');
             $table->string('name', 50);
 
-            $table->unique(['sport_id', 'name']);
-            $table->index('sport_id');
+            $table->unique('name');
+            $table->index('name');
         });
     }
 
@@ -30,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_types');
+        Schema::dropIfExists('field_types');
     }
 };

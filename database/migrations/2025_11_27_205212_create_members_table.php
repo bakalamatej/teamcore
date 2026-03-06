@@ -18,8 +18,8 @@ return new class extends Migration
                 ->constrained('users', 'user_id')
                 ->cascadeOnDelete();
 
-            $table->string('first_name', 30);
-            $table->string('last_name', 30);
+            $table->string('first_name', 100)->nullable();
+            $table->string('last_name', 100)->nullable();
             $table->string('phone', 20)->nullable();
             $table->date('date_of_birth')->nullable();
             $table->timestamps();

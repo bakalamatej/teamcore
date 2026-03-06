@@ -16,7 +16,6 @@ class ClubStatistic extends Model
         'total_events',
         'total_wins',
         'total_loses',
-        'total_draws',
     ];
 
     // -----------------------

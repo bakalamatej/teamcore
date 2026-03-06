@@ -22,9 +22,9 @@ return new class extends Migration
                 ->constrained('sports', 'sport_id')
                 ->restrictOnDelete();
 
-            $table->string('name', 30);
+            $table->string('name', 50);
             $table->string('phone', 20)->nullable();
-            $table->string('email', 56)->nullable();
+            $table->string('email', 255)->nullable();
             $table->string('webpage', 255)->nullable();
             $table->timestamps();
             $table->softDeletes();

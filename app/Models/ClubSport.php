@@ -4,19 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class SportFieldSport extends Pivot
+class ClubSport extends Pivot
 {
-    protected $table = 'sport_fields_sports';
+    protected $table = 'club_sport';
     public $timestamps = false;
 
     protected $fillable = [
-        'sport_field_id',
+        'club_id',
         'sport_id',
     ];
 
-    public function sportField()
+    // -----------------------
+    // Relationships
+    // -----------------------
+
+    public function club()
     {
-        return $this->belongsTo(SportField::class, 'sport_field_id');
+        return $this->belongsTo(Club::class, 'club_id');
     }
 
     public function sport()

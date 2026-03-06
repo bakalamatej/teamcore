@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use App\Enums\EventStatus;
 
 return new class extends Migration
 {
@@ -14,10 +16,19 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id('event_id');
 
+            $table->foreignId('sport_id')
+                ->constrained('sports', 'sport_id')
+                ->restrictOnDelete();
+
             $table->foreignId('parent_event_id')
                 ->nullable()
                 ->constrained('events', 'event_id')
                 ->nullOnDelete();
+
+            $table->foreignId('reservation_id')
+                ->nullable()
+                ->constrained('reservations', 'reservation_id')
+                ->restrictOnDelete();
 
             $table->foreignId('sport_field_id')
                 ->constrained('sport_fields', 'sport_field_id')
@@ -27,11 +38,11 @@ return new class extends Migration
                 ->constrained('event_types', 'event_type_id')
                 ->restrictOnDelete();
 
-            $table->string('title', 80);
+            $table->string('title', 255);
             $table->longText('description')->nullable();
 
-            $table->enum('status', ['scheduled', 'canceled', 'finished', 'ongoing'])
-                ->default('scheduled');
+            $table->enum('status', array_map(fn(EventStatus $status) => $status->value, EventStatus::cases()))
+                ->default(EventStatus::SCHEDULED->value);
 
             $table->date('start_date');
             $table->date('end_date');
@@ -45,6 +56,21 @@ return new class extends Migration
             $table->index('start_date');
         });
 
+        DB::unprepared("
+            CREATE TRIGGER trg_event_sport_field
+            BEFORE INSERT ON events
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+                SELECT COUNT(*) INTO v_count
+                FROM sport_fields_sports
+                WHERE sport_field_id = NEW.sport_field_id
+                AND sport_id = NEW.sport_id;
+                IF v_count = 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'FIELD DOES NOT SUPPORT THIS SPORT.';
+                END IF;
+            END
+        ");
     }
 
     /**
@@ -52,6 +78,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement('DROP TRIGGER IF EXISTS trg_event_sport_field');
         Schema::dropIfExists('events');
     }
 };

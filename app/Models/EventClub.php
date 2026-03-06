@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class EventClub extends Pivot
 {
-
     protected $table = 'event_club';
 
     protected $fillable = [

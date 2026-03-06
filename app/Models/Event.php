@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasFiles;
 use App\Models\EventFile;
+use App\Enums\EventStatus;
 
 class Event extends Model
 {
@@ -15,7 +16,9 @@ class Event extends Model
     protected $primaryKey = 'event_id';
 
     protected $fillable = [
+        'sport_id',
         'parent_event_id',
+        'reservation_id',
         'sport_field_id',
         'event_type_id',
         'title',
@@ -30,13 +33,11 @@ class Event extends Model
         'end_date',
     ];
 
-    // -----------------------
-    // Status constants
-    // -----------------------
-    const STATUS_SCHEDULED = 'scheduled';
-    const STATUS_CANCELLED = 'canceled';
-    const STATUS_FINISHED  = 'finished';
-    const STATUS_ONGOING   = 'ongoing';
+    protected $casts = [
+        'status' => EventStatus::class,
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
 
     // -----------------------
     // Scopes
@@ -59,22 +60,22 @@ class Event extends Model
 
     public function scopeScheduled($query)
     {
-        return $query->where('status', self::STATUS_SCHEDULED);
+        return $query->where('status', EventStatus::SCHEDULED->value);
     }
 
     public function scopeOngoing($query)
     {
-        return $query->where('status', self::STATUS_ONGOING);
+        return $query->where('status', EventStatus::ONGOING->value);
     }
 
     public function scopeFinished($query)
     {
-        return $query->where('status', self::STATUS_FINISHED);
+        return $query->where('status', EventStatus::FINISHED->value);
     }
 
     public function scopeCanceled($query)
     {
-        return $query->where('status', self::STATUS_CANCELLED);
+        return $query->where('status', EventStatus::CANCELED->value);
     }
 
     public function scopeByEventType($query, $eventTypeId)
@@ -140,6 +141,11 @@ class Event extends Model
     // Relationships
     // -----------------------
 
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
     public function sportField()
     {
         return $this->belongsTo(SportField::class, 'sport_field_id');
@@ -187,11 +193,9 @@ class Event extends Model
         return $this->hasMany(EventClubResult::class, 'event_id');
     }
 
-    public function reservations()
+    public function reservation()
     {
-        return $this->belongsToMany(Reservation::class, 'reservation_event', 'event_id', 'reservation_id')
-                    ->using(ReservationEvent::class)
-                    ->withTimestamps();
+        return $this->belongsTo(Reservation::class, 'reservation_id');
     }
 
     public function parentEvent()
@@ -240,9 +244,4 @@ class Event extends Model
     {
         // No custom cascade behavior needed for event_club (hard delete only)
     }
-
-    protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
-    ];
 }

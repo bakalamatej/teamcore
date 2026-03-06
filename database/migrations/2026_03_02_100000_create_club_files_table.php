@@ -17,11 +17,14 @@ return new class extends Migration
                 ->constrained('files', 'file_id')
                 ->cascadeOnDelete();
 
-            $table->string('file_category', 30);
+            $table->foreignId('file_category_id')
+                ->constrained('file_categories', 'file_category_id')
+                ->restrictOnDelete();
+
             $table->timestamps();
 
             $table->primary(['club_id', 'file_id']);
-            $table->index(['club_id', 'file_category']);
+            $table->index(['club_id', 'file_category_id']);
         });
     }
 

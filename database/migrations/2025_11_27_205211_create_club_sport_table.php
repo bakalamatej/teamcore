@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_types', function (Blueprint $table) {
-            $table->id('event_type_id');
+        Schema::create('club_sport', function (Blueprint $table) {
+            $table->foreignId('club_id')
+                ->constrained('clubs', 'club_id')
+                ->cascadeOnDelete();
 
             $table->foreignId('sport_id')
                 ->constrained('sports', 'sport_id')
-                ->restrictOnDelete();
+                ->cascadeOnDelete();
 
-            $table->string('name', 50);
+            $table->primary(['club_id', 'sport_id']);
 
-            $table->unique(['sport_id', 'name']);
+            $table->index('club_id');
             $table->index('sport_id');
         });
     }
@@ -30,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_types');
+        Schema::dropIfExists('club_sport');
     }
 };

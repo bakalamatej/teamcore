@@ -11,15 +11,12 @@ class SportField extends Model
 
     protected $table = 'sport_fields';
     protected $primaryKey = 'sport_field_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
 
     protected $fillable = [
         'address_id',
         'name',
-        'field_type',
+        'field_type_id',
     ];
-
     // -----------------------
     // Scopes
     // -----------------------
@@ -31,11 +28,11 @@ class SportField extends Model
         return $query->where('name', 'like', "%{$search}%");
     }
 
-    public function scopeByFieldType($query, $fieldType)
+    public function scopeByFieldType($query, $fieldTypeId)
     {
-        if (!$fieldType) return $query;
+        if (!$fieldTypeId) return $query;
         
-        return $query->where('field_type', $fieldType);
+        return $query->where('field_type_id', $fieldTypeId);
     }
 
     public function scopeByAddress($query, $addressId)
@@ -71,6 +68,11 @@ class SportField extends Model
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id');
+    }
+
+    public function fieldType()
+    {
+        return $this->belongsTo(FieldType::class, 'field_type_id');
     }
 
     public function sports()

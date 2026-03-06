@@ -11,7 +11,7 @@ class MemberClubFile extends Pivot
     protected $fillable = [
         'member_club_id',
         'file_id',
-        'file_category',
+        'category_id',
     ];
 
     // -----------------------

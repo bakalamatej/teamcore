@@ -20,9 +20,9 @@ return new class extends Migration
                 ->constrained('sports', 'sport_id')
                 ->cascadeOnDelete();
 
-            $table->primary(['sport_field_id', 'sport_id']);
-
             $table->timestamps();
+
+            $table->primary(['sport_field_id', 'sport_id']);
 
             $table->index('sport_field_id');
             $table->index('sport_id');

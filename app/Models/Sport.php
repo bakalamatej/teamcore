@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ClubSport;
+use App\Models\SportFieldSport;
 
 class Sport extends Model
 {
     protected $table = 'sports';
     protected $primaryKey = 'sport_id';
+    public $timestamps = false;
 
     protected $fillable = [
         'name',
@@ -52,6 +55,7 @@ class Sport extends Model
      */
     public function clubs()
     {
-        return $this->hasMany(Club::class);
+        return $this->belongsToMany(Club::class, 'club_sport', 'sport_id', 'club_id')
+                    ->using(ClubSport::class);
     }
 }

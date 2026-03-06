@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\ReservationStatus;
 
 class Reservation extends Model
 {
@@ -26,10 +27,11 @@ class Reservation extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'status' => ReservationStatus::class,
     ];
 
     // -----------------------
-    // Status constants
+    // Status constants (backup)
     // -----------------------
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';

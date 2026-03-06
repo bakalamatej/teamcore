@@ -14,21 +14,22 @@ return new class extends Migration
         Schema::create('event_club_results', function (Blueprint $table) {
             $table->id('result_id');
 
-            $table->foreignId('event_id')
-                ->constrained('events', 'event_id')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('club_id');
 
-            $table->foreignId('club_id')
-                ->constrained('clubs', 'club_id')
-                ->cascadeOnDelete();
-
-            $table->integer('score')->nullable();
-            $table->integer('ranking')->nullable();
+            $table->decimal('score', 8, 2)->nullable();
+            $table->unsignedSmallInteger('ranking')->nullable();
             $table->longText('note')->nullable();
             $table->timestamps();
 
             $table->unique(['event_id', 'club_id']);
             $table->index('club_id');
+
+            // Composite FK → event_club
+            $table->foreign(['event_id', 'club_id'])
+                ->references(['event_id', 'club_id'])
+                ->on('event_club')
+                ->cascadeOnDelete();
         });
 
     }

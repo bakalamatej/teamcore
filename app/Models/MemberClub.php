@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasFiles;
 use App\Models\MemberClubFile;
+use App\Enums\MemberClubRole;
 
 class MemberClub extends Model
 {
-    use SoftDeletes, HasFiles;
+    use HasFiles;
 
     protected $table = 'member_club';
     protected $primaryKey = 'member_club_id';
@@ -24,8 +25,12 @@ class MemberClub extends Model
 
     protected $dates = ['joined_at', 'left_at', 'deleted_at'];
 
+    protected $casts = [
+        'role' => MemberClubRole::class,
+    ];
+
     // -----------------------
-    // Role constants
+    // Role constants (backup)
     // -----------------------
     const ROLE_PLAYER = 'player';
     const ROLE_COACH = 'coach';

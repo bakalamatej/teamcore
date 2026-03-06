@@ -8,8 +8,7 @@ class EventType extends Model
 {
     protected $table = 'event_types';
     protected $primaryKey = 'event_type_id';
-    protected $keyType = 'int';
-    public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'name',

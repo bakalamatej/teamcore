@@ -11,7 +11,7 @@ class EventFile extends Pivot
     protected $fillable = [
         'event_id',
         'file_id',
-        'file_category',
+        'category_id',
     ];
 
     // -----------------------
