@@ -22,6 +22,16 @@ class EventClubResult extends Model
     // Scopes
     // -----------------------
 
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+
+        return $query->where(fn($q) =>
+            $q->whereHas('event', fn($q) => $q->where('title', 'like', "%{$search}%"))
+              ->orWhereHas('club', fn($q) => $q->where('name', 'like', "%{$search}%"))
+        );
+    }
+
     public function scopeByEvent($query, $eventId)
     {
         if (!$eventId) return $query;

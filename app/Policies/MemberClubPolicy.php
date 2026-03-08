@@ -54,4 +54,22 @@ class MemberClubPolicy extends Policy
         // Member can remove themselves from club
         return $this->isCreatorByMemberId($user, $memberClub->member_id);
     }
+
+    /**
+     * Determine if the user can create member club membership.
+     */
+    public function create(User $user): bool
+    {
+        // Users who are coaches can add members to club
+        return $this->isCoach($user);
+    }
+
+    /**
+     * Determine if the user can update the member club membership.
+     */
+    public function update(User $user, MemberClub $memberClub): bool
+    {
+        // Coaches in the same club can update membership
+        return $this->isCoachInClub($user, $memberClub->club_id);
+    }
 }

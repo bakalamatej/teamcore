@@ -18,13 +18,8 @@ class EventClubResultController extends Controller
         $this->authorize('viewAny', EventClubResult::class);
 
         $results = EventClubResult::query()
-            ->when($request->filled('search'), function($q) use ($request) {
-                return $q->whereHas('event', function($q) use ($request) {
-                    $q->where('title', 'like', '%' . $request->input('search') . '%');
-                })->orWhereHas('club', function($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->input('search') . '%');
-                });
-            })
+            ->when($request->filled('search'),
+                fn($q) => $q->search($request->input('search')))
             ->with('event', 'club')
             ->paginate(15);
         
@@ -38,8 +33,8 @@ class EventClubResultController extends Controller
     {
         $this->authorize('create', EventClubResult::class);
 
-        $events = Event::all();
-        $clubs = Club::all();
+        $events = Event::finished()->orderBy('start_date', 'desc')->limit(100)->get();
+        $clubs = Club::orderBy('name')->get();
         return view('event-club-results.create', compact('events', 'clubs'));
     }
 
@@ -72,8 +67,8 @@ class EventClubResultController extends Controller
     {
         $this->authorize('update', $result);
 
-        $events = Event::all();
-        $clubs = Club::all();
+        $events = Event::finished()->orderBy('start_date', 'desc')->limit(100)->get();
+        $clubs = Club::orderBy('name')->get();
         return view('event-club-results.edit', compact('result', 'events', 'clubs'));
     }
 

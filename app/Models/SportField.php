@@ -78,8 +78,7 @@ class SportField extends Model
     public function sports()
     {
         return $this->belongsToMany(Sport::class, 'sport_fields_sports', 'sport_field_id', 'sport_id')
-                    ->using(SportFieldSport::class)
-                    ->withTimestamps();
+                    ->using(SportFieldSport::class);
     }
 
     public function events()

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Validator;
+use App\Enums\MemberClubRole;
 
 class Member extends Model
 {
@@ -32,10 +32,12 @@ class Member extends Model
     public function scopeSearch($query, $search)
     {
         if (!$search) return $query;
-        
-        return $query->where('first_name', 'like', "%{$search}%")
-                     ->orWhere('last_name', 'like', "%{$search}%")
-                     ->orWhere('phone', 'like', "%{$search}%");
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('phone', 'like', "%{$search}%");
+        });
     }
 
     public function scopeByClub($query, $clubId)
@@ -56,30 +58,22 @@ class Member extends Model
         });
     }
 
-    public function scopeCoaches($query, $clubId = null)
+    public function scopeCoaches($query, $clubId = null, $sportId = null)
     {
-        $query->whereHas('clubMemberships', function($q) {
-            $q->where('role', 'coach')->whereNull('deleted_at');
+        return $query->whereHas('clubMemberships', function ($q) use ($clubId, $sportId) {
+            $q->byRole(MemberClubRole::COACH)->active();
+            if ($clubId) $q->byClub($clubId);
+            if ($sportId) $q->bySport($sportId);
         });
-        
-        if ($clubId) {
-            $query->where('club_id', $clubId);
-        }
-        
-        return $query;
     }
 
-    public function scopePlayers($query, $clubId = null)
+    public function scopePlayers($query, $clubId = null, $sportId = null)
     {
-        $query->whereHas('clubMemberships', function($q) {
-            $q->where('role', 'player')->whereNull('deleted_at');
+        return $query->whereHas('clubMemberships', function ($q) use ($clubId, $sportId) {
+            $q->byRole(MemberClubRole::PLAYER)->active();
+            if ($clubId) $q->byClub($clubId);
+            if ($sportId) $q->bySport($sportId);
         });
-        
-        if ($clubId) {
-            $query->where('club_id', $clubId);
-        }
-        
-        return $query;
     }
 
     public function scopeActive($query)
@@ -111,19 +105,37 @@ class Member extends Model
     {
         return $this->belongsToMany(Club::class, 'member_club', 'member_id', 'club_id')
                     ->withTimestamps()
-                    ->withPivot('deleted_at', 'left_at');
+                    ->withPivot('left_at');
     }
 
     /**
-     * Get events through active club memberships
+     * Returns clubs the member can view: own clubs + clubs sharing an event.
+     * Not an Eloquent relation — returns a query builder instance.
+     */
+    public function visibleClubs()
+    {
+        $ownClubIds = $this->clubs()->pluck('club_id');
+        $sportIds = $this->clubMemberships()->active()->pluck('sport_id')->unique();
+
+        return Club::whereIn('club_id', $ownClubIds)
+            ->orWhereHas('sports', fn($q) => $q->whereIn('sport_id', $sportIds));
+    }
+
+    /**
+     * Returns events where the member is registered or belongs to a participating club.
      */
     public function events()
     {
-        return Event::whereHas('memberClubs', function($query) {
-            $query->whereHas('memberClub', function($subQuery) {
-                $subQuery->where('member_id', $this->member_id);
-            });
-        });
+        $memberClubIds = $this->clubMemberships()->active()->pluck('member_club_id');
+        $clubIds = $this->activeClubs()->pluck('club_id');
+        $sportIds = $this->clubMemberships()->active()->pluck('sport_id')->unique();
+
+        return Event::where(fn($q) =>
+            $q->whereHas('memberClubs', fn($q) => $q->whereIn('member_club_id', $memberClubIds))
+              ->orWhereHas('clubs', fn($q) => $q->whereIn('club_id', $clubIds)
+                  ->whereHas('sports', fn($q) => $q->whereIn('sport_id', $sportIds))
+              )
+        );
     }
 
 
@@ -145,14 +157,20 @@ class Member extends Model
     public function activeClubs()
     {
         return $this->belongsToMany(Club::class, 'member_club', 'member_id', 'club_id')
-                    ->withPivot('deleted_at', 'left_at')
-                    ->wherePivotNull('deleted_at')
+                    ->withPivot('left_at')
                     ->wherePivotNull('left_at');
     }
 
     public function coachEvaluations()
     {
-        return $this->hasMany(CoachEvaluation::class, 'coach_id');
+        return $this->hasManyThrough(
+            CoachEvaluation::class,
+            MemberClub::class,
+            'member_id',
+            'coach_member_club_id',
+            'member_id',
+            'member_club_id'
+        );
     }
 
     public function memberEvaluations()
@@ -161,27 +179,14 @@ class Member extends Model
     }
 
     /**
-     * Returns active events through active club memberships (member_club NOT soft deleted)
+     * Returns events where the member is registered through an active membership.
      */
     public function activeEvents()
     {
-        return $this->events()
-                    ->whereHas('memberClubs', function($q) {
-                        $q->whereNull('member_club.deleted_at');
-                    });
-    }
-
-    /**
-     * Validation rules
-     */
-    public function validate(array $data)
-    {
-        return Validator::make($data, [
-            'first_name' => 'required|string|max:30',
-            'last_name' => 'required|string|max:30',
-            'email' => 'required|email|max:56',
-            'phone' => 'nullable|string|max:20',
-        ]);
+        return Event::whereHas('memberClubs', function ($q) {
+            $q->where('member_club.member_id', $this->member_id)
+              ->whereNull('member_club.left_at');
+        });
     }
 
     /**
@@ -192,10 +197,9 @@ class Member extends Model
         static::deleting(function ($member) {
             if ($member->isForceDeleting()) return;
 
-            $member->clubs()->updateExistingPivot(
-                $member->clubs->pluck('club_id')->toArray(),
-                ['deleted_at' => now()]
-            );
+            MemberClub::where('member_id', $member->member_id)
+                ->whereNull('left_at')
+                ->update(['left_at' => now()]);
         });
     }
 }

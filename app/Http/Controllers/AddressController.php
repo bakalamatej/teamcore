@@ -15,10 +15,10 @@ class AddressController extends Controller
     {
         $this->authorize('viewAny', Address::class);
 
-        $countries = Address::distinct()->pluck('country')->sort()->values();
-        $cities = Address::distinct()->pluck('city')->sort()->values();
+        $countries = Address::distinct()->orderBy('country')->pluck('country');
+        $cities = Address::distinct()->orderBy('city')->pluck('city');
 
-        $addresses = Address::active()
+        $addresses = Address::query()
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('country'), 

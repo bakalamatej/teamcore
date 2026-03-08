@@ -82,19 +82,19 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => bcrypt('password'),
+            'password_hash' => bcrypt('password'),
             'is_admin' => false,
         ]);
 
         $coach = User::factory()->create([
             'email' => 'coach@example.com',
-            'password' => bcrypt('password'),
+            'password_hash' => bcrypt('password'),
             'is_admin' => false,
         ]);
 
         $admin = User::factory()->create([
             'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
+            'password_hash' => bcrypt('password'),
             'is_admin' => true,
         ]);
 
@@ -237,9 +237,9 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         // Attach members to clubs
         // -----------------------
-        $member->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::PLAYER->value]);
-        $coachMember->clubs()->attach($club2->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value]);
-        $adminMember->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value]);
+        $member->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::PLAYER->value, 'sport_id' => $club1->sport_id]);
+        $coachMember->clubs()->attach($club2->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value, 'sport_id' => $club2->sport_id]);
+        $adminMember->clubs()->attach($club1->club_id, ['joined_at' => now(), 'role' => MemberClubRole::COACH->value, 'sport_id' => $club1->sport_id]);
 
         $memberClub1 = MemberClub::where('member_id', $member->member_id)
                                  ->where('club_id', $club1->club_id)

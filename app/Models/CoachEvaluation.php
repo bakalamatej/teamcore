@@ -3,17 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CoachEvaluation extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'coach_evaluation';
     protected $primaryKey = 'evaluation_id';
 
     protected $fillable = [
-        'coach_id',
+        'coach_member_club_id',
         'evaluated_by_member_id',
         'reservation_id',
         'rating',
@@ -21,7 +18,7 @@ class CoachEvaluation extends Model
     ];
 
     protected $casts = [
-        'rating' => 'integer',
+        'rating' => 'decimal:1',
     ];
 
     // -----------------------
@@ -37,17 +34,25 @@ class CoachEvaluation extends Model
     // Scopes
     // -----------------------
 
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+
+        return $query->whereHas('coach.member', fn($q) => $q->where('first_name', 'like', "%{$search}%")
+            ->orWhere('last_name', 'like', "%{$search}%"));
+    }
+
     public function scopeByCoach($query, $coachId)
     {
         if (!$coachId) return $query;
         
-        return $query->where('coach_id', $coachId);
+        return $query->where('coach_member_club_id', $coachId);
     }
 
-    public function scopeByEvaluatedMember($query, $memberId)
+    public function scopeByMember($query, $memberId)
     {
         if (!$memberId) return $query;
-        
+
         return $query->where('evaluated_by_member_id', $memberId);
     }
 
@@ -92,11 +97,6 @@ class CoachEvaluation extends Model
         return $query->orderBy('created_at', in_array($order, ['asc', 'desc']) ? $order : 'desc');
     }
 
-    public function scopeActive($query)
-    {
-        return $query->whereNull('deleted_at');
-    }
-
     public function scopeWithRelations($query)
     {
         return $query->with(['coach', 'evaluatedByMember', 'reservation']);
@@ -108,7 +108,7 @@ class CoachEvaluation extends Model
 
     public function coach()
     {
-        return $this->belongsTo(Member::class, 'coach_id');
+        return $this->belongsTo(MemberClub::class, 'coach_member_club_id');
     }
 
     public function evaluatedByMember()

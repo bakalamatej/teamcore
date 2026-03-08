@@ -19,6 +19,11 @@ class EventStatistic extends Model
     // Scopes
     // -----------------------
 
+    public function scopeSearch($query, $search)
+    {
+        return $query->whereHas('event', fn($q) => $q->where('title', 'like', '%' . $search . '%'));
+    }
+
     public function scopeByEvent($query, $eventId)
     {
         if (!$eventId) return $query;

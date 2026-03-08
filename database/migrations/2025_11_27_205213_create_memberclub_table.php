@@ -24,6 +24,10 @@ return new class extends Migration
                 ->constrained('clubs', 'club_id')
                 ->restrictOnDelete();
 
+            $table->foreignId('sport_id')
+                ->constrained('sports', 'sport_id')
+                ->restrictOnDelete();
+
             $table->enum('role', array_map(fn(MemberClubRole $role) => $role->value, MemberClubRole::cases()))->default(MemberClubRole::PLAYER->value);
             $table->date('joined_at');
             $table->date('left_at')->nullable();
@@ -31,6 +35,7 @@ return new class extends Migration
 
             $table->index(['member_id', 'club_id']);
             $table->index(['club_id', 'role']);
+            $table->index(['club_id', 'sport_id']);
             $table->index('left_at'); 
         });
 

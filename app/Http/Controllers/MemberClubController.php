@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MemberClub;
 use App\Models\Member;
 use App\Models\Club;
+use App\Models\Sport;
 use App\Http\Requests\MemberClubRequest;
 use Illuminate\Http\Request;
 
@@ -18,15 +19,9 @@ class MemberClubController extends Controller
         $this->authorize('viewAny', MemberClub::class);
 
         $memberClubs = MemberClub::active()
-            ->when($request->filled('search'), function($q) use ($request) {
-                return $q->whereHas('member', function($q) use ($request) {
-                    $q->where('first_name', 'like', '%' . $request->input('search') . '%')
-                      ->orWhere('last_name', 'like', '%' . $request->input('search') . '%');
-                })->orWhereHas('club', function($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->input('search') . '%');
-                });
-            })
-            ->with('member', 'club')
+            ->when($request->filled('search'),
+                fn($q) => $q->search($request->input('search')))
+            ->with('member.user', 'club', 'sport')
             ->paginate(15);
         
         return view('member-clubs.index', compact('memberClubs'));
@@ -39,9 +34,10 @@ class MemberClubController extends Controller
     {
         $this->authorize('create', MemberClub::class);
 
-        $members = Member::all();
-        $clubs = Club::all();
-        return view('member-clubs.create', compact('members', 'clubs'));
+        $members = Member::orderByName()->get();
+        $clubs = Club::orderBy('name')->get();
+        $sports = Sport::orderBy('name')->get();
+        return view('member-clubs.create', compact('members', 'clubs', 'sports'));
     }
 
     /**
@@ -62,7 +58,7 @@ class MemberClubController extends Controller
     {
         $this->authorize('view', $memberClub);
 
-        $memberClub->load('member', 'club');
+        $memberClub->load('member.user', 'club', 'sport');
         return view('member-clubs.show', compact('memberClub'));
     }
 
@@ -73,7 +69,10 @@ class MemberClubController extends Controller
     {
         $this->authorize('update', $memberClub);
 
-        return view('member-clubs.edit', compact('memberClub'));
+        $members = Member::orderByName()->get();
+        $clubs = Club::orderBy('name')->get();
+        $sports = Sport::orderBy('name')->get();
+        return view('member-clubs.edit', compact('memberClub', 'members', 'clubs', 'sports'));
     }
 
     /**

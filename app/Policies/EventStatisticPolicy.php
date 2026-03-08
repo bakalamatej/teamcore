@@ -31,4 +31,5 @@ class EventStatisticPolicy extends Policy
     {
         return true;
     }
+
 }

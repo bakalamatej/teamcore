@@ -31,7 +31,21 @@ class MemberPolicy extends Policy
      */
     public function view(User $user, Member $member): bool
     {
-        return $this->ownsMemberById($user, $member->member_id);
+        // Vlastný profil
+        if ($this->ownsMemberById($user, $member->member_id)) {
+            return true;
+        }
+
+        // Členovia rovnakého klubu môžu vidieť profil
+        if ($user->member) {
+            return $user->member->activeClubs()
+                ->whereHas('members', fn($q) => 
+                    $q->where('member_id', $member->member_id)
+                )
+                ->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -40,5 +54,15 @@ class MemberPolicy extends Policy
     public function update(User $user, Member $member): bool
     {
         return $this->ownsMemberById($user, $member->member_id);
+    }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, Member $member): bool
+    {
+        return false;
     }
 }

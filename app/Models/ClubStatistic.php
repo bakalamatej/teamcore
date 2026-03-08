@@ -13,14 +13,22 @@ class ClubStatistic extends Model
         'club_id',
         'active_members',
         'total_coaches',
-        'total_events',
+        'matches_played',
+        'tournaments_attended',
         'total_wins',
-        'total_loses',
+        'total_losses',
     ];
 
     // -----------------------
     // Scopes
     // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+
+        return $query->whereHas('club', fn($q) => $q->where('name', 'like', "%{$search}%"));
+    }
 
     public function scopeByClub($query, $clubId)
     {
@@ -32,22 +40,22 @@ class ClubStatistic extends Model
     public function scopeTopClubs($query, $limit = 10)
     {
         return $query->orderBy('total_wins', 'desc')
-                     ->orderBy('total_events', 'desc')
+                     ->orderBy('matches_played', 'desc')
                      ->limit($limit);
     }
 
     public function scopeByMinActiveMembers($query, $minMembers)
     {
         if (!$minMembers) return $query;
-        
+
         return $query->where('active_members', '>=', $minMembers);
     }
 
-    public function scopeByMinEvents($query, $minEvents)
+    public function scopeByMinMatches($query, $minMatches)
     {
-        if (!$minEvents) return $query;
-        
-        return $query->where('total_events', '>=', $minEvents);
+        if (!$minMatches) return $query;
+
+        return $query->where('matches_played', '>=', $minMatches);
     }
 
     public function scopeOrderByWins($query, $order = 'desc')

@@ -36,7 +36,6 @@ class ClubPolicy extends Policy
 
     /**
      * Determine if the user can create clubs.
-     * ✅ Only coaches
      */
     public function create(User $user): bool
     {
@@ -45,7 +44,6 @@ class ClubPolicy extends Policy
 
     /**
      * Determine if the user can update the club.
-     * ✅ Admin + club admin (coach in the club)
      */
     public function update(User $user, Club $club): bool
     {

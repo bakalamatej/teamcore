@@ -32,4 +32,46 @@ class EventMemberResultPolicy extends Policy
         return true;
     }
 
+    /**
+     * Determine if the user can create results.
+     */
+    public function create(User $user): bool
+    {
+        return $this->isCoach($user);
+    }
+
+    /**
+     * Determine if the user can update the result.
+     */
+    public function update(User $user, EventMemberResult $result): bool
+    {
+        if (!$this->isCoach($user)) return false;
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        return $member->activeClubs()
+            ->whereHas('memberClubs', fn($q) => 
+                $q->where('member_club_id', $result->member_club_id)
+            )
+            ->exists();
+    }
+
+    /**
+     * Determine if the user can delete the result.
+     */
+    public function delete(User $user, EventMemberResult $result): bool
+    {
+        if (!$this->isCoach($user)) return false;
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        return $member->activeClubs()
+            ->whereHas('memberClubs', fn($q) => 
+                $q->where('member_club_id', $result->member_club_id)
+            )
+            ->exists();
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Constants\FileMessages;
+use Illuminate\Validation\Rule;
 
 class FileUploadRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class FileUploadRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true; // auth middleware handles this
     }
 
     /**
@@ -28,10 +29,10 @@ class FileUploadRequest extends FormRequest
                 'mimes:jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx',
             ],
             'category' => [
-                'required',
-                'string',
-                'in:logo,document,photo,other',
-            ],
+            'required',
+            'integer',
+            Rule::exists('file_categories', 'file_category_id'),
+        ],
         ];
     }
 
@@ -46,7 +47,7 @@ class FileUploadRequest extends FormRequest
             'file.max' => FileMessages::FILE_TOO_LARGE,
             'file.mimes' => FileMessages::FILE_TYPE_NOT_ALLOWED,
             'category.required' => FileMessages::CATEGORY_REQUIRED,
-            'category.in' => FileMessages::CATEGORY_INVALID,
+            'category.exists' => FileMessages::CATEGORY_INVALID,
         ];
     }
 }

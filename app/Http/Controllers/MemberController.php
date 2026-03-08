@@ -16,7 +16,7 @@ class MemberController extends Controller
     {
         $this->authorize('viewAny', Member::class);
 
-        $members = Member::active()
+        $members = Member::query()
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->with('user')
@@ -33,7 +33,7 @@ class MemberController extends Controller
     {
         $this->authorize('create', Member::class);
         
-        $users = User::doesntHave('member')->get();
+        $users = User::doesntHave('member')->orderBy('email')->get();
         return view('members.create', compact('users'));
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\MemberClubRole;
 use App\Models\MemberClub;
 use App\Models\User;
 
@@ -20,15 +21,7 @@ class Policy
      */
     protected function isCoach(User $user): bool
     {
-        $member = $user->member;
-        if (!$member) {
-            return false;
-        }
-
-        return $member->clubMemberships()
-            ->where('role', MemberClub::ROLE_COACH)
-            ->whereNull('left_at')
-            ->exists();
+        return $user->isCoach();
     }
 
     /**
@@ -43,7 +36,7 @@ class Policy
 
         return $member->clubMemberships()
             ->where('club_id', $clubId)
-            ->where('role', MemberClub::ROLE_COACH)
+            ->where('role', MemberClubRole::COACH->value)
             ->whereNull('left_at')
             ->exists();
     }
@@ -113,23 +106,14 @@ class Policy
      * Check if user created a reservation (via MemberClub relationship).
      * Usage: $this->isReservationCreator($user, $reservation->created_by_member_club_id)
      */
-    protected function isReservationCreator(User $user, ?int $createdByMemberClubId)
+    protected function isReservationCreator(User $user, ?int $createdByMemberClubId): bool
     {
-        if (!$createdByMemberClubId) {
+        if (!$createdByMemberClubId || !$user->member) {
             return false;
         }
 
-        $member = $user->member;
-        if (!$member) {
-            return false;
-        }
-
-        // Load the MemberClub record that created the reservation
-        $creatorMemberClub = \App\Models\MemberClub::find($createdByMemberClubId);
-        if (!$creatorMemberClub) {
-            return false;
-        }
-
-        return $member->member_id === $creatorMemberClub->member_id;
+        return MemberClub::where('member_club_id', $createdByMemberClubId)
+            ->where('member_id', $user->member->member_id)
+            ->exists();
     }
 }

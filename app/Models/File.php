@@ -80,7 +80,7 @@ class File extends Model
     {
         return $this->belongsToMany(Club::class, 'club_files', 'file_id', 'club_id')
                     ->using(ClubFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 
@@ -91,7 +91,7 @@ class File extends Model
     {
         return $this->belongsToMany(Event::class, 'event_files', 'file_id', 'event_id')
                     ->using(EventFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 
@@ -102,7 +102,8 @@ class File extends Model
     {
         return $this->belongsToMany(MemberClub::class, 'member_club_files', 'file_id', 'member_club_id')
                     ->using(MemberClubFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 }
+

@@ -18,16 +18,7 @@ class EventMemberResultController extends Controller
         $this->authorize('viewAny', EventMemberResult::class);
 
         $results = EventMemberResult::query()
-            ->when($request->filled('search'), function($q) use ($request) {
-                return $q->whereHas('event', function($q) use ($request) {
-                    $q->where('title', 'like', '%' . $request->input('search') . '%');
-                })->orWhereHas('memberClub', function($q) use ($request) {
-                    $q->whereHas('member', function($sq) use ($request) {
-                        $sq->where('first_name', 'like', '%' . $request->input('search') . '%')
-                           ->orWhere('last_name', 'like', '%' . $request->input('search') . '%');
-                    });
-                });
-            })
+            ->when($request->filled('search'), fn($q) => $q->search($request->input('search')))
             ->with('event', 'memberClub.member')
             ->paginate(15);
         
@@ -41,8 +32,8 @@ class EventMemberResultController extends Controller
     {
         $this->authorize('create', EventMemberResult::class);
 
-        $events = Event::all();
-        $memberClubs = MemberClub::all();
+        $events = Event::orderBy('title')->get();
+        $memberClubs = MemberClub::with('member.user')->orderBy('member_club_id')->get();
         return view('event-member-results.create', compact('events', 'memberClubs'));
     }
 
@@ -75,8 +66,8 @@ class EventMemberResultController extends Controller
     {
         $this->authorize('update', $result);
 
-        $events = Event::all();
-        $memberClubs = MemberClub::all();
+        $events = Event::orderBy('title')->get();
+        $memberClubs = MemberClub::with('member.user')->orderBy('member_club_id')->get();
         return view('event-member-results.edit', compact('result', 'events', 'memberClubs'));
     }
 

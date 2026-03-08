@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Http\Requests\CoachEvaluationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\MemberClubRole;
 
 class CoachEvaluationController extends Controller
 {
@@ -18,14 +19,9 @@ class CoachEvaluationController extends Controller
     {
         $this->authorize('viewAny', CoachEvaluation::class);
 
-        $evaluations = CoachEvaluation::active()
-            ->when($request->filled('search'), function($q) use ($request) {
-                return $q->whereHas('coach', function($q) use ($request) {
-                    $q->where('first_name', 'like', '%' . $request->input('search') . '%')
-                      ->orWhere('last_name', 'like', '%' . $request->input('search') . '%');
-                });
-            })
-            ->with('coach', 'evaluatedByMember', 'reservation')
+        $evaluations = CoachEvaluation::when($request->filled('search'),
+                fn($q) => $q->search($request->input('search')))
+            ->with('coach.member', 'evaluatedByMember', 'reservation')
             ->paginate(15);
         
         return view('coach-evaluations.index', compact('evaluations'));
@@ -38,10 +34,10 @@ class CoachEvaluationController extends Controller
     {
         $this->authorize('create', CoachEvaluation::class);
 
-        $coaches = Member::whereHas('clubMemberships', function($q) {
-            $q->where('role', 'coach');
-        })->get();
-        $reservations = Reservation::all();
+        $coaches = Member::whereHas('clubMemberships', fn($q) =>
+            $q->byRole(MemberClubRole::COACH)->active()
+        )->get();
+        $reservations = Reservation::approved()->orderBy('start_date', 'desc')->limit(100)->get();
         return view('coach-evaluations.create', compact('coaches', 'reservations'));
     }
 
@@ -52,8 +48,12 @@ class CoachEvaluationController extends Controller
     {
         $this->authorize('create', CoachEvaluation::class);
 
-        $evaluation = CoachEvaluation::create($request->validated());
-        return redirect()->route('coach-evaluations.show', $evaluation)->with('success', 'Coach evaluation created successfully.');
+        $data = $request->validated();
+        $data['evaluated_by_member_id'] = Auth::user()->member?->member_id;
+
+        $evaluation = CoachEvaluation::create($data);
+        return redirect()->route('coach-evaluations.show', $evaluation)
+            ->with('success', 'Coach evaluation created successfully.');
     }
 
     /**

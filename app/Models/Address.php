@@ -27,14 +27,14 @@ class Address extends Model
     {
         if (!$city) return $query;
         
-        return $query->where('city', 'like', "%{$city}%");
+        return $query->where('city', $city);
     }
 
     public function scopeByCountry($query, $country)
     {
         if (!$country) return $query;
         
-        return $query->where('country', 'like', "%{$country}%");
+        return $query->where('country', $country);
     }
 
     public function scopeByZipCode($query, $zipCode)

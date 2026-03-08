@@ -3,39 +3,42 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\EventStatus;
 
-class EventRequest extends FormRequest
+class UpdateEventRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
-    } 
+        return true;
+    }
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
-        $eventId = $this->route('event')?->event_id;
-
         return [
             'title' => 'required|string|min:5|max:80',
-            'sport_field_id' => 'required|integer|exists:sport_fields,sport_field_id',
-            'event_type_id' => 'required|integer|exists:event_types,event_type_id',
-            'parent_event_id' => 'nullable|integer|exists:events,event_id',
-            'start_date' => 'required|date|after_or_equal:today',
+            'sport_field_id' => ['required', 'integer', Rule::exists('sport_fields', 'sport_field_id')],
+            'event_type_id' => ['required', 'integer', Rule::exists('event_types', 'event_type_id')],
+            'parent_event_id' => ['nullable', 'integer', Rule::exists('events', 'event_id')],
+            'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'status' => 'required|in:scheduled,canceled,finished,ongoing',
+            'status' => ['required', Rule::enum(EventStatus::class)],
             'description' => 'nullable|string|min:10',
+            'club_ids' => 'required|array',
+            'club_ids.*' => ['integer', Rule::exists('clubs', 'club_id')],
         ];
     }
 
-    public function messages()
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
     {
         return [
             'title.required' => 'Title is required.',
@@ -43,6 +46,7 @@ class EventRequest extends FormRequest
             'sport_field_id.exists' => 'Selected sport field does not exist.',
             'event_type_id.exists' => 'Selected event type does not exist.',
             'end_date.after_or_equal' => 'End date must be after or equal to start date.',
+            'club_ids.*.exists' => 'One or more selected clubs do not exist.',
         ];
     }
 }

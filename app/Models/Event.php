@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Traits\HasFiles;
 use App\Models\EventFile;
 use App\Enums\EventStatus;
 
 class Event extends Model
 {
-    use SoftDeletes, HasFiles;
+    use SoftDeletes;
 
     protected $table = 'events';
     protected $primaryKey = 'event_id';
@@ -24,11 +23,6 @@ class Event extends Model
         'title',
         'description',
         'status',
-        'start_date',
-        'end_date',
-    ];
-
-    protected $dates = [
         'start_date',
         'end_date',
     ];
@@ -165,7 +159,7 @@ class Event extends Model
 
     public function memberClubs()
     {
-        return $this->belongsToMany(MemberClub::class, 'member_event', 'event_id', 'member_club_id')
+        return $this->belongsToMany(MemberClub::class, 'event_member', 'event_id', 'member_club_id')
                     ->using(MemberEvent::class)
                     ->withTimestamps();
     }
@@ -174,7 +168,7 @@ class Event extends Model
     {
         return $this->belongsToMany(File::class, 'event_files', 'event_id', 'file_id')
                     ->using(EventFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 
@@ -208,40 +202,18 @@ class Event extends Model
         return $this->hasMany(Event::class, 'parent_event_id');
     }
 
-    /**
-     * Returns active member clubs (members attending this event)
-     */
-    public function activeMemberClubs()
+    public function getActiveClubsAttribute()
     {
-        return $this->memberClubs();
+        return $this->clubs;
     }
 
-    /**
-     * Returns active clubs
-     */
-    public function activeClubs()
+    public function getActiveMembersAttribute()
     {
-        return $this->clubs();
+        return $this->memberClubs->map(fn($mc) => $mc->member)->filter()->values();
     }
-
-    public function allClubs()
-    {
-        return $this->clubs();
-    }
-
-    /**
-     * Returns sport field name
-     */
+    
     public function getLocationAttribute()
     {
         return $this->sportField?->name ?? 'N/A';
-    }
-
-    /**
-     * Event soft deletes are handled automatically
-     */
-    protected static function booted()
-    {
-        // No custom cascade behavior needed for event_club (hard delete only)
     }
 }

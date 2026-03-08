@@ -33,4 +33,28 @@ class AddressPolicy extends Policy
     {
         return true;
     }
+
+    /**
+     * Determine if the user can create addresses.
+     */
+    public function create(User $user): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
+     * Determine if the user can update the address.
+     */
+    public function update(User $user, Address $address): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
+     * Determine if the user can delete the address.
+     */
+    public function delete(User $user, Address $address): bool
+    {
+        return $user->is_admin;
+    }
 }

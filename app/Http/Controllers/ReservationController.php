@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\SportField;
 use App\Models\Club;
-use App\Models\MemberClub;
 use App\Http\Requests\ReservationRequest;
+use App\Enums\ReservationStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -19,7 +18,7 @@ class ReservationController extends Controller
     {
         $this->authorize('viewAny', Reservation::class);
 
-        $reservations = Reservation::active()
+        $reservations = Reservation::query()
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('status'), 
@@ -33,13 +32,13 @@ class ReservationController extends Controller
     /**
      * Show create form
      */
-    public function create()
+    public function create(Request $request)
     {
         $this->authorize('create', Reservation::class);
 
-        $sportFields = SportField::all();
-        $clubs = Club::all();
-        $memberClubs = Auth::user()->member?->clubMemberships ?? collect();
+        $sportFields = SportField::orderBy('name')->get();
+        $clubs = Club::orderBy('name')->get();
+        $memberClubs = $request->user()->member?->clubMemberships()->active()->with('club')->get() ?? collect();
         return view('reservations.create', compact('sportFields', 'clubs', 'memberClubs'));
     }
 
@@ -50,7 +49,10 @@ class ReservationController extends Controller
     {
         $this->authorize('create', Reservation::class);
 
-        $reservation = Reservation::create($request->validated());
+        $reservation = Reservation::create(array_merge(
+            $request->validated(),
+            ['status' => ReservationStatus::PENDING->value]
+        ));
         return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation created successfully.');
     }
 
@@ -72,8 +74,8 @@ class ReservationController extends Controller
     {
         $this->authorize('update', $reservation);
 
-        $sportFields = SportField::all();
-        $clubs = Club::all();
+        $sportFields = SportField::orderBy('name')->get();
+        $clubs = Club::orderBy('name')->get();
         return view('reservations.edit', compact('reservation', 'sportFields', 'clubs'));
     }
 
@@ -97,5 +99,29 @@ class ReservationController extends Controller
 
         $reservation->delete();
         return redirect()->route('reservations.index')->with('success', 'Reservation deleted successfully.');
+    }
+
+    public function approve(Reservation $reservation)
+    {
+        $this->authorize('approve', $reservation);
+
+        $reservation->update(['status' => ReservationStatus::APPROVED->value]);
+        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation approved.');
+    }
+
+    public function reject(Reservation $reservation)
+    {
+        $this->authorize('reject', $reservation);
+
+        $reservation->update(['status' => ReservationStatus::REJECTED->value]);
+        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation rejected.');
+    }
+
+    public function cancel(Reservation $reservation)
+    {
+        $this->authorize('cancel', $reservation);
+
+        $reservation->update(['status' => ReservationStatus::CANCELED->value]);
+        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation cancelled.');
     }
 }

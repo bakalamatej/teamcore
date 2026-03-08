@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Event;
 use App\Models\User;
+use App\Enums\EventStatus;
 
 class EventPolicy extends Policy
 {
@@ -36,7 +37,6 @@ class EventPolicy extends Policy
 
     /**
      * Determine if the user can create events.
-     * ✅ Only coaches
      */
     public function create(User $user): bool
     {
@@ -45,26 +45,63 @@ class EventPolicy extends Policy
 
     /**
      * Determine if the user can update the event.
-     * ✅ Creator + Admin
-     * For now: coaches can update (since no created_by field)
      */
     public function update(User $user, Event $event): bool
     {
-        return $this->isCoach($user);
+        if (!$this->isCoach($user)) return false;
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        return $member->activeClubs()
+            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->exists();
     }
 
     /**
      * Determine if the user can delete the event.
-     * ✅ Creator (if not finished) + Admin
-     * For now: coaches can delete (since no created_by field)
      */
-    public function delete(User $user, Event $event): bool
+     public function delete(User $user, Event $event): bool
     {
-        // Only allow deletion if event is not finished
-        if ($event->status === Event::STATUS_FINISHED) {
+        if ($event->status === EventStatus::FINISHED) return false;
+        if (!$this->isCoach($user)) return false;
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        return $member->activeClubs()
+            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->exists();
+    }
+
+    /**
+     * Determine if the user can register for the event.
+     */
+    public function register(User $user, Event $event): bool
+    {
+        // Check if member is in one of the event's clubs
+        $member = $user->member;
+        if (!$member) {
             return false;
         }
 
-        return $this->isCoach($user);
+        return $member->activeClubs()
+            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->exists();
+    }
+
+    /**
+     * Determine if the user can unregister from the event.
+     */
+    public function unregister(User $user, Event $event): bool
+    {
+        if ($event->status === EventStatus::FINISHED) return false;
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        return $member->events()
+            ->where('event_id', $event->event_id)
+            ->exists();
     }
 }

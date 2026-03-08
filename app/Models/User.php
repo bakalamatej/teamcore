@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     protected $table = 'users';
@@ -22,7 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'email',
-        'password',
+        'password_hash',
         'is_admin',
     ];
 
@@ -32,7 +30,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
     ];
 
@@ -45,8 +43,13 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password_hash' => 'hashed',
         ];
+    }
+
+    public function getAuthPasswordName(): string
+    {
+        return 'password_hash';
     }
 
     // -----------------------
@@ -56,8 +59,16 @@ class User extends Authenticatable
     public function scopeSearch($query, $search)
     {
         if (!$search) return $query;
-        
-        return $query->where('email', 'like', "%{$search}%");
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('email', 'like', "%{$search}%")
+              ->orWhereHas('member', function ($q) use ($search) {
+                  $q->where(function ($q) use ($search) {
+                      $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                  });
+              });
+        });
     }
 
     public function scopeByEmail($query, $email)
@@ -171,12 +182,20 @@ class User extends Authenticatable
 
     public function isPlayer(): bool
     {
-        return $this->getRole() === 'player';
+        if (!$this->member) return false;
+        
+        return $this->member->activeClubs()
+            ->wherePivot('role', 'player')
+            ->exists();
     }
 
     public function isCoach(): bool
     {
-        return $this->getRole() === 'coach';
+        if (!$this->member) return false;
+
+        return $this->member->activeClubs()
+            ->wherePivot('role', 'coach')
+            ->exists();
     }
 
     public function isAdmin(): bool

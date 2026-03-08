@@ -34,6 +34,16 @@ class SportController extends Controller
     }
 
     /**
+     * Display sport details
+     */
+    public function show(Sport $sport)
+    {
+        $this->authorize('view', $sport);
+
+        return view('panel.sports.show', compact('sport'));
+    }
+
+    /**
      * Store new sport
      */
     public function store(SportRequest $request)

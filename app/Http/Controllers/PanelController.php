@@ -33,10 +33,10 @@ class PanelController extends Controller
 
         // Update or create member information
         if ($user->member) {
-            $user->member->update($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+            $user->member->update($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
         } else {
             // Create member if doesn't exist
-            $user->member()->create($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+            $user->member()->create($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
         }
 
         return Redirect::route('panel.index')

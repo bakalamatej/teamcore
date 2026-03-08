@@ -14,6 +14,7 @@ class Reservation extends Model
     protected $primaryKey = 'reservation_id';
 
     protected $fillable = [
+        'sport_id',
         'sport_field_id',
         'club_id',
         'created_by_member_club_id',
@@ -31,23 +32,17 @@ class Reservation extends Model
     ];
 
     // -----------------------
-    // Status constants (backup)
-    // -----------------------
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
-    const STATUS_CANCELED = 'canceled';
-
-    // -----------------------
     // Scopes
     // -----------------------
 
     public function scopeSearch($query, $search)
     {
         if (!$search) return $query;
-        
-        return $query->where('title', 'like', "%{$search}%")
-                     ->orWhere('description', 'like', "%{$search}%");
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        });
     }
 
     public function scopeByStatus($query, $status)
@@ -59,17 +54,17 @@ class Reservation extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', ReservationStatus::PENDING->value);
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('status', self::STATUS_APPROVED);
+        return $query->where('status', ReservationStatus::APPROVED->value);
     }
 
     public function scopeRejected($query)
     {
-        return $query->where('status', self::STATUS_REJECTED);
+        return $query->where('status', ReservationStatus::REJECTED->value);
     }
 
     public function scopeBySportField($query, $sportFieldId)
@@ -131,6 +126,11 @@ class Reservation extends Model
         return $this->belongsTo(SportField::class, 'sport_field_id');
     }
 
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
     public function club()
     {
         return $this->belongsTo(Club::class, 'club_id');
@@ -143,7 +143,7 @@ class Reservation extends Model
 
     public function events()
     {
-        return $this->belongsToMany(Event::class, 'reservation_event', 'reservation_id', 'event_id');
+        return $this->hasMany(Event::class, 'reservation_id');
     }
 
     public function evaluations()

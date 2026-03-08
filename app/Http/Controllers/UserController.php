@@ -2,37 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     // List all users with search and role filtering (admin only)
     public function index(Request $request)
     {
-        // Check if UserPolicy exists and use it
         $this->authorize('viewAny', User::class);
 
         $users = User::query()
-            ->when($request->filled('search'), function($q) use ($request) {
-                return $q->whereHas('member', function($q) use ($request) {
-                    $q->where('first_name', 'like', '%' . $request->input('search') . '%')
-                      ->orWhere('last_name', 'like', '%' . $request->input('search') . '%');
-                })->orWhere('email', 'like', '%' . $request->input('search') . '%');
-            })
+            ->search($request->input('search'))
+            ->orderBy('email')
             ->with('member')
             ->paginate(15);
 
         return view('panel.users.index', compact('users'));
     }
 
+    // Show create user form (admin only)
+    public function create()
+    {
+        $this->authorize('create', User::class);
+
+        return view('panel.users.create');
+    }
+
+    // Store new user (admin only)
+    public function store(StoreUserRequest $request)
+    {
+        $this->authorize('create', User::class);
+
+        $validated = $request->validated();
+        $user = User::create([
+            'email' => $validated['email'],
+            'password_hash' => $validated['password'],
+            'is_admin' => $validated['is_admin'] ?? false,
+        ]);
+
+        // Create member profile if data provided
+        if ($request->filled('first_name') || $request->filled('last_name')) {
+            $user->member()->create($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
+        }
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'User created', 'user' => $user], 201);
+        }
+
+        return redirect()->route('panel.users.index')->with('success', 'User created successfully!');
+    }
+
     // Display user details (admin only)
     public function show(User $user)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            abort(403);
-        }
+        $this->authorize('view', $user);
 
         $user->load('member');
         return view('panel.users.show', compact('user'));
@@ -41,37 +67,23 @@ class UserController extends Controller
     // Show edit user form (admin only)
     public function edit(User $user)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            abort(403);
-        }
+        $this->authorize('update', $user);
 
         $user->load('member');
         return view('panel.users.edit', compact('user'));
     }
 
     // Update user (admin only)
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            abort(403);
-        }
-
-        // Validate user and member data
-        $request->validate([
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'first_name' => 'required|string|max:30',
-            'last_name' => 'required|string|max:30',
-            'phone_number' => 'nullable|string|max:20',
-            'date_of_birth' => 'nullable|date',
-            'is_admin' => 'nullable|boolean',
-        ]);
+        $this->authorize('update', $user);
 
         // Update user email and is_admin
         $user->update($request->only(['email', 'is_admin']));
 
         // Update member data if member exists
         if ($user->member) {
-            $user->member->update($request->only(['first_name', 'last_name', 'phone_number', 'date_of_birth']));
+            $user->member->update($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
         }
 
         // Return JSON for AJAX or redirect
@@ -85,14 +97,7 @@ class UserController extends Controller
     // Delete user (admin only, cannot delete self)
     public function destroy(User $user)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            abort(403);
-        }
-
-        // Prevent self-deletion
-        if ($user->id === Auth::id()) {
-            return redirect()->route('panel.users.index')->with('error', 'Cannot delete your own account!');
-        }
+        $this->authorize('delete', $user);
 
         $user->delete();
 

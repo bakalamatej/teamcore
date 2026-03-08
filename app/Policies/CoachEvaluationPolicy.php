@@ -19,7 +19,6 @@ class CoachEvaluationPolicy extends Policy
 
     /**
      * Determine if the user can view any evaluations.
-     * ✅ Members only
      */
     public function viewAny(User $user): bool
     {
@@ -28,26 +27,14 @@ class CoachEvaluationPolicy extends Policy
 
     /**
      * Determine if the user can view the evaluation.
-     * ✅ Club members
-     */
+     */ 
     public function view(User $user, CoachEvaluation $evaluation): bool
     {
-        // Coach being evaluated can view
-        if ($this->ownsMemberById($user, $evaluation->coach_id)) {
-            return true;
-        }
-
-        // User who evaluated can view
-        if ($this->ownsMemberById($user, $evaluation->evaluated_by_member_id)) {
-            return true;
-        }
-
-        return false;
+        return $this->isMember($user);
     }
 
     /**
      * Determine if the user can create evaluations.
-     * ✅ Members only
      */
     public function create(User $user): bool
     {

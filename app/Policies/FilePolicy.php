@@ -28,16 +28,36 @@ class FilePolicy extends Policy
 
     /**
      * Determine if the user can view the file.
-     * ✅ All users can download
      */
     public function view(User $user, File $file): bool
     {
-        return true;
+        // Vlastník súboru
+        if ($this->ownsResourceByUserId($user, $file->uploaded_by_user_id)) {
+            return true;
+        }
+
+        $member = $user->member;
+        if (!$member) return false;
+
+        // Súbor patrí klubu ktorého je členom
+        $inClub = $file->clubs()
+            ->whereIn('club_id', $member->activeClubs()->pluck('club_id'))
+            ->exists();
+        if ($inClub) return true;
+
+        // Súbor patrí eventu ktorého sa zúčastňuje
+        $inEvent = $file->events()
+            ->whereHas('memberClubs', fn($q) => 
+                $q->where('member_club.member_id', $member->member_id)
+            )
+            ->exists();
+        if ($inEvent) return true;
+
+        return false;
     }
 
     /**
      * Determine if the user can create files.
-     * ✅ Upload: Relevant members
      */
     public function create(User $user): bool
     {
@@ -55,7 +75,6 @@ class FilePolicy extends Policy
 
     /**
      * Determine if the user can delete the file.
-     * ✅ Creator + Admin
      */
     public function delete(User $user, File $file): bool
     {

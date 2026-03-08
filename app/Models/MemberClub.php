@@ -3,14 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Traits\HasFiles;
 use App\Models\MemberClubFile;
 use App\Enums\MemberClubRole;
 
 class MemberClub extends Model
 {
-    use HasFiles;
 
     protected $table = 'member_club';
     protected $primaryKey = 'member_club_id';
@@ -18,26 +15,36 @@ class MemberClub extends Model
     protected $fillable = [
         'member_id',
         'club_id',
+        'sport_id',
         'role',
         'joined_at',
         'left_at',
     ];
 
-    protected $dates = ['joined_at', 'left_at', 'deleted_at'];
-
     protected $casts = [
-        'role' => MemberClubRole::class,
+        'role'      => MemberClubRole::class,
+        'joined_at' => 'date',
+        'left_at'   => 'date',
     ];
-
-    // -----------------------
-    // Role constants (backup)
-    // -----------------------
-    const ROLE_PLAYER = 'player';
-    const ROLE_COACH = 'coach';
 
     // -----------------------
     // Scopes
     // -----------------------
+    public function scopeSearch($query, $search)
+    {
+        if (!$search) return $query;
+
+        return $query->whereHas('member', fn($q) => $q->where(fn($q) => $q
+            ->where('first_name', 'like', "%{$search}%")
+            ->orWhere('last_name', 'like', "%{$search}%")
+        ));
+    }
+
+    public function scopeBySport($query, $sportId)
+    {
+        return $query->where('sport_id', $sportId);
+    }
+
     public function scopeByClub($query, $clubId)
     {
         return $query->where('club_id', $clubId);
@@ -67,6 +74,11 @@ class MemberClub extends Model
         return $this->belongsTo(Member::class, 'member_id');
     }
 
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
     public function club()
     {
         return $this->belongsTo(Club::class, 'club_id');
@@ -76,7 +88,8 @@ class MemberClub extends Model
     {
         return $this->belongsToMany(File::class, 'member_club_files', 'member_club_id', 'file_id')
                     ->using(MemberClubFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 }
+

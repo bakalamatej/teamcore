@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Club;
 use App\Models\File;
+use App\Models\MemberClub;
 use App\Http\Requests\FileUploadRequest;
 use App\Services\FileService;
 use App\Constants\FileMessages;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class FileController extends Controller
@@ -45,26 +44,13 @@ class FileController extends Controller
             // Authorize file upload
             $this->authorize('create', File::class);
 
-            // Validate file
-            $validation = $this->fileService->validateFile(
-                $request->file('file'),
-                $request->input('category')
-            );
-
-            if (!$validation['valid']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $validation['message']
-                ], 422);
-            }
-
             // Store file
             $file = $this->fileService->storeFile(
                 $request->file('file')
             );
 
             // Attach file to model using appropriate relationship
-            $this->attachFileToModel($model, $file, $request->input('category'), $modelType);
+            $this->attachFileToModel($model, $file, $request->validated()['category'], $modelType);
 
             return response()->json([
                 'success' => true,
@@ -75,7 +61,7 @@ class FileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::UPLOAD_ERROR . $e->getMessage()
+                'message' => FileMessages::UPLOAD_ERROR
             ], 500);
         }
     }
@@ -106,20 +92,15 @@ class FileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'files' => $files->map(function ($item) {
-                    // Pivot table result
-                    $file = $item->file;
-                    $category = $item->pivot->file_category;
-                    $created_at = $item->pivot->created_at;
-
+                'files' => $files->map(function ($file) {
                     return [
-                        'file_id' => $file->id,
-                        'file_name' => $file->file_name,
-                        'file_size' => $file->file_size,
-                        'file_type' => $file->file_type,
-                        'category' => $category,
-                        'created_at' => $created_at,
-                        'url' => $this->fileService->getDownloadUrl($file),
+                        'file_id'    => $file->file_id,
+                        'file_name'  => $file->file_name,
+                        'file_size'  => $file->file_size,
+                        'file_type'  => $file->file_type,
+                        'category'   => $file->pivot->file_category_id,
+                        'created_at' => $file->pivot->created_at,
+                        'url'        => $this->fileService->getDownloadUrl($file),
                     ];
                 })
             ]);
@@ -127,7 +108,7 @@ class FileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::LIST_ERROR . $e->getMessage()
+                'message' => FileMessages::LIST_ERROR
             ], 500);
         }
     }
@@ -152,32 +133,27 @@ class FileController extends Controller
                 ], 404);
             }
 
+            // Authorize file viewing
+            $this->authorize('viewAny', File::class);
+
             $files = $this->getFilesForModel($model, $modelType, $category);
 
             return response()->json([
                 'success' => true,
                 'category' => $category,
-                'files' => $files->map(function ($item) use ($modelType) {
-                    if ($modelType === 'member') {
-                        $file = $item->file;
-                    } else {
-                        $file = $item->file;
-                    }
-
-                    return [
-                        'id' => $file->id,
-                        'file_name' => $file->file_name,
-                        'file_size' => $file->file_size,
-                        'file_type' => $file->file_type,
-                        'url' => $this->fileService->getDownloadUrl($file),
-                    ];
-                })
+                'files' => $files->map(fn($file) => [
+                    'file_id'   => $file->file_id,
+                    'file_name' => $file->file_name,
+                    'file_size' => $file->file_size,
+                    'file_type' => $file->file_type,
+                    'url'       => $this->fileService->getDownloadUrl($file),
+                ])
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::LIST_ERROR . $e->getMessage()
+                'message' => FileMessages::LIST_ERROR
             ], 500);
         }
     }
@@ -232,7 +208,7 @@ class FileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::DELETE_ERROR . $e->getMessage()
+                'message' => FileMessages::DELETE_ERROR
             ], 500);
         }
     }
@@ -245,13 +221,10 @@ class FileController extends Controller
      */
     public function download(int $fileId)
     {
-        try {
-            $file = File::findOrFail($fileId);
-            $path = storage_path('app/private/' . $file->file_path);
-            return response()->download($path, $file->file_name);
-        } catch (\Exception $e) {
-            abort(404, FileMessages::FILE_NOT_FOUND);
-        }
+        $file = File::findOrFail($fileId);
+        $this->authorize('view', $file);
+        $path = storage_path('app/private/' . $file->file_path);
+        return response()->download($path, $file->file_name);
     }
 
     /**
@@ -264,10 +237,10 @@ class FileController extends Controller
     private function getModel(string $modelType, int $modelId)
     {
         return match ($modelType) {
-            'event' => Event::find($modelId),
-            'club' => Club::find($modelId),
-            'member_club' => \App\Models\MemberClub::find($modelId),
-            default => null,
+            'event'       => Event::find($modelId),
+            'club'        => Club::find($modelId),
+            'member_club' => MemberClub::find($modelId),
+            default       => null,
         };
     }
 
@@ -282,9 +255,9 @@ class FileController extends Controller
     private function attachFileToModel($model, File $file, string $category, string $modelType): void
     {
         match ($modelType) {
-            'event' => $model->eventFiles()->attach($file->id, ['file_category' => $category]),
-            'club' => $model->clubFiles()->attach($file->id, ['file_category' => $category]),
-            'member_club' => $model->memberClubFiles()->attach($file->id, ['file_category' => $category]),
+            'event'       => $model->eventFiles()->attach($file->file_id, ['file_category_id' => $category]),
+            'club'        => $model->clubFiles()->attach($file->file_id, ['file_category_id' => $category]),
+            'member_club' => $model->memberClubFiles()->attach($file->file_id, ['file_category_id' => $category]),
         };
     }
 
@@ -298,9 +271,9 @@ class FileController extends Controller
     private function detachFileFromModel($model, File $file, string $modelType): void
     {
         match ($modelType) {
-            'event' => $model->eventFiles()->detach($file->id),
-            'club' => $model->clubFiles()->detach($file->id),
-            'member_club' => $model->memberClubFiles()->detach($file->id),
+            'event'       => $model->eventFiles()->detach($file->file_id),
+            'club'        => $model->clubFiles()->detach($file->file_id),
+            'member_club' => $model->memberClubFiles()->detach($file->file_id),
         };
     }
 
@@ -315,13 +288,13 @@ class FileController extends Controller
     private function getFilesForModel($model, string $modelType, ?string $category = null)
     {
         $files = match ($modelType) {
-            'event' => $model->eventFiles()->with('file'),
-            'club' => $model->clubFiles()->with('file'),
-            'member_club' => $model->memberClubFiles()->with('file'),
+            'event'       => $model->eventFiles(),
+            'club'        => $model->clubFiles(),
+            'member_club' => $model->memberClubFiles(),
         };
 
         if ($category) {
-            $files = $files->wherePivot('file_category', $category);
+            $files = $files->wherePivot('file_category_id', $category);
         }
 
         return $files->get();

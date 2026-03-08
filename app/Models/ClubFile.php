@@ -11,7 +11,7 @@ class ClubFile extends Pivot
     protected $fillable = [
         'club_id',
         'file_id',
-        'category_id',
+        'file_category_id',
     ];
 
     // -----------------------
@@ -32,5 +32,13 @@ class ClubFile extends Pivot
     public function file()
     {
         return $this->belongsTo(File::class, 'file_id');
+    }
+
+    /**
+     * Get the file category associated with this relationship.
+     */
+    public function fileCategory()
+    {
+        return $this->belongsTo(FileCategory::class, 'file_category_id');
     }
 }

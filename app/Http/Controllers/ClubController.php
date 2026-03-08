@@ -17,17 +17,17 @@ class ClubController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+
+        $cities = Address::distinct()->orderBy('city')->pluck('city');
+        $cityOptions = $cities->combine($cities)->all();
         
-        $cities = Address::distinct()->pluck('city')->toArray();
-        $cityOptions = array_combine($cities, $cities);
-        
-        $clubs = $user->member?->clubs() ?? Club::query()->whereRaw('1=0');
+        $clubs = $user->member?->visibleClubs() ?? Club::query()->whereRaw('1=0');
         $clubs = $clubs
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('city'), 
                 fn($q) => $q->byCity($request->input('city')))
-            ->with('address', 'members', 'events')
+            ->with('address', 'members')
             ->paginate(10);
 
         return view('clubs.index', compact('clubs', 'cityOptions'));
@@ -40,20 +40,19 @@ class ClubController extends Controller
     {
         $this->authorize('viewAny', Club::class);
 
-        $cities = Address::distinct()->pluck('city')->toArray();
-        $cityOptions = array_combine($cities, $cities);
-        
+        $cities = Address::distinct()->orderBy('city')->pluck('city');
+        $cityOptions = $cities->combine($cities)->all();
+
         $sports = Sport::whereHas('clubs')->orderBy('name')->pluck('name', 'sport_id')->toArray();
         $sportOptions = $sports;
         
-        $clubs = Club::active()
-            ->when($request->filled('search'), 
+        $clubs = Club::when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('city'), 
                 fn($q) => $q->byCity($request->input('city')))
             ->when($request->filled('sport'), 
                 fn($q) => $q->bySport($request->input('sport')))
-            ->with('address', 'sport', 'members', 'events')
+            ->with('address', 'sports', 'members')
             ->paginate(10);
 
         return view('panel.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
@@ -76,9 +75,8 @@ class ClubController extends Controller
     public function create()
     {
         $this->authorize('create', Club::class);
-
-        $addresses = Address::orderBy('city')->get();
-        $sports = Sport::all();
+        $addresses = Address::orderBy('city')->orderBy('street')->get();
+        $sports = Sport::orderBy('name')->get();
         return view('panel.clubs.create', compact('addresses', 'sports'));
     }
 
@@ -88,10 +86,31 @@ class ClubController extends Controller
     public function store(ClubRequest $request)
     {
         $this->authorize('create', Club::class);
-        
-        Club::create($request->validated());
 
-        return redirect()->route('clubs.index')->with('success', 'Club created successfully!');
+        $validated = $request->validated();
+
+        $addressId = $validated['address_id'] ?? null;
+        if (!$addressId) {
+            $address = Address::firstOrCreate([
+                'country'  => $validated['country'],
+                'city'     => $validated['city'],
+                'street'   => $validated['street'] ?? null,
+                'zip_code' => $validated['zip_code'] ?? null,
+            ]);
+            $addressId = $address->address_id;
+        }
+
+        $club = Club::create([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'webpage' => $validated['webpage'] ?? null,
+            'address_id' => $addressId,
+        ]);
+
+        $club->sports()->sync($validated['sport_ids']);
+
+        return redirect()->route('panel.clubs.index')->with('success', 'Club created successfully!');
     }
 
     /**
@@ -100,9 +119,8 @@ class ClubController extends Controller
     public function edit(Club $club)
     {
         $this->authorize('update', $club);
-
-        $addresses = Address::orderBy('city')->get();
-        $sports = Sport::all();
+        $addresses = Address::orderBy('city')->orderBy('street')->get();
+        $sports = Sport::orderBy('name')->get();
         return view('panel.clubs.edit', compact('club', 'addresses', 'sports'));
     }
 
@@ -112,10 +130,31 @@ class ClubController extends Controller
     public function update(ClubRequest $request, Club $club)
     {
         $this->authorize('update', $club);
-        
-        $club->update($request->validated());
 
-        return redirect()->route('clubs.index')->with('success', 'Club updated successfully!');
+        $validated = $request->validated();
+
+        $addressId = $validated['address_id'] ?? null;
+        if (!$addressId) {
+            $address = Address::firstOrCreate([
+                'country'  => $validated['country'],
+                'city'     => $validated['city'],
+                'street'   => $validated['street'] ?? null,
+                'zip_code' => $validated['zip_code'] ?? null,
+            ]);
+            $addressId = $address->address_id;
+        }
+
+        $club->update([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'webpage' => $validated['webpage'] ?? null,
+            'address_id' => $addressId,
+        ]);
+
+        $club->sports()->sync($validated['sport_ids']);
+
+        return redirect()->route('panel.clubs.index')->with('success', 'Club updated successfully!');
     }
 
     /**

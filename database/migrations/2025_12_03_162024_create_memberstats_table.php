@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('events_attended')->default(0);
             $table->unsignedInteger('training_sessions')->default(0);
             $table->unsignedInteger('matches_played')->default(0);
+            $table->unsignedInteger('tournaments_attended')->default(0);
             $table->unsignedInteger('total_wins')->default(0);
             $table->timestamps();
 
@@ -33,11 +34,28 @@ return new class extends Migration
             AFTER INSERT ON event_member_results
             FOR EACH ROW
             BEGIN
-                INSERT INTO member_statistics (member_club_id, events_attended, total_wins, created_at, updated_at)
-                VALUES (NEW.member_club_id, 1, IF(NEW.ranking = 1, 1, 0), NOW(), NOW())
+                DECLARE v_event_type_name VARCHAR(50);
+                
+                SELECT et.name INTO v_event_type_name
+                FROM events e
+                JOIN event_types et ON et.event_type_id = e.event_type_id
+                WHERE e.event_id = NEW.event_id;
+
+                INSERT INTO member_statistics (member_club_id, events_attended, total_wins, training_sessions, matches_played, tournaments_attended, created_at, updated_at)
+                VALUES (
+                    NEW.member_club_id, 1, 
+                    IF(NEW.ranking = 1, 1, 0),
+                    IF(v_event_type_name = 'Training', 1, 0),
+                    IF(v_event_type_name = 'Match', 1, 0),
+                    IF(v_event_type_name = 'Tournament', 1, 0),
+                    NOW(), NOW()
+                )
                 ON DUPLICATE KEY UPDATE
                     events_attended = events_attended + 1,
                     total_wins = total_wins + IF(NEW.ranking = 1, 1, 0),
+                    training_sessions = training_sessions + IF(v_event_type_name = 'Training', 1, 0),
+                    matches_played = matches_played + IF(v_event_type_name = 'Match', 1, 0),
+                    tournaments_attended = tournaments_attended + IF(v_event_type_name = 'Tournament', 1, 0),
                     updated_at = NOW();
             END
         ");
@@ -59,9 +77,19 @@ return new class extends Migration
             AFTER DELETE ON event_member_results
             FOR EACH ROW
             BEGIN
+                DECLARE v_event_type_name VARCHAR(50);
+                
+                SELECT et.name INTO v_event_type_name
+                FROM events e
+                JOIN event_types et ON et.event_type_id = e.event_type_id
+                WHERE e.event_id = OLD.event_id;
+
                 UPDATE member_statistics
                 SET events_attended = GREATEST(events_attended - 1, 0),
                     total_wins = GREATEST(total_wins - IF(OLD.ranking = 1, 1, 0), 0),
+                    training_sessions = GREATEST(training_sessions - IF(v_event_type_name = 'Training', 1, 0), 0),
+                    matches_played = GREATEST(matches_played - IF(v_event_type_name = 'Match', 1, 0), 0),
+                    tournaments_attended = GREATEST(tournaments_attended - IF(v_event_type_name = 'Tournament', 1, 0), 0),
                     updated_at = NOW()
                 WHERE member_club_id = OLD.member_club_id;
             END

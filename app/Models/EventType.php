@@ -18,9 +18,9 @@ class EventType extends Model
     // -----------------------
     // Type constants
     // -----------------------
-    const TYPE_TRAINING = 'training';
-    const TYPE_MATCH = 'match';
-    const TYPE_COMPETITION = 'competition';
+    const TYPE_TRAINING   = 'Training';
+    const TYPE_MATCH      = 'Match';
+    const TYPE_TOURNAMENT = 'Tournament';
 
     // -----------------------
     // Scopes
@@ -56,15 +56,5 @@ class EventType extends Model
     public function events()
     {
         return $this->hasMany(Event::class, 'event_type_id');
-    }
-
-    /**
-     * Validation rules
-     */
-    protected function validationRules(): array
-    {
-        return [
-            'name' => 'required|string|max:30|unique:event_types,name',
-        ];
     }
 }

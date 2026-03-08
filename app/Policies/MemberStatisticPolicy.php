@@ -7,7 +7,8 @@ use App\Models\User;
 
 class MemberStatisticPolicy extends Policy
 {
-    /**     * Perform pre-authorization checks.
+    /**     
+     * Perform pre-authorization checks.
      */
     public function before(User $user, string $ability): bool|null
     {
@@ -17,7 +18,8 @@ class MemberStatisticPolicy extends Policy
         return null;
     }
 
-    /**     * Determine if the user can view any statistics.
+    /**     
+     * Determine if the user can view any statistics.
      */
     public function viewAny(User $user): bool
     {

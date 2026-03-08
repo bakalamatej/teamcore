@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class SportRequest extends FormRequest
 {
@@ -12,7 +12,7 @@ class SportRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true; // auth middleware handles this
     }
 
     /**
@@ -23,7 +23,12 @@ class SportRequest extends FormRequest
         $sportId = $this->route('sport')?->sport_id;
 
         return [
-            'name' => 'required|string|max:30|unique:sports,name' . ($sportId ? ",$sportId,sport_id" : ''),
+            'name' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('sports', 'name')->ignore($sportId, 'sport_id'),
+            ],
         ];
     }
 

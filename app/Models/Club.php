@@ -4,30 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Traits\HasFiles;
 use App\Models\ClubFile;
 use App\Models\ClubSport;
 
 class Club extends Model
 {
-    use SoftDeletes, HasFiles;
+    use SoftDeletes;
 
     protected $table = 'clubs';
     protected $primaryKey = 'club_id';
 
     protected $fillable = [
         'address_id',
-        'sport_id',
         'name',
         'phone',
         'email',
         'webpage',
-    ];
-
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
     ];
 
     // -----------------------
@@ -37,11 +29,6 @@ class Club extends Model
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id');
-    }
-
-    public function sport()
-    {
-        return $this->belongsTo(Sport::class, 'sport_id');
     }
 
     public function sports()
@@ -59,14 +46,13 @@ class Club extends Model
     {
         return $this->belongsToMany(Member::class, 'member_club', 'club_id', 'member_id')
                     ->withTimestamps()
-                    ->withPivot('deleted_at', 'left_at', 'role');
+                    ->withPivot('left_at', 'role');
     }
 
     public function coaches()
     {
         return $this->members()
                     ->wherePivot('role', 'coach')
-                    ->wherePivotNull('deleted_at')
                     ->wherePivotNull('left_at');
     }
 
@@ -74,7 +60,6 @@ class Club extends Model
     {
         return $this->members()
                     ->wherePivot('role', 'player')
-                    ->wherePivotNull('deleted_at')
                     ->wherePivotNull('left_at');
     }
 
@@ -88,7 +73,7 @@ class Club extends Model
     {
         return $this->belongsToMany(File::class, 'club_files', 'club_id', 'file_id')
                     ->using(ClubFile::class)
-                    ->withPivot('file_category')
+                    ->withPivot('file_category_id')
                     ->withTimestamps();
     }
 
@@ -140,7 +125,7 @@ class Club extends Model
 
     public function scopeBySport($query, $sportId)
     {
-        return $sportId ? $query->where('sport_id', $sportId) : $query;
+        return $sportId ? $query->whereHas('sports', fn($q) => $q->where('sport_id', $sportId)) : $query;
     }
 
     public function scopeActive($query)
@@ -162,7 +147,7 @@ class Club extends Model
 
     public function scopeWithRelations($query)
     {
-        return $query->with('address', 'sport', 'members', 'clubFiles');
+        return $query->with('address', 'sports', 'members', 'clubFiles');
     }
 
     // -----------------------
@@ -172,7 +157,6 @@ class Club extends Model
     public function activeMembers()
     {
         return $this->members()
-                    ->wherePivotNull('deleted_at')
                     ->wherePivotNull('left_at');
     }
 

@@ -14,12 +14,21 @@ class MemberStatistic extends Model
         'events_attended',
         'training_sessions',
         'matches_played',
+        'tournaments_attended',
         'total_wins',
     ];
 
     // -----------------------
     // Scopes
     // -----------------------
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->whereHas('memberClub.member', function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%");
+        });
+    }
 
     public function scopeByMemberClub($query, $memberClubId)
     {
@@ -63,36 +72,5 @@ class MemberStatistic extends Model
     public function memberClub()
     {
         return $this->belongsTo(MemberClub::class, 'member_club_id');
-    }
-    
-    // -----------------------
-    // Increment methods
-    // -----------------------
-
-    /**
-     * Increment events attended by 1 or custom amount
-     */
-    public function incrementEventsAttended(int $amount = 1)
-    {
-        $this->events_attended += $amount;
-        $this->save();
-    }
-
-    /**
-     * Increment training sessions by 1 or custom amount
-     */
-    public function incrementTrainingSessions(int $amount = 1)
-    {
-        $this->training_sessions += $amount;
-        $this->save();
-    }
-
-    /**
-     * Increment matches played by 1 or custom amount
-     */
-    public function incrementMatchesPlayed(int $amount = 1)
-    {
-        $this->matches_played += $amount;
-        $this->save();
     }
 }

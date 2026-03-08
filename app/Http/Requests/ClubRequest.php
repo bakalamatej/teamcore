@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ClubRequest extends FormRequest
 {
@@ -12,7 +12,7 @@ class ClubRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true; // auth middleware handles this
     }
 
     /**
@@ -23,12 +23,35 @@ class ClubRequest extends FormRequest
         $clubId = $this->route('club')?->club_id;
 
         return [
-            'name' => 'required|string|max:30|unique:clubs,name' . ($clubId ? ",$clubId,club_id" : ''),
-            'phone' => 'nullable|string|max:20|unique:clubs,phone' . ($clubId ? ",$clubId,club_id" : ''),
-            'email' => 'nullable|email|max:56|unique:clubs,email' . ($clubId ? ",$clubId,club_id" : ''),
+            'name' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('clubs', 'name')->ignore($clubId, 'club_id'),
+            ],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('clubs', 'phone')->ignore($clubId, 'club_id'),
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:56',
+                Rule::unique('clubs', 'email')->ignore($clubId, 'club_id'),
+            ],
             'webpage' => 'nullable|url|max:255',
-            'address_id' => 'required|integer|exists:addresses,address_id',
-            'sport_id' => 'required|integer|exists:sports,sport_id',
+            'address_id' => ['nullable', 'integer', Rule::exists('addresses', 'address_id')],
+            'country' => ['required_without:address_id', 'nullable', 'string', 'max:100'],
+            'city' => ['required_without:address_id', 'nullable', 'string', 'max:100'],
+            'street' => 'nullable|string|max:100',
+            'zip_code' => 'nullable|string|max:20',
+            'sport_ids' => 'required|array',
+            'sport_ids.*' => [
+                'integer',
+                Rule::exists('sports', 'sport_id'),
+            ],
         ];
     }
 
@@ -48,10 +71,12 @@ class ClubRequest extends FormRequest
             'email.max' => 'The email address must not exceed 56 characters.',
             'webpage.url' => 'The webpage must be a valid URL.',
             'webpage.max' => 'The webpage must not exceed 255 characters.',
-            'address_id.required' => 'The address is required.',
             'address_id.exists' => 'The selected address does not exist.',
-            'sport_id.required' => 'The sport is required.',
-            'sport_id.exists' => 'The selected sport does not exist.',
+            'country.required_without' => 'Country is required when not selecting an existing address.',
+            'city.required_without' => 'City is required when not selecting an existing address.',
+            'sport_ids.required' => 'At least one sport is required.',
+            'sport_ids.array' => 'Sports must be an array.',
+            'sport_ids.*.exists' => 'One or more selected sports do not exist.',
         ];
     }
 }
