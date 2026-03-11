@@ -27,6 +27,7 @@
     <!-- Admin menu: users, clubs, events -->
     @if($role === 'admin')
         <a href="{{ route('panel.users.index') }}" class="sidebar-link">{{ __('Users') }}</a>
+        <a href="{{ route('panel.memberships.index') }}" class="sidebar-link">{{ __('Memberships') }}</a>
         <a href="{{ route('panel.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
         <a href="{{ route('panel.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
         <a href="{{ route('panel.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>

@@ -55,6 +55,10 @@ class ClubController extends Controller
             ->with('address', 'sports', 'members')
             ->paginate(10);
 
+        if ($request->ajax()) {
+            return view('panel.clubs._table', compact('clubs'));
+        }
+
         return view('panel.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
     }
 
@@ -121,6 +125,7 @@ class ClubController extends Controller
         $this->authorize('update', $club);
         $addresses = Address::orderBy('city')->orderBy('street')->get();
         $sports = Sport::orderBy('name')->get();
+        $club->load('sports');
         return view('panel.clubs.edit', compact('club', 'addresses', 'sports'));
     }
 
@@ -141,7 +146,7 @@ class ClubController extends Controller
                 'street'   => $validated['street'] ?? null,
                 'zip_code' => $validated['zip_code'] ?? null,
             ]);
-            $addressId = $address->address_id;
+            $addressId = $address->address_id;  
         }
 
         $club->update([

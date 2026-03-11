@@ -4,6 +4,7 @@ use App\Http\Controllers\ClubController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachController;
+use App\Http\Controllers\PanelMembershipController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\SportController;
@@ -120,6 +121,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/event-types/{eventType}/edit', [EventTypeController::class, 'edit'])->name('panel.event-types.edit');
         Route::patch('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('panel.event-types.update');
         Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('panel.event-types.destroy');
+
+        Route::get('/memberships', [PanelMembershipController::class, 'index'])->name('panel.memberships.index');
+        Route::get('/memberships/{member}/edit', [PanelMembershipController::class, 'edit'])->name('panel.memberships.edit');
+        Route::patch('/memberships/{member}', [PanelMembershipController::class, 'update'])->name('panel.memberships.update');
+        Route::post('/memberships/{member}/clubs', [PanelMembershipController::class, 'storeMemberClub'])->name('panel.memberships.club.store');
     });
 
     // --------------------------------------------------

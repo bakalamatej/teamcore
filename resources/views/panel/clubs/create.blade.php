@@ -3,7 +3,7 @@
 @endpush
 
 <x-app-layout>
-    <div class="flex min-h-screen">
+    <div class="flex min-h-[calc(100vh-11rem)]">
         {{-- Sidebar --}}
         <div class="hidden xl:block">
             @include('panel.sidebar')
@@ -53,12 +53,27 @@
                                     id="address_id"
                                     name="address_id"
                                     :options="$addresses->mapWithKeys(fn($a) => [
-                                        $a->id => $a->street.' '.$a->number.', '.$a->city
+                                        $a->address_id => $a->street.' '.$a->number.', '.$a->city
                                     ])->toArray()"
                                     :selected="old('address_id')"
                                     placeholder="{{ __('Select address') }}"
-                                    class="w-full"
+                                    class="mt-1 block w-full"
                                 />
+                            </div>
+
+                            <div>
+                                <x-input-label :value="__('Sports')" />
+                                <x-multiselect-input
+                                    id="sport_ids"
+                                    name="sport_ids"
+                                    :options="$sports->pluck('name', 'sport_id')->toArray()"
+                                    :selected="old('sport_ids', [])"
+                                    placeholder="{{ __('Select sports...') }}"
+                                    class="mt-1 block w-full"
+                                />
+                                @error('sport_ids')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>

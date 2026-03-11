@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="flex min-h-screen">
+    <div class="flex min-h-[calc(100vh-11rem)]">
         {{-- Sidebar --}}
         <div class="hidden xl:block">
             @include('panel.sidebar')
@@ -26,7 +26,7 @@
                     <x-select-input
                         id="sport_id"
                         name="sport_id"
-                        :options="$sports->pluck('name', 'id')->toArray()"
+                        :options="$sports->pluck('name', 'sport_id')->toArray()"
                         :selected="$eventType->sport_id"
                         placeholder="{{ __('Select sport') }}"
                         class="w-[70%]"

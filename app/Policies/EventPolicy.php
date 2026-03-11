@@ -54,7 +54,7 @@ class EventPolicy extends Policy
         if (!$member) return false;
 
         return $member->activeClubs()
-            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
             ->exists();
     }
 
@@ -70,7 +70,7 @@ class EventPolicy extends Policy
         if (!$member) return false;
 
         return $member->activeClubs()
-            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
             ->exists();
     }
 
@@ -86,7 +86,7 @@ class EventPolicy extends Policy
         }
 
         return $member->activeClubs()
-            ->whereIn('club_id', $event->clubs()->pluck('club_id'))
+            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
             ->exists();
     }
 

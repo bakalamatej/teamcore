@@ -49,4 +49,9 @@ class ClubPolicy extends Policy
     {
         return $this->isCoachInClub($user, $club->club_id);
     }
+
+    public function delete(User $user, Club $club): bool
+    {
+        return false;
+    }
 }

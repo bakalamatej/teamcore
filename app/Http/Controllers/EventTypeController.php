@@ -25,6 +25,10 @@ class EventTypeController extends Controller
             ->with('sport')
             ->paginate(10);
 
+        if ($request->ajax()) {
+            return view('panel.event-types._table', compact('eventTypes'));
+        }
+
         return view('panel.event-types.index', compact('eventTypes', 'sports'));
     }
 

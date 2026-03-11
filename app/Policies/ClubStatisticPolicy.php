@@ -32,4 +32,18 @@ class ClubStatisticPolicy extends Policy
         return true;
     }
 
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, ClubStatistic $statistic): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, ClubStatistic $statistic): bool
+    {
+        return false;
+    }
 }

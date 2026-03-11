@@ -82,19 +82,19 @@ class DatabaseSeeder extends Seeder
         // -----------------------
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password_hash' => bcrypt('password'),
+            'password_hash' => 'password',
             'is_admin' => false,
         ]);
 
         $coach = User::factory()->create([
             'email' => 'coach@example.com',
-            'password_hash' => bcrypt('password'),
+            'password_hash' => 'password',
             'is_admin' => false,
         ]);
 
         $admin = User::factory()->create([
             'email' => 'admin@example.com',
-            'password_hash' => bcrypt('password'),
+            'password_hash' => 'password',
             'is_admin' => true,
         ]);
 
@@ -340,20 +340,20 @@ class DatabaseSeeder extends Seeder
         // Attach files using the new pivot tables
         // -----------------------
         // Club files
-        $club1->clubFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->category_id]);
-        $club2->clubFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->category_id]);
+        $club1->clubFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->file_category_id]);
+        $club2->clubFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->file_category_id]);
 
         // Event files
-        $event1->eventFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->category_id]);
-        $event2->eventFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->category_id]);
+        $event1->eventFiles()->attach($file1->file_id, ['file_category_id' => $catPhoto->file_category_id]);
+        $event2->eventFiles()->attach($file2->file_id, ['file_category_id' => $catDocument->file_category_id]);
 
         // Member club files
         if ($memberClub1) {
-            $memberClub1->memberClubFiles()->attach($file1->file_id, ['file_category_id' => $catDocument->category_id]);
+            $memberClub1->memberClubFiles()->attach($file1->file_id, ['file_category_id' => $catDocument->file_category_id]);
         }
         
         if ($memberClubCoach) {
-            $memberClubCoach->memberClubFiles()->attach($file2->file_id, ['file_category_id' => $catPhoto->category_id]);
+            $memberClubCoach->memberClubFiles()->attach($file2->file_id, ['file_category_id' => $catPhoto->file_category_id]);
         }
 
         // -----------------------

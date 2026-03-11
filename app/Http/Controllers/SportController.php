@@ -20,6 +20,10 @@ class SportController extends Controller
                 fn($q) => $q->search($request->input('search')))
             ->paginate(10);
 
+        if ($request->ajax()) {
+            return view('panel.sports._table', compact('sports'));
+        }
+
         return view('panel.sports.index', compact('sports'));
     }
 

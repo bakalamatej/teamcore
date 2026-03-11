@@ -16,9 +16,15 @@ class UserController extends Controller
 
         $users = User::query()
             ->search($request->input('search'))
+            ->when($request->input('is_admin') === '1', fn($q) => $q->admins())
+            ->when($request->input('is_admin') === '0', fn($q) => $q->regularUsers())
             ->orderBy('email')
             ->with('member')
             ->paginate(15);
+
+        if ($request->ajax()) {
+            return view('panel.users._table', compact('users'));
+        }
 
         return view('panel.users.index', compact('users'));
     }

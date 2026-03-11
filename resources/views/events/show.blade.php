@@ -5,9 +5,9 @@
             <h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
             <div class="flex items-center gap-4">
                 <span class="px-3 py-1 rounded-full text-sm font-semibold 
-                    {{ $event->status === 'finished' ? 'bg-gray-200 text-gray-800' : 
-                       ($event->status === 'cancelled' ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800') }}">
-                    {{ ucfirst($event->status) }}
+                    {{ $event->status === \App\Enums\EventStatus::FINISHED ? 'bg-gray-200 text-gray-800' : 
+                       ($event->status === \App\Enums\EventStatus::CANCELED ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800') }}">
+                    {{ ucfirst($event->status->value) }}
                 </span>
                 <span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $event->created_at->format('d.m.Y H:i') }}</span>
             </div>

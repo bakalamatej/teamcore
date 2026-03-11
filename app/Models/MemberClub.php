@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MemberClubFile;
+use App\Models\Event;
 use App\Enums\MemberClubRole;
 
 class MemberClub extends Model
@@ -89,6 +90,12 @@ class MemberClub extends Model
         return $this->belongsToMany(File::class, 'member_club_files', 'member_club_id', 'file_id')
                     ->using(MemberClubFile::class)
                     ->withPivot('file_category_id')
+                    ->withTimestamps();
+    }
+
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_member', 'member_club_id', 'event_id')
                     ->withTimestamps();
     }
 }

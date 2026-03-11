@@ -126,16 +126,17 @@ class Member extends Model
      */
     public function events()
     {
-        $memberClubIds = $this->clubMemberships()->active()->pluck('member_club_id');
-        $clubIds = $this->activeClubs()->pluck('club_id');
-        $sportIds = $this->clubMemberships()->active()->pluck('sport_id')->unique();
+        // Get pairs of (club_id, sport_id) the member is active in
+        $memberships = $this->clubMemberships()->active()->get(['club_id', 'sport_id']);
 
-        return Event::where(fn($q) =>
-            $q->whereHas('memberClubs', fn($q) => $q->whereIn('member_club_id', $memberClubIds))
-              ->orWhereHas('clubs', fn($q) => $q->whereIn('club_id', $clubIds)
-                  ->whereHas('sports', fn($q) => $q->whereIn('sport_id', $sportIds))
-              )
-        );
+        return Event::where(function ($q) use ($memberships) {
+            foreach ($memberships as $membership) {
+                $q->orWhere(function ($q) use ($membership) {
+                    $q->where('sport_id', $membership->sport_id)
+                      ->whereHas('clubs', fn($q) => $q->where('clubs.club_id', $membership->club_id));
+                });
+            }
+        });
     }
 
 

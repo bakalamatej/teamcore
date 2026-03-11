@@ -20,9 +20,10 @@ class SportFieldController extends Controller
 
         // Get unique cities for filter dropdown
         $cities = Address::distinct()->orderBy('city')->pluck('city');
+        $cityOptions = $cities->combine($cities)->all();
 
         // Get field types for filter dropdown
-        $fieldTypes = FieldType::orderBy('name')->pluck('name', 'field_type_id');
+        $fieldTypeOptions = FieldType::orderBy('name')->pluck('name', 'field_type_id')->toArray();
 
         $sportFields = SportField::query()
             ->when($request->filled('search'),
@@ -34,7 +35,11 @@ class SportFieldController extends Controller
             ->with('address', 'fieldType')
             ->paginate(10);
 
-        return view('panel.sport-fields.index', compact('sportFields', 'cities', 'fieldTypes'));
+        if ($request->ajax()) {
+            return view('panel.sport-fields._table', compact('sportFields'));
+        }
+
+        return view('panel.sport-fields.index', compact('sportFields', 'cityOptions', 'fieldTypeOptions'));
     }
 
     /**

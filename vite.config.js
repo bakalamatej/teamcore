@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/clubs/club-create.js',
                 'resources/js/clubs/club-update.js',
                 'resources/js/shared/table-search.js',
+                'resources/js/shared/filter.js',
             ],
             refresh: true,
         }),

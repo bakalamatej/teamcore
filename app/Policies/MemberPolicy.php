@@ -51,14 +51,14 @@ class MemberPolicy extends Policy
     /**
      * Determine if the user can update the member.
      */
-    public function update(User $user, Member $member): bool
-    {
-        return $this->ownsMemberById($user, $member->member_id);
-    }
-
     public function create(User $user): bool
     {
         return false;
+    }
+
+    public function update(User $user, Member $member): bool
+    {
+        return $this->ownsMemberById($user, $member->member_id);
     }
 
     public function delete(User $user, Member $member): bool

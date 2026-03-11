@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="flex min-h-screen">
+    <div class="flex min-h-[calc(100vh-11rem)]">
         {{-- Sidebar --}}
         <div class="hidden xl:block">
             @include('panel.sidebar')
@@ -32,7 +32,7 @@
                     <x-select-input
                         id="address_id"
                         name="address_id"
-                        :options="$addresses->mapWithKeys(fn($a) => [$a->id => $a->street . ', ' . $a->zip_code . ' ' . $a->city])->toArray()"
+                        :options="$addresses->mapWithKeys(fn($a) => [$a->address_id => $a->street . ', ' . $a->zip_code . ' ' . $a->city])->toArray()"
                         :selected="old('address_id')"
                         placeholder="{{ __('Select address') }}"
                         class="w-[70%]"

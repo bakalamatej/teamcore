@@ -34,4 +34,18 @@ class MemberStatisticPolicy extends Policy
         return true;
     }
 
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, MemberStatistic $statistic): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, MemberStatistic $statistic): bool
+    {
+        return false;
+    }
 }

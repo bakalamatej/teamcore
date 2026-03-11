@@ -3,7 +3,7 @@
 @endpush
 
 <x-app-layout>
-    <div class="flex min-h-screen">
+    <div class="flex min-h-[calc(100vh-11rem)]">
         {{-- Sidebar --}}
         <div class="hidden xl:block">
             @include('panel.sidebar')
@@ -35,7 +35,7 @@
                                 <x-select-input
                                     id="event_type_id"
                                     name="event_type_id"
-                                    :options="$eventTypes->pluck('name','id')"
+                                    :options="$eventTypes->pluck('name','event_type_id')"
                                     :selected="old('event_type_id')"
                                     placeholder="{{ __('Select type') }}"
                                     class="w-full"
@@ -47,7 +47,7 @@
                                 <x-select-input
                                     id="sport_field_id"
                                     name="sport_field_id"
-                                    :options="$sportFields->mapWithKeys(fn($f) => [$f->id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
+                                    :options="$sportFields->mapWithKeys(fn($f) => [$f->sport_field_id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
                                     :selected="old('sport_field_id')"
                                     placeholder="{{ __('Select location') }}"
                                     class="w-full"
@@ -65,9 +65,9 @@
                             </div>
                         </div>
 
-                        <div class="flex-1">
+                        <div class="flex-1 flex flex-col">
                             <x-input-label for="description" :value="__('Description')" />
-                            <x-textarea-input id="description" name="description" class="h-full" />
+                            <x-textarea-input id="description" placeholder="{{ __('Enter description') }}" name="description" class="mt-1 flex-1" />
                         </div>
                     </div>
 

@@ -33,4 +33,19 @@ class SportPolicy extends Policy
     {
         return true;
     }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, Sport $sport): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, Sport $sport): bool
+    {
+        return false;
+    }
 }

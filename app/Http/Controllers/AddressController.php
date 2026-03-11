@@ -27,6 +27,10 @@ class AddressController extends Controller
                 fn($q) => $q->byCity($request->input('city')))
             ->paginate(10);
 
+        if ($request->ajax()) {
+            return view('panel.addresses._table', compact('addresses'));
+        }
+
         return view('panel.addresses.index', compact('addresses', 'countries', 'cities'));
     }
 

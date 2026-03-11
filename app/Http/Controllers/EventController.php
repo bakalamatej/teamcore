@@ -9,6 +9,7 @@ use App\Models\EventType;
 use App\Models\SportField;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
+use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
@@ -19,10 +20,7 @@ class EventController extends Controller
     {
         $this->authorize('viewAny', Event::class);
 
-        $sportFields = SportField::orderBy('name')->get();
-        $eventTypes = EventType::orderBy('name')->get();
-        
-        $events = Auth::user()->member?->events() ?? Event::query()->whereRaw('1=0');
+        $events = Auth::user()->member?->events() ?? Event::query()->whereNull('event_id');
         $events = $events
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
@@ -32,10 +30,26 @@ class EventController extends Controller
                 fn($q) => $q->byStatus($request->input('status')))
             ->when($request->filled('type'), 
                 fn($q) => $q->byEventType($request->input('type')))
-            ->with('sportField', 'eventType')
-            ->paginate(10);
+            ->when($request->filled('start_date_from') || $request->filled('start_date_to'),
+                fn($q) => $q->byDateRange($request->input('start_date_from'), $request->input('start_date_to')))
+            ->with('sportField', 'eventType', 'clubs')
+            ->paginate(10);   
 
-        return view('events.index', compact('events', 'sportFields', 'eventTypes'));
+        $userClubIds = Auth::user()->member?->activeClubs()->pluck('clubs.club_id')->toArray() ?? [];
+        $memberClubIds = Auth::user()->member?->clubMemberships()->active()->pluck('member_club_id') ?? collect();
+        $userEventIds = DB::table('event_member')
+            ->whereIn('member_club_id', $memberClubIds)
+            ->pluck('event_id')
+            ->toArray();
+
+        if ($request->ajax()) {
+            return view('events._table', compact('events', 'userClubIds', 'userEventIds'));
+        }  
+
+        $sportFields = SportField::orderBy('name')->get();
+        $eventTypes = EventType::orderBy('name')->get();
+
+        return view('events.index', compact('events', 'sportFields', 'eventTypes', 'userClubIds', 'userEventIds'));
     }
 
     /**
@@ -56,8 +70,14 @@ class EventController extends Controller
                 fn($q) => $q->byStatus($request->input('status')))
             ->when($request->filled('type'),
                 fn($q) => $q->byEventType($request->input('type')))
+            ->when($request->filled('start_date_from') || $request->filled('start_date_to'),
+                fn($q) => $q->byDateRange($request->input('start_date_from'), $request->input('start_date_to')))
             ->with('sportField', 'eventType')
             ->paginate(10);
+
+        if ($request->ajax()) {
+            return view('panel.events._table', compact('events'));
+        }
 
         return view('panel.events.index', compact('events', 'sportFields', 'eventTypes'));
     }

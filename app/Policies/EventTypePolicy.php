@@ -33,4 +33,19 @@ class EventTypePolicy extends Policy
     {
         return true;
     }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, EventType $eventType): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, EventType $eventType): bool
+    {
+        return false;
+    }
 }

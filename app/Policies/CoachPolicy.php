@@ -25,4 +25,24 @@ class CoachPolicy extends Policy
     {
         return $this->isCoach($user);
     }
+
+    public function view(User $user, MemberClub $memberClub): bool
+    {
+        return false;
+    }
+
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    public function update(User $user, MemberClub $memberClub): bool
+    {
+        return false;
+    }
+
+    public function delete(User $user, MemberClub $memberClub): bool
+    {
+        return false;
+    }
 }

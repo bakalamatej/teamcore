@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="flex min-h-screen">
+    <div class="flex min-h-[calc(100vh-11rem)]">
         {{-- Sidebar --}}
         <div class="hidden xl:block">
             @include('panel.sidebar')
