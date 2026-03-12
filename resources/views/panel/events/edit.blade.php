@@ -12,7 +12,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
-        <form id="updateEventForm" data-action="{{ route('events.update', $event) }}" method="POST" class="space-y-4">
+        <form id="updateEventForm" data-action="{{ route('events.update', $event) }}" method="POST" class="space-y-6">
             @csrf
             @method('PATCH')
 

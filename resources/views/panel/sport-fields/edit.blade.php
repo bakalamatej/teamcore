@@ -10,7 +10,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Sport Field') }}</h1>
 
-        <form method="POST" action="{{ route('panel.sport-fields.update', $sportField) }}" class="space-y-4 max-w-2xl">
+        <form method="POST" action="{{ route('panel.sport-fields.update', $sportField) }}" class="space-y-6">
             @csrf
             @method('PATCH')
 

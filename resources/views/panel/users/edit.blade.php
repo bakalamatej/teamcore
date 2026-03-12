@@ -11,7 +11,7 @@
                 <h1 class="my-heading">{{ __('Edit User') }}</h1>
                 <p class="my-text">{{ __('Update the user information such as name, email, and role.') }}</p>
 
-                <form method="POST" action="{{ route('panel.users.update', $user) }}" class="space-y-4 max-w-2xl">
+                <form method="POST" action="{{ route('panel.users.update', $user) }}" class="space-y-6">
                     @csrf
                     @method('PATCH')
 

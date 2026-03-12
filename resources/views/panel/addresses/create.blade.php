@@ -11,7 +11,7 @@
         <h1 class="my-heading">{{ __('Create Address') }}</h1>
         <p class="my-text">{{ __('Add a new address location.') }}</p>
 
-        <form method="POST" action="{{ route('panel.addresses.store') }}" class="space-y-4 max-w-2xl">
+        <form method="POST" action="{{ route('panel.addresses.store') }}" class="space-y-6">
             @csrf
 
             <div class="space-y-4">

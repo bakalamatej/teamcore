@@ -13,7 +13,7 @@
 
                 {{-- ── PATCH form: existing memberships ── --}}
                 @if($allMemberships->isNotEmpty())
-                <form method="POST" action="{{ route('panel.memberships.update', $member) }}" class="space-y-4 max-w-2xl mt-6">
+                <form method="POST" action="{{ route('panel.memberships.update', $member) }}" class="space-y-6">
                     @csrf
                     @method('PATCH')
 
@@ -64,11 +64,11 @@
                     data-clubs='@json($allClubsWithSports)'
                     data-sports='@json($allSports->pluck("name", "sport_id"))'
                 >
-                    <h2 class="font-semibold text-gray-700 text-base mb-4">{{ __('Add Club Membership') }}</h2>
+                    <h2 class="my-heading">{{ __('Add Club Membership') }}</h2>
 
                     {{-- Sports filter --}}
                     <div class="mb-4">
-                        <x-input-label :value="__('Filter clubs by sport')" class="mb-2" />
+                        <x-input-label :value="__('Filter clubs by sport')" class="mb-2 mt-2" />
                         <div class="flex flex-wrap gap-3">
                             @foreach($allSports as $sport)
                             <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -86,7 +86,7 @@
                     </div>
 
                     {{-- Add membership form --}}
-                    <form method="POST" action="{{ route('panel.memberships.club.store', $member) }}" class="space-y-3">
+                    <form method="POST" action="{{ route('panel.memberships.club.store', $member) }}" class="space-y-6">
                         @csrf
 
                         @if($errors->has('club_id') || $errors->has('sport_id') || $errors->has('role') || $errors->has('joined_at'))

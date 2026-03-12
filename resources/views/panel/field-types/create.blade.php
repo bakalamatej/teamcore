@@ -8,10 +8,10 @@
         {{-- Content --}}
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-        <h1 class="my-heading">{{ __('Create Event Type') }}</h1>
-        <p class="my-text">{{ __('Add a new event type.') }}</p>
+        <h1 class="my-heading">{{ __('Create Field Type') }}</h1>
+        <p class="my-text">{{ __('Add a new field type.') }}</p>
 
-        <form method="POST" action="{{ route('panel.event-types.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('panel.field-types.store') }}" class="space-y-6">
             @csrf
 
             <div class="space-y-4">
@@ -20,24 +20,11 @@
                     <x-text-input id="name" name="name" type="text" class="mt-1 block w-[70%]" value="{{ old('name') }}" required />
                     <x-input-error :messages="$errors->get('name')" class="mt-2" />
                 </div>
-
-                <div class="max-w-xl">
-                    <x-input-label for="sport_id" :value="__('Sport')" />
-                    <x-select-input
-                        id="sport_id"
-                        name="sport_id"
-                        :options="$sports->pluck('name', 'sport_id')->toArray()"
-                        :selected="old('sport_id')"
-                        placeholder="{{ __('Select sport') }}"
-                        class="w-[70%]"
-                    />
-                    <x-input-error :messages="$errors->get('sport_id')" class="mt-2" />
-                </div>
             </div>
 
             <div class="flex gap-4 mt-6">
                 <x-primary-button>{{ __('Save') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('panel.event-types.index') }}'">
+                <x-danger-button type="button" onclick="window.location='{{ route('panel.field-types.index') }}'">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>

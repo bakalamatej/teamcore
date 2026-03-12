@@ -32,7 +32,9 @@
         <a href="{{ route('panel.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
         <a href="{{ route('panel.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>
         <a href="{{ route('panel.sport-fields.index') }}" class="sidebar-link">{{ __('Sport Fields') }}</a>
+        <a href="{{ route('panel.field-types.index') }}" class="sidebar-link">{{ __('Field Types') }}</a>
         <a href="{{ route('panel.addresses.index') }}" class="sidebar-link">{{ __('Addresses') }}</a>
         <a href="{{ route('panel.event-types.index') }}" class="sidebar-link">{{ __('Event Types') }}</a>
+        <a href="{{ route('panel.coach-evaluations.index') }}" class="sidebar-link">{{ __('Coach Evaluations') }}</a>
     @endif
 </x-sidebar>

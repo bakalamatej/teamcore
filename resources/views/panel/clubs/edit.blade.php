@@ -12,7 +12,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Club') }}</h1>
 
-        <form id="updateClubForm" data-action="{{ route('clubs.update', $club) }}" method="POST" class="space-y-4">
+        <form id="updateClubForm" data-action="{{ route('clubs.update', $club) }}" method="POST" class="space-y-6">
             @csrf
             @method('PATCH')
 

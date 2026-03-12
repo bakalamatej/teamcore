@@ -15,7 +15,7 @@
                 <h1 class="my-heading">{{ __('Create Event') }}</h1>
                 <p class="my-text">{{ __('Create a new sporting event. Fill in all required fields and select the appropriate location and type.') }}</p>
 
-                <form id="eventCreateForm" data-action="{{ route('events.store') }}" method="POST" class="space-y-4">
+                <form id="eventCreateForm" data-action="{{ route('events.store') }}" method="POST" class="space-y-6">
                     @csrf
 
                     <div id="formErrorBox">

@@ -11,7 +11,7 @@
         <h1 class="my-heading">{{ __('Create Sport Field') }}</h1>
         <p class="my-text">{{ __('Add a new sport field.') }}</p>
 
-        <form method="POST" action="{{ route('panel.sport-fields.store') }}" class="space-y-4 max-w-2xl">
+        <form method="POST" action="{{ route('panel.sport-fields.store') }}" class="space-y-6">
             @csrf
 
             <div class="space-y-4">

@@ -15,7 +15,7 @@
                 <h1 class="my-heading">{{ __('Create Club') }}</h1>
                 <p class="my-text">{{ __('Create a new sports club. Provide all necessary information including name, contact details, and location.') }}</p>
 
-                <form id="clubCreateForm" data-action="{{ route('clubs.store') }}" method="POST" class="space-y-4">
+                <form id="clubCreateForm" data-action="{{ route('clubs.store') }}" method="POST" class="space-y-6">
                     @csrf
 
                     <div id="formErrorBox">

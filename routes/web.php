@@ -11,6 +11,8 @@ use App\Http\Controllers\SportController;
 use App\Http\Controllers\SportFieldController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\EventTypeController;
+use App\Http\Controllers\FieldTypeController;
+use App\Http\Controllers\PanelCoachEvaluationController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -122,10 +124,20 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('panel.event-types.update');
         Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('panel.event-types.destroy');
 
+        Route::get('/field-types', [FieldTypeController::class, 'index'])->name('panel.field-types.index');
+        Route::get('/field-types/create', [FieldTypeController::class, 'create'])->name('panel.field-types.create');
+        Route::post('/field-types', [FieldTypeController::class, 'store'])->name('panel.field-types.store');
+        Route::get('/field-types/{fieldType}/edit', [FieldTypeController::class, 'edit'])->name('panel.field-types.edit');
+        Route::patch('/field-types/{fieldType}', [FieldTypeController::class, 'update'])->name('panel.field-types.update');
+        Route::delete('/field-types/{fieldType}', [FieldTypeController::class, 'destroy'])->name('panel.field-types.destroy');
+
         Route::get('/memberships', [PanelMembershipController::class, 'index'])->name('panel.memberships.index');
         Route::get('/memberships/{member}/edit', [PanelMembershipController::class, 'edit'])->name('panel.memberships.edit');
         Route::patch('/memberships/{member}', [PanelMembershipController::class, 'update'])->name('panel.memberships.update');
         Route::post('/memberships/{member}/clubs', [PanelMembershipController::class, 'storeMemberClub'])->name('panel.memberships.club.store');
+
+        Route::get('/coach-evaluations', [PanelCoachEvaluationController::class, 'index'])->name('panel.coach-evaluations.index');
+        Route::get('/coach-evaluations/{member}', [PanelCoachEvaluationController::class, 'show'])->name('panel.coach-evaluations.show');
     });
 
     // --------------------------------------------------
