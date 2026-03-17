@@ -34,7 +34,7 @@
                             <x-select-input
                                 id="country"
                                 name="country"
-                                :options="$countries->mapWithKeys(fn($c) => [$c => $c])->toArray()"
+                                :options="$countryOptions"
                                 :selected="request('country')"
                                 placeholder="{{ __('Select country') }}"
                                 class="mt-1 block w-full text-sm"
@@ -46,7 +46,7 @@
                             <x-select-input
                                 id="city"
                                 name="city"
-                                :options="$cities->mapWithKeys(fn($c) => [$c => $c])->toArray()"
+                                :options="$cityOptions"
                                 :selected="request('city')"
                                 placeholder="{{ __('Select city') }}"
                                 class="mt-1 block w-full text-sm"

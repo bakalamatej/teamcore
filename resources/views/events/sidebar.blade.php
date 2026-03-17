@@ -20,7 +20,7 @@
             <x-select-input
                 id="sport_field_id"
                 name="sport_field_id"
-                :options="$sportFields->mapWithKeys(fn($f) => [$f->sport_field_id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
+                :options="$sportFieldOptions"
                 :selected="request('sport_field_id')"
                 placeholder="{{ __('Select location') }}"
                 class="mt-1 block w-full text-sm"
@@ -44,7 +44,7 @@
             <x-select-input
                 id="type"
                 name="type"
-                :options="$eventTypes->mapWithKeys(fn($t) => [$t->event_type_id => $t->name])->toArray()"
+                :options="$eventTypeOptions"
                 :selected="request('type')"
                 placeholder="{{ __('All types') }}"
                 class="mt-1 block w-full text-sm"

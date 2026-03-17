@@ -22,6 +22,11 @@ class UserController extends Controller
             ->with('member')
             ->paginate(15);
 
+        $users->getCollection()->transform(function ($user) {
+            $user->setAttribute('primaryRole', $user->getRole());
+            return $user;
+        });
+
         if ($request->ajax()) {
             return view('panel.users._table', compact('users'));
         }
@@ -67,7 +72,23 @@ class UserController extends Controller
         $this->authorize('view', $user);
 
         $user->load('member');
-        return view('panel.users.show', compact('user'));
+
+        $primaryRole = $user->getRole();
+
+        $activeClubsCount = 0;
+        $activeEventsCount = 0;
+
+        if ($user->member) {
+            $activeClubsCount = $user->member->activeClubs()->count();
+            $activeEventsCount = $user->member->activeEventsQuery()->count();
+        }
+
+        return view('panel.users.show', compact(
+            'user',
+            'primaryRole',
+            'activeClubsCount',
+            'activeEventsCount'
+        ));
     }
 
     // Show edit user form (admin only)

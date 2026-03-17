@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\MemberClub;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\MemberClubRole;
@@ -21,10 +22,36 @@ class MemberClubRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\MemberClub $memberClub */
+        $memberClub = $this->route('memberClub');
+        $memberId = $memberClub?->member_id ?? $this->input('member_id');
+
         return [
             'member_id' => ['required', 'integer', Rule::exists('members', 'member_id')],
-            'club_id' => ['required', 'integer', Rule::exists('clubs', 'club_id')],
-            'sport_id' => ['required', 'integer', Rule::exists('club_sport', 'sport_id')->where('club_id', $this->club_id)],
+            'club_id' => [
+                'required',
+                'integer',
+                Rule::exists('clubs', 'club_id'),
+                // Validate unique active membership only if left_at is null (not leaving)
+                function ($attr, $value, $fail) use ($memberId) {
+                    if (!$this->input('left_at')) {
+                        $query = MemberClub::where('member_id', $memberId)
+                            ->where('club_id', $value)
+                            ->where('sport_id', $this->input('sport_id'))
+                            ->whereNull('left_at');
+                        
+                        // Exclude current record on update
+                        if ($this->route('memberClub')) {
+                            $query->where('member_club_id', '!=', $this->route('memberClub')->member_club_id);
+                        }
+                        
+                        if ($query->exists()) {
+                            $fail('This member already has an active membership in this club for the selected sport.');
+                        }
+                    }
+                },
+            ],
+            'sport_id' => ['required', 'integer', Rule::exists('club_sport', 'sport_id')->where('club_id', $this->input('club_id'))],
             'role' => ['required', Rule::enum(MemberClubRole::class)],
             'joined_at' => 'required|date',
             'left_at' => 'nullable|date|after_or_equal:joined_at',

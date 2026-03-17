@@ -15,7 +15,7 @@
                 <h1 class="my-heading">{{ __('Create Event') }}</h1>
                 <p class="my-text">{{ __('Create a new sporting event. Fill in all required fields and select the appropriate location and type.') }}</p>
 
-                <form id="eventCreateForm" data-action="{{ route('events.store') }}" method="POST" class="space-y-6">
+                <form id="eventCreateForm" data-action="{{ route('panel.events.store') }}" method="POST" class="space-y-6">
                     @csrf
 
                     <div id="formErrorBox">
@@ -35,7 +35,7 @@
                                 <x-select-input
                                     id="event_type_id"
                                     name="event_type_id"
-                                    :options="$eventTypes->pluck('name','event_type_id')"
+                                    :options="$eventTypeOptions"
                                     :selected="old('event_type_id')"
                                     placeholder="{{ __('Select type') }}"
                                     class="w-full"
@@ -47,7 +47,7 @@
                                 <x-select-input
                                     id="sport_field_id"
                                     name="sport_field_id"
-                                    :options="$sportFields->mapWithKeys(fn($f) => [$f->sport_field_id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
+                                    :options="$sportFieldOptions"
                                     :selected="old('sport_field_id')"
                                     placeholder="{{ __('Select location') }}"
                                     class="w-full"

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('panel.sidebar', function ($view) {
+            $role = Auth::user()?->getRole() ?? 'player';
+            $panelLabel = match ($role) {
+                'admin' => 'Admin panel',
+                'coach' => 'Coach panel',
+                default => 'Profile',
+            };
+
+            $view->with('role', $role)
+                ->with('panelLabel', $panelLabel);
+        });
     }
 }

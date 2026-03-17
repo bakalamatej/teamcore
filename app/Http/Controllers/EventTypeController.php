@@ -17,6 +17,7 @@ class EventTypeController extends Controller
         $this->authorize('viewAny', EventType::class);
 
         $sports = Sport::orderBy('name')->get();
+        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
         $eventTypes = EventType::query()
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
@@ -29,7 +30,7 @@ class EventTypeController extends Controller
             return view('panel.event-types._table', compact('eventTypes'));
         }
 
-        return view('panel.event-types.index', compact('eventTypes', 'sports'));
+        return view('panel.event-types.index', compact('eventTypes', 'sportOptions'));
     }
 
     /**
@@ -40,8 +41,9 @@ class EventTypeController extends Controller
         $this->authorize('create', EventType::class);
 
         $sports = Sport::orderBy('name')->get();
+        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
 
-        return view('panel.event-types.create', compact('sports'));
+        return view('panel.event-types.create', compact('sportOptions'));
     }
 
     /**
@@ -75,8 +77,9 @@ class EventTypeController extends Controller
         $this->authorize('update', $eventType);
 
         $sports = Sport::orderBy('name')->get();
+        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
 
-        return view('panel.event-types.edit', compact('eventType', 'sports'));
+        return view('panel.event-types.edit', compact('eventType', 'sportOptions'));
     }
 
     /**

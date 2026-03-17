@@ -52,8 +52,13 @@ class SportFieldController extends Controller
         $addresses = Address::orderBy('city')->get();
         $sports = Sport::orderBy('name')->get();
         $fieldTypes = FieldType::orderBy('name')->get();
+        $addressOptions = $addresses
+            ->mapWithKeys(fn($address) => [
+                $address->address_id => trim(($address->street ?? '') . ', ' . ($address->zip_code ?? '') . ' ' . ($address->city ?? '')),
+            ])
+            ->toArray();
 
-        return view('panel.sport-fields.create', compact('addresses', 'sports', 'fieldTypes'));
+        return view('panel.sport-fields.create', compact('sports', 'fieldTypes', 'addressOptions'));
     }
 
     /**
@@ -108,8 +113,13 @@ class SportFieldController extends Controller
         $addresses = Address::orderBy('city')->get();
         $sports = Sport::orderBy('name')->get();
         $fieldTypes = FieldType::orderBy('name')->get();
+        $addressOptions = $addresses
+            ->mapWithKeys(fn($address) => [
+                $address->address_id => trim(($address->street ?? '') . ', ' . ($address->zip_code ?? '') . ' ' . ($address->city ?? '')),
+            ])
+            ->toArray();
 
-        return view('panel.sport-fields.edit', compact('sportField', 'addresses', 'sports', 'fieldTypes'));
+        return view('panel.sport-fields.edit', compact('sportField', 'sports', 'fieldTypes', 'addressOptions'));
     }
 
     /**

@@ -25,11 +25,11 @@
                         </span>
                     </td>
                     <td class="p-3 text-right">
-                        <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">
+                        <a href="{{ route('panel.events.show', $event) }}" class="table-action view mr-2">
                             {{ __('View') }}
                         </a>
 
-                        <a href="{{ route('events.edit', $event) }}" class="table-action edit mr-2">
+                        <a href="{{ route('panel.events.edit', $event) }}" class="table-action edit mr-2">
                             {{ __('Edit') }}
                         </a>
 
@@ -40,7 +40,7 @@
                         </button>
 
                         <x-modal name="confirm-event-deletion-{{ $event->event_id }}" :show="false" focusable>
-                            <form method="POST" action="{{ route('events.destroy', $event) }}" class="p-6 text-left">
+                            <form method="POST" action="{{ route('panel.events.destroy', $event) }}" class="p-6 text-left">
                                 @csrf
                                 @method('DELETE')
 

@@ -18,7 +18,7 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
             {{ __('Dashboard') }}
         </x-responsive-nav-link>
         <x-responsive-nav-link :href="route('clubs.my')" :active="request()->routeIs('clubs.my')">
-            {{ __('My Clubs') }}
+            {{ __('My Club') }}
         </x-responsive-nav-link>
         <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
             {{ __('Events') }}

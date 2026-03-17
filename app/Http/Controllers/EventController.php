@@ -41,15 +41,38 @@ class EventController extends Controller
             ->whereIn('member_club_id', $memberClubIds)
             ->pluck('event_id')
             ->toArray();
+        $userHasMember = (bool) Auth::user()->member;
+
+        $userClubLookup = array_flip($userClubIds);
+        $registeredEventLookup = array_flip($userEventIds);
+
+        $events->getCollection()->transform(function ($event) use ($userClubLookup, $registeredEventLookup) {
+            $eventClubIds = $event->clubs->pluck('club_id')->toArray();
+            $eventBelongsToUserClub = !empty(array_intersect(array_keys($userClubLookup), $eventClubIds));
+            $isRegistered = isset($registeredEventLookup[$event->event_id]);
+
+            $event->setAttribute('eventBelongsToUserClub', $eventBelongsToUserClub);
+            $event->setAttribute('isRegistered', $isRegistered);
+            $event->setAttribute('canRegister', $eventBelongsToUserClub && !$isRegistered);
+            $event->setAttribute('canUnregister', $eventBelongsToUserClub && $isRegistered);
+
+            return $event;
+        });
 
         if ($request->ajax()) {
-            return view('events._table', compact('events', 'userClubIds', 'userEventIds'));
+            return view('events._table', compact('events', 'userHasMember'));
         }  
 
-        $sportFields = SportField::orderBy('name')->get();
+        $sportFields = SportField::with('address')->orderBy('name')->get();
         $eventTypes = EventType::orderBy('name')->get();
+        $sportFieldOptions = $sportFields
+            ->mapWithKeys(fn($field) => [
+                $field->sport_field_id => $field->name . ' (' . ($field->address->city ?? '-') . ')',
+            ])
+            ->toArray();
+        $eventTypeOptions = $eventTypes->pluck('name', 'event_type_id')->toArray();
 
-        return view('events.index', compact('events', 'sportFields', 'eventTypes', 'userClubIds', 'userEventIds'));
+        return view('events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions', 'userHasMember'));
     }
 
     /**
@@ -59,8 +82,10 @@ class EventController extends Controller
     {
         $this->authorize('viewAny', Event::class);
 
-        $sportFields = SportField::orderBy('name')->get();
+        $sportFields = SportField::with('address')->orderBy('name')->get();
         $eventTypes = EventType::orderBy('name')->get();
+        $sportFieldOptions = $sportFields->pluck('name', 'sport_field_id')->toArray();
+        $eventTypeOptions = $eventTypes->pluck('name', 'event_type_id')->toArray();
         
         $events = Event::when($request->filled('search'),
                 fn($q) => $q->search($request->input('search')))
@@ -79,7 +104,7 @@ class EventController extends Controller
             return view('panel.events._table', compact('events'));
         }
 
-        return view('panel.events.index', compact('events', 'sportFields', 'eventTypes'));
+        return view('panel.events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions'));
     }
 
     /**
@@ -89,9 +114,16 @@ class EventController extends Controller
     {
         $this->authorize('create', Event::class);
 
-        $sportFields = SportField::orderBy('name')->get();
+        $sportFields = SportField::with('address')->orderBy('name')->get();
         $eventTypes = EventType::orderBy('name')->get();
-        return view('panel.events.create', compact('sportFields', 'eventTypes'));
+        $sportFieldOptions = $sportFields
+            ->mapWithKeys(fn($field) => [
+                $field->sport_field_id => $field->name . ' (' . ($field->address->city ?? '-') . ')',
+            ])
+            ->toArray();
+        $eventTypeOptions = $eventTypes->pluck('name', 'event_type_id')->toArray();
+
+        return view('panel.events.create', compact('sportFieldOptions', 'eventTypeOptions'));
     }
 
     /**
@@ -116,10 +148,46 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
+        return $this->renderEventShow($event, 'events.show');
+    }
+
+    /**
+     * Display event details for admin panel
+     */
+    public function adminShow(Event $event)
+    {
+        return $this->renderEventShow($event, 'panel.events.show');
+    }
+
+    private function renderEventShow(Event $event, string $view)
+    {
         $this->authorize('view', $event);
 
         $event->load('clubs', 'memberClubs.member.user', 'sportField', 'eventType');
-        return view('events.show', compact('event'));
+
+        $activeClubs = $event->activeClubs;
+        $activeMembers = $event->activeMembers;
+        $activeClubsCount = $activeClubs->count();
+        $activeMembersCount = $activeMembers->count();
+
+        $statusValue = $event->status->value;
+        $duration = $event->start_date->diff($event->end_date);
+        $durationText = $duration->days > 0
+            ? $duration->days . ' ' . __('day(s)')
+            : $duration->h . 'h ' . $duration->i . 'm';
+
+        $canManageEvent = Auth::user()?->isAdmin() || Auth::user()?->isCoach();
+
+        return view($view, compact(
+            'event',
+            'activeClubs',
+            'activeMembers',
+            'activeClubsCount',
+            'activeMembersCount',
+            'statusValue',
+            'durationText',
+            'canManageEvent'
+        ));
     }
 
     /**
@@ -131,8 +199,14 @@ class EventController extends Controller
 
         $sportFields = SportField::orderBy('name')->get();
         $eventTypes = EventType::orderBy('name')->get();
+        $sportFieldOptions = $sportFields
+            ->mapWithKeys(fn($field) => [
+                $field->sport_field_id => $field->name . ' (' . ($field->address->city ?? '-') . ')',
+            ])
+            ->toArray();
+        $eventTypeOptions = $eventTypes->pluck('name', 'event_type_id')->toArray();
 
-        return view('panel.events.edit', compact('event', 'sportFields', 'eventTypes'));
+        return view('panel.events.edit', compact('event', 'sportFieldOptions', 'eventTypeOptions'));
     }
 
     /**

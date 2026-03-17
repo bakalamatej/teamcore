@@ -13,12 +13,13 @@
                 <h1 class="my-heading text-2xl">{{ $user->member?->full_name ?? 'N/A' }}</h1>
                 <p class="text-gray-600">{{ $user->email }}</p>
             </div>
-            <span class="px-3 py-1 rounded-full text-sm font-semibold
-                @if($user->getRole() === 'admin') bg-red-200 text-red-800
-                @elseif($user->getRole() === 'coach') bg-blue-200 text-blue-800
-                @else bg-green-200 text-green-800
-                @endif">
-                {{ ucfirst($user->getRole()) }}
+            <span @class([
+                'px-3 py-1 rounded-full text-sm font-semibold',
+                'bg-red-200 text-red-800' => $primaryRole === 'admin',
+                'bg-blue-200 text-blue-800' => $primaryRole === 'coach',
+                'bg-green-200 text-green-800' => !in_array($primaryRole, ['admin', 'coach'], true),
+            ])>
+                {{ ucfirst($primaryRole) }}
             </span>
         </div>
 
@@ -47,7 +48,7 @@
 
                         <div class="detail-item">
                             <span class="detail-item-label">{{ __('Phone:') }}</span>
-                            <span class="detail-item-value">{{ $user->member?->phone_number ?? 'N/A' }}</span>
+                            <span class="detail-item-value">{{ $user->member?->phone ?? 'N/A' }}</span>
                         </div>
 
                         <div class="detail-item">
@@ -68,7 +69,7 @@
 
                         <div class="detail-item">
                             <span class="detail-item-label">{{ __('Primary Role:') }}</span>
-                            <span class="detail-item-value">{{ ucfirst($user->getRole()) }}</span>
+                            <span class="detail-item-value">{{ ucfirst($primaryRole) }}</span>
                         </div>
 
                         <div class="detail-item-divider">
@@ -103,12 +104,12 @@
 
                             <div class="detail-item-divider detail-item">
                                 <span class="detail-item-label">{{ __('Clubs:') }}</span>
-                                <span class="detail-item-value">{{ $user->member->activeClubs->count() }}</span>
+                                <span class="detail-item-value">{{ $activeClubsCount }}</span>
                             </div>
 
                             <div class="detail-item">
                                 <span class="detail-item-label">{{ __('Events:') }}</span>
-                                <span class="detail-item-value">{{ $user->member->activeEvents->count() }}</span>
+                                <span class="detail-item-value">{{ $activeEventsCount }}</span>
                             </div>
                         </div>
                     </div>

@@ -17,6 +17,7 @@ class PanelMembershipController extends Controller
         $this->authorize('viewAny', MemberClub::class);
 
         $clubs = Club::orderBy('name')->get();
+        $clubOptions = $clubs->pluck('name', 'club_id')->toArray();
 
         $members = Member::with([
                 'user',
@@ -36,7 +37,7 @@ class PanelMembershipController extends Controller
             return view('panel.memberships._table', compact('members'));
         }
 
-        return view('panel.memberships.index', compact('members', 'clubs'));
+        return view('panel.memberships.index', compact('members', 'clubOptions'));
     }
 
     public function edit(Member $member)
@@ -53,6 +54,13 @@ class PanelMembershipController extends Controller
         $memberSportIds = $allMemberships->pluck('sport_id')->filter()->unique()->values();
 
         $allSports = Sport::orderBy('name')->get();
+        $allSportOptions = $allSports->pluck('name', 'sport_id')->toArray();
+
+        $membershipSportOptions = $allMemberships
+            ->mapWithKeys(fn($membership) => [
+                $membership->member_club_id => $membership->club->sports->pluck('name', 'sport_id')->toArray(),
+            ])
+            ->toArray();
 
         $allClubsWithSports = Club::with('sports')->orderBy('name')->get()
             ->mapWithKeys(fn($club) => [
@@ -67,7 +75,9 @@ class PanelMembershipController extends Controller
             'allMemberships',
             'memberSportIds',
             'allSports',
+            'allSportOptions',
             'allClubsWithSports',
+            'membershipSportOptions',
         ));
     }
 

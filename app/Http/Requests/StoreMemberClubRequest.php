@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\MemberClub;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Enums\MemberClubRole;
 
 class StoreMemberClubRequest extends FormRequest
 {
@@ -29,15 +30,16 @@ class StoreMemberClubRequest extends FormRequest
                 function ($attr, $value, $fail) use ($member) {
                     $exists = MemberClub::where('member_id', $member->member_id)
                         ->where('club_id', $value)
+                        ->where('sport_id', $this->input('sport_id'))
                         ->whereNull('left_at')
                         ->exists();
                     if ($exists) {
-                        $fail('This member already has an active membership in this club.');
+                        $fail('This member already has an active membership in this club for the selected sport.');
                     }
                 },
             ],
-            'sport_id'  => ['required', 'integer', Rule::exists('sports', 'sport_id')],
-            'role'      => ['required', 'in:player,coach'],
+            'sport_id' => ['required', 'integer', Rule::exists('club_sport', 'sport_id')->where('club_id', $this->input('club_id'))],
+            'role' => ['required', Rule::enum(MemberClubRole::class)],
             'joined_at' => ['required', 'date'],
         ];
     }
@@ -50,7 +52,7 @@ class StoreMemberClubRequest extends FormRequest
             'sport_id.required'  => 'Sport is required.',
             'sport_id.exists'    => 'Selected sport does not exist.',
             'role.required'      => 'Role is required.',
-            'role.in'            => 'Role must be player or coach.',
+            'role.enum' => 'Role must be player or coach.',
             'joined_at.required' => 'Join date is required.',
             'joined_at.date'     => 'Join date must be a valid date.',
         ];

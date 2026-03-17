@@ -6,6 +6,7 @@ use App\Models\Member;
 use App\Models\User;
 use App\Http\Requests\MemberRequest;
 use Illuminate\Http\Request;
+use App\Models\Event;
 
 class MemberController extends Controller
 {
@@ -55,8 +56,13 @@ class MemberController extends Controller
     {
         $this->authorize('view', $member);
         
+        $activeEventsCount = Event::whereHas('memberClubs', function ($q) use ($member) {
+            $q->where('member_club.member_id', $member->member_id)
+            ->whereNull('member_club.left_at');
+        })->count();
+        
         $member->load('user', 'clubMemberships.club');
-        return view('members.show', compact('member'));
+        return view('members.show', compact('member', 'activeEventsCount'));
     }
 
     /**

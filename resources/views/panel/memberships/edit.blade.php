@@ -36,7 +36,7 @@
                                 <x-input-label :value="__('Sport')" />
                                 <x-select-input
                                     name="memberships[{{ $mc->member_club_id }}][sport_id]"
-                                    :options="$mc->club->sports->pluck('name', 'sport_id')->toArray()"
+                                    :options="$membershipSportOptions[$mc->member_club_id] ?? []"
                                     :selected="old('memberships.' . $mc->member_club_id . '.sport_id', $mc->sport_id)"
                                     :placeholder="__('Select sport')"
                                     class="mt-1 block w-full"
@@ -62,7 +62,7 @@
                     x-data="membershipAddForm"
                     data-sport-ids='@json($memberSportIds->map(fn($id) => (string)$id)->values())'
                     data-clubs='@json($allClubsWithSports)'
-                    data-sports='@json($allSports->pluck("name", "sport_id"))'
+                    data-sports='@json($allSportOptions)'
                 >
                     <h2 class="my-heading">{{ __('Add Club Membership') }}</h2>
 

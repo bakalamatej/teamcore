@@ -29,25 +29,17 @@
                         <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
 
                         @auth
-                            @if(auth()->user()->member)
-                                @php
-                                    $eventClubIds = $event->clubs->pluck('club_id')->toArray();
-                                    $eventBelongsToUserClub = !empty(array_intersect($userClubIds, $eventClubIds));
-                                    $isRegistered = in_array($event->event_id, $userEventIds);
-                                @endphp
-
-                                @if($eventBelongsToUserClub)
-                                    @if($isRegistered)
-                                        <form method="POST" action="{{ route('events.unregister', $event) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" class="table-action unregister mr-2">{{ __('Unregister') }}</button>
-                                        </form>
-                                    @else
-                                        <form method="POST" action="{{ route('events.register', $event) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" class="table-action register mr-2">{{ __('Register') }}</button>
-                                        </form>
-                                    @endif
+                            @if($userHasMember)
+                                @if($event->canUnregister)
+                                    <form method="POST" action="{{ route('events.unregister', $event) }}" class="inline-block">
+                                        @csrf
+                                        <button type="submit" class="table-action unregister mr-2">{{ __('Unregister') }}</button>
+                                    </form>
+                                @elseif($event->canRegister)
+                                    <form method="POST" action="{{ route('events.register', $event) }}" class="inline-block">
+                                        @csrf
+                                        <button type="submit" class="table-action register mr-2">{{ __('Register') }}</button>
+                                    </form>
                                 @endif
                             @endif
                         @endauth

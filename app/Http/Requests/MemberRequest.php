@@ -7,11 +7,17 @@ use Illuminate\Validation\Rule;
 
 class MemberRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true; // auth middleware handles this
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         $memberId = $this->route('member')?->member_id;
@@ -30,6 +36,9 @@ class MemberRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get custom messages for validator errors.
+     */
     public function messages(): array
     {
         return [

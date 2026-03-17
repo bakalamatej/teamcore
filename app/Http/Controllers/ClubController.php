@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MemberClubRole;
 use App\Models\Club;
 use App\Models\Address;
 use App\Models\Sport;
@@ -11,6 +12,22 @@ use Illuminate\Support\Facades\Auth;
 
 class ClubController extends Controller
 {
+    /**
+     * Display clubs where the authenticated member is currently active.
+     */
+    public function myClub()
+    {
+        $member = Auth::user()?->member;
+
+        $club = $member?->activeClubs()->first();
+
+        abort_if(!$club, 404, 'You are not part of any active club.');
+
+        $this->authorize('view', $club);
+
+        return $this->renderClubShow($club, 'clubs.my-club');
+    }
+
     /**
      * Display a listing of user's clubs
      */
@@ -68,9 +85,8 @@ class ClubController extends Controller
     public function show(Club $club)
     {
         $this->authorize('view', $club);
-        
-        $club->load('address', 'members', 'events');
-        return view('clubs.show', compact('club'));
+
+        return $this->renderClubShow($club, 'panel.clubs.show');
     }
 
     /**
@@ -81,7 +97,14 @@ class ClubController extends Controller
         $this->authorize('create', Club::class);
         $addresses = Address::orderBy('city')->orderBy('street')->get();
         $sports = Sport::orderBy('name')->get();
-        return view('panel.clubs.create', compact('addresses', 'sports'));
+        $addressOptions = $addresses
+            ->mapWithKeys(fn($address) => [
+                $address->address_id => trim(($address->street ?? '') . ' ' . ($address->number ?? '') . ', ' . ($address->city ?? '')),
+            ])
+            ->toArray();
+        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
+
+        return view('panel.clubs.create', compact('addressOptions', 'sportOptions'));
     }
 
     /**
@@ -126,7 +149,15 @@ class ClubController extends Controller
         $addresses = Address::orderBy('city')->orderBy('street')->get();
         $sports = Sport::orderBy('name')->get();
         $club->load('sports');
-        return view('panel.clubs.edit', compact('club', 'addresses', 'sports'));
+        $addressOptions = $addresses
+            ->mapWithKeys(fn($address) => [
+                $address->address_id => trim(($address->street ?? '') . ' ' . ($address->number ?? '') . ', ' . ($address->city ?? '')),
+            ])
+            ->toArray();
+        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
+        $selectedSportIds = $club->sports->pluck('sport_id')->toArray();
+
+        return view('panel.clubs.edit', compact('club', 'addressOptions', 'sportOptions', 'selectedSportIds'));
     }
 
     /**
@@ -172,5 +203,51 @@ class ClubController extends Controller
         $club->delete();
 
         return redirect()->route('clubs.index')->with('success', 'Club deleted successfully!');
+    }
+
+    private function renderClubShow(Club $club, $view = 'panel.clubs.show')
+    {
+        $club->load('address');
+
+        $activeMembers = $club->members()
+            ->wherePivotNull('left_at')
+            ->with('user')
+            ->get()
+            ->map(function ($member) {
+                $role = $member->pivot->role;
+                $member->setAttribute(
+                    'roleValue',
+                    $role instanceof MemberClubRole ? $role->value : (string) $role
+                );
+                return $member;
+            });
+
+        $activeEvents = $club->events()
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(function ($event) {
+                $status = $event->status;
+                $event->setAttribute('statusValue', is_object($status) && isset($status->value) ? $status->value : (string) $status);
+                return $event;
+            });
+
+        $activeMembersCount = $activeMembers->count();
+        $activeEventsCount = $activeEvents->count();
+        $recentEvents = $activeEvents->take(5);
+        $moreEventsCount = max($activeEventsCount - 5, 0);
+        $coaches = $activeMembers->where('roleValue', MemberClubRole::COACH->value)->values();
+        $canManageClub = Auth::user()?->isAdmin() ?? false;
+
+        return view($view, compact(
+            'club',
+            'activeMembers',
+            'activeMembersCount',
+            'activeEvents',
+            'activeEventsCount',
+            'recentEvents',
+            'moreEventsCount',
+            'coaches',
+            'canManageClub'
+        ));
     }
 }

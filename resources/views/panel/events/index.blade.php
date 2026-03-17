@@ -34,7 +34,7 @@
                             <x-select-input
                                 id="sport_field_id"
                                 name="sport_field_id"
-                                :options="$sportFields->pluck('name', 'sport_field_id')->toArray()"
+                                :options="$sportFieldOptions"
                                 :selected="request('sport_field_id')"
                                 placeholder="{{ __('Select sport field') }}"
                                 class="mt-1 block w-full text-sm"
@@ -54,7 +54,7 @@
                         </div>
 
                         <div class="flex items-end justify-end">
-                            <x-add-button href="{{ route('events.create') }}" class="!h-9" />
+                            <x-add-button href="{{ route('panel.events.create') }}" class="!h-9" />
                         </div>
                     </form>
                 </div>

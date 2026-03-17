@@ -12,7 +12,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
-        <form id="updateEventForm" data-action="{{ route('events.update', $event) }}" method="POST" class="space-y-6">
+        <form id="updateEventForm" data-action="{{ route('panel.events.update', $event) }}" method="POST" class="space-y-6">
             @csrf
             @method('PATCH')
 
@@ -33,7 +33,7 @@
                         <x-select-input
                             id="sport_field_id"
                             name="sport_field_id"
-                            :options="$sportFields->mapWithKeys(fn($f) => [$f->sport_field_id => $f->name . ' (' . ($f->address->city ?? '-') . ')'])->toArray()"
+                            :options="$sportFieldOptions"
                             :selected="$event->sport_field_id"
                             placeholder="Select location"
                         />
@@ -44,7 +44,7 @@
                         <x-select-input
                             id="event_type_id"
                             name="event_type_id"
-                            :options="$eventTypes->pluck('name','event_type_id')"
+                            :options="$eventTypeOptions"
                             :selected="$event->event_type_id"
                             placeholder="Select type"
                         />

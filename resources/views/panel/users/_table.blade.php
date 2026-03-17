@@ -15,12 +15,13 @@
                     <td class="p-3 font-medium">{{ $user->member?->full_name ?? 'N/A' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $user->email }}</td>
                     <td class="p-3 text-center">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold
-                            @if($user->getRole() === 'admin') bg-red-200 text-red-800
-                            @elseif($user->getRole() === 'coach') bg-blue-200 text-blue-800
-                            @else bg-green-200 text-green-800
-                            @endif">
-                            {{ ucfirst($user->getRole()) }}
+                        <span @class([
+                            'px-3 py-1 rounded-full text-xs font-semibold',
+                            'bg-red-200 text-red-800' => $user->primaryRole === 'admin',
+                            'bg-blue-200 text-blue-800' => $user->primaryRole === 'coach',
+                            'bg-green-200 text-green-800' => !in_array($user->primaryRole, ['admin', 'coach'], true),
+                        ])>
+                            {{ ucfirst($user->primaryRole) }}
                         </span>
                     </td>
                     <td class="p-3 text-sm text-gray-600">{{ $user->created_at->format('d.m.Y') }}</td>

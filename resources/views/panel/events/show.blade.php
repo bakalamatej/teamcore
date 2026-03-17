@@ -1,5 +1,11 @@
 <x-app-layout>
-    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+    <div class="flex min-h-[calc(100vh-11rem)]">
+        <div class="hidden xl:block">
+            @include('panel.sidebar')
+        </div>
+
+        <main class="flex-1 pl-0 xl:pl-[280px]">
+            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <!-- Header -->
         <div class="mb-8 pb-6 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
@@ -141,7 +147,46 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Actions -->
+                <div class="space-y-3 mt-auto">
+                    @auth
+                        @if($canManageEvent)
+                            <x-primary-button class="w-full justify-center" :href="route('panel.events.edit', $event)">
+                                {{ __('Edit Event') }}
+                            </x-primary-button>
+
+                            <x-danger-button type="button" class="w-full justify-center"
+                                    x-data
+                                    x-on:click="$dispatch('open-modal', 'confirm-event-deletion-{{ $event->id }}')">
+                                {{ __('Delete Event') }}
+                            </x-danger-button>
+
+                            <x-modal name="confirm-event-deletion-{{ $event->id }}" :show="false" focusable>
+                                <form method="POST" action="{{ route('panel.events.destroy', $event) }}" class="p-6 text-left">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <h2 class="my-heading">{{ __('Delete Event') }}</h2>
+                                    <p class="my-text">{{ __('Are you sure you want to delete this event? This action cannot be undone.') }}</p>
+
+                                    <div class="flex justify-end gap-3 mt-6">
+                                        <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                            {{ __('Cancel') }}
+                                        </x-secondary-button>
+
+                                        <x-danger-button type="submit">
+                                            {{ __('Delete') }}
+                                        </x-danger-button>
+                                    </div>
+                                </form>
+                            </x-modal>
+                        @endif
+                    @endauth
+                </div>
             </div>
         </div>
+            </div>
+        </main>
     </div>
 </x-app-layout>

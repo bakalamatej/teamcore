@@ -40,16 +40,6 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('clubs')->group(function () {
         Route::get('/', [ClubController::class, 'index'])->name('clubs.index');
         Route::get('/my-club', [ClubController::class, 'myClub'])->name('clubs.my');
-        
-        // Admin only - Edit & Delete
-        Route::middleware('admin')->group(function () {
-            Route::get('/{club}/edit', [ClubController::class, 'edit'])->name('clubs.edit');
-            Route::patch('/{club}', [ClubController::class, 'update'])->name('clubs.update');
-            Route::delete('/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
-        });
-        
-        // Generic route
-        Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
     });
 
     // --------------------------------------------------
@@ -63,15 +53,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Panel - Create Event (Admin & Coach only)
         Route::prefix('events')->middleware('admin_or_coach')->group(function () {
-            Route::get('/create', [EventController::class, 'create'])->name('events.create');
-            Route::post('/', [EventController::class, 'store'])->name('events.store');
+            Route::get('/create', [EventController::class, 'create'])->name('panel.events.create');
+            Route::post('/', [EventController::class, 'store'])->name('panel.events.store');
         });
 
-        // Panel - Create Club (Admin only)
-        Route::prefix('clubs')->middleware('admin')->group(function () {
-            Route::get('/create', [ClubController::class, 'create'])->name('clubs.create');
-            Route::post('/', [ClubController::class, 'store'])->name('clubs.store');
-        });
     });
 
     // --------------------------------------------------
@@ -93,8 +78,23 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/users/{user}', [UserController::class, 'update'])->name('panel.users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('panel.users.destroy');
         
-        Route::get('/clubs', [ClubController::class, 'adminIndex'])->name('panel.clubs.index');
-        Route::get('/events', [EventController::class, 'adminIndex'])->name('panel.events.index');
+        Route::prefix('clubs')->group(function () {
+            Route::get('/create', [ClubController::class, 'create'])->name('clubs.create');
+            Route::post('/', [ClubController::class, 'store'])->name('clubs.store');
+            Route::get('/', [ClubController::class, 'adminIndex'])->name('panel.clubs.index');
+            Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
+            Route::get('/{club}/edit', [ClubController::class, 'edit'])->name('clubs.edit');
+            Route::patch('/{club}', [ClubController::class, 'update'])->name('clubs.update');
+            Route::delete('/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
+        });
+        
+        Route::prefix('events')->group(function () {
+            Route::get('/', [EventController::class, 'adminIndex'])->name('panel.events.index');
+            Route::get('/{event}', [EventController::class, 'adminShow'])->name('panel.events.show');
+            Route::get('/{event}/edit', [EventController::class, 'edit'])->name('panel.events.edit');
+            Route::patch('/{event}', [EventController::class, 'update'])->name('panel.events.update');
+            Route::delete('/{event}', [EventController::class, 'destroy'])->name('panel.events.destroy');
+        });
         
         Route::get('/sports', [SportController::class, 'index'])->name('panel.sports.index');
         Route::get('/sports/create', [SportController::class, 'create'])->name('panel.sports.create');

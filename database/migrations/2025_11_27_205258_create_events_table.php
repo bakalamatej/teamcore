@@ -54,6 +54,7 @@ return new class extends Migration
             $table->index('event_type_id');
             $table->index('status');
             $table->index('start_date');
+            $table->check('end_date > start_date');
         });
 
         DB::unprepared("
@@ -71,6 +72,16 @@ return new class extends Migration
                 END IF;
             END
         ");
+        DB::unprepared("
+            CREATE TRIGGER trg_event_no_self_parent_update
+            BEFORE UPDATE ON events
+            FOR EACH ROW
+            BEGIN
+                IF NEW.parent_event_id = NEW.event_id THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'EVENT CANNOT BE ITS OWN PARENT.';
+                END IF;
+            END
+        ");
     }
 
     /**
@@ -79,6 +90,7 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement('DROP TRIGGER IF EXISTS trg_event_sport_field');
+        DB::statement('DROP TRIGGER IF EXISTS trg_event_no_self_parent_update');
         Schema::dropIfExists('events');
     }
 };

@@ -32,7 +32,7 @@
                     <x-select-input
                         id="address_id"
                         name="address_id"
-                        :options="$addresses->mapWithKeys(fn($a) => [$a->address_id => $a->street . ', ' . $a->zip_code . ' ' . $a->city])->toArray()"
+                        :options="$addressOptions"
                         :selected="$sportField->address_id"
                         placeholder="{{ __('Select address') }}"
                         class="w-[70%]"

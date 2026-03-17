@@ -17,6 +17,8 @@ class AddressController extends Controller
 
         $countries = Address::distinct()->orderBy('country')->pluck('country');
         $cities = Address::distinct()->orderBy('city')->pluck('city');
+        $countryOptions = $countries->combine($countries)->all();
+        $cityOptions = $cities->combine($cities)->all();
 
         $addresses = Address::query()
             ->when($request->filled('search'), 
@@ -31,7 +33,7 @@ class AddressController extends Controller
             return view('panel.addresses._table', compact('addresses'));
         }
 
-        return view('panel.addresses.index', compact('addresses', 'countries', 'cities'));
+        return view('panel.addresses.index', compact('addresses', 'countryOptions', 'cityOptions'));
     }
 
     /**

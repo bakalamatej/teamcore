@@ -16,7 +16,7 @@
                 </div>
 
                 <div id="results">
-                    @include('events._table', compact('events', 'userClubIds', 'userEventIds'))
+                    @include('events._table', compact('events', 'userHasMember'))
                 </div>
             </div>
         </main>    

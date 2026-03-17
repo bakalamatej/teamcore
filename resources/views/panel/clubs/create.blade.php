@@ -52,9 +52,7 @@
                                 <x-select-input
                                     id="address_id"
                                     name="address_id"
-                                    :options="$addresses->mapWithKeys(fn($a) => [
-                                        $a->address_id => $a->street.' '.$a->number.', '.$a->city
-                                    ])->toArray()"
+                                    :options="$addressOptions"
                                     :selected="old('address_id')"
                                     placeholder="{{ __('Select address') }}"
                                     class="mt-1 block w-full"
@@ -66,7 +64,7 @@
                                 <x-multiselect-input
                                     id="sport_ids"
                                     name="sport_ids"
-                                    :options="$sports->pluck('name', 'sport_id')->toArray()"
+                                    :options="$sportOptions"
                                     :selected="old('sport_ids', [])"
                                     placeholder="{{ __('Select sports...') }}"
                                     class="mt-1 block w-full"

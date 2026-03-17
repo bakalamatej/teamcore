@@ -37,14 +37,18 @@ return new class extends Migration
         });
 
         DB::unprepared("
-            CREATE TRIGGER trg_coach_evaluation_role
+            CREATE TRIGGER trg_coach_evaluation_insert
             BEFORE INSERT ON coach_evaluation
             FOR EACH ROW
             BEGIN
                 DECLARE v_role VARCHAR(30);
-                SELECT role INTO v_role FROM member_club WHERE member_club_id = NEW.coach_member_club_id;
+                DECLARE v_member_id BIGINT UNSIGNED;
+                SELECT role, member_id INTO v_role, v_member_id FROM member_club WHERE member_club_id = NEW.coach_member_club_id;
                 IF v_role != 'coach' THEN
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'NOT A COACH.';
+                END IF;
+                IF v_member_id = NEW.evaluated_by_member_id THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'COACH CANNOT EVALUATE THEMSELVES.';
                 END IF;
             END
         ");
@@ -55,7 +59,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('DROP TRIGGER IF EXISTS trg_coach_evaluation_role');
+        DB::statement('DROP TRIGGER IF EXISTS trg_coach_evaluation_insert');
         Schema::dropIfExists('coach_evaluation');
     }
 };

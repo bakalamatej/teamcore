@@ -26,7 +26,7 @@
                     <x-select-input
                         id="sport_id"
                         name="sport_id"
-                        :options="$sports->pluck('name', 'sport_id')->toArray()"
+                        :options="$sportOptions"
                         :selected="$eventType->sport_id"
                         placeholder="{{ __('Select sport') }}"
                         class="w-[70%]"

@@ -46,7 +46,7 @@
                             <x-select-input
                                 id="club_id"
                                 name="club_id"
-                                :options="$clubs->pluck('name', 'club_id')->toArray()"
+                                :options="$clubOptions"
                                 :selected="request('club_id')"
                                 placeholder="{{ __('All clubs') }}"
                                 class="mt-1 block w-full"

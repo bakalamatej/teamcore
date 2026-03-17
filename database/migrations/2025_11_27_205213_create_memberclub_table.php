@@ -31,30 +31,16 @@ return new class extends Migration
             $table->enum('role', array_map(fn(MemberClubRole $role) => $role->value, MemberClubRole::cases()))->default(MemberClubRole::PLAYER->value);
             $table->date('joined_at');
             $table->date('left_at')->nullable();
+            $table->unsignedBigInteger('active_club_id')->nullable()->storedAs('IF(left_at IS NULL, club_id, NULL)');
             $table->timestamps();
 
+            $table->unique(['member_id', 'active_club_id', 'sport_id']);
             $table->index(['member_id', 'club_id']);
             $table->index(['club_id', 'role']);
             $table->index(['club_id', 'sport_id']);
             $table->index('left_at'); 
         });
 
-        DB::unprepared("
-            CREATE TRIGGER trg_member_club_active
-            BEFORE INSERT ON member_club
-            FOR EACH ROW
-            BEGIN
-                DECLARE v_count INT;
-                SELECT COUNT(*) INTO v_count 
-                FROM member_club 
-                WHERE member_id = NEW.member_id 
-                AND club_id = NEW.club_id 
-                AND left_at IS NULL;
-                IF v_count > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB.';
-                END IF;
-            END
-        ");
         DB::unprepared("
             CREATE TRIGGER trg_club_stats_member_insert
             AFTER INSERT ON member_club
@@ -66,6 +52,43 @@ return new class extends Migration
                     active_members = active_members + 1,
                     total_coaches = total_coaches + IF(NEW.role = 'coach', 1, 0),
                     updated_at = NOW();
+            END
+        ");
+        DB::unprepared("
+            CREATE TRIGGER trg_member_club_active_insert
+            BEFORE INSERT ON member_club
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+                SELECT COUNT(*) INTO v_count 
+                FROM member_club 
+                WHERE member_id = NEW.member_id 
+                AND club_id = NEW.club_id 
+                AND sport_id = NEW.sport_id
+                AND left_at IS NULL;
+                IF v_count > 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB FOR THIS SPORT.';
+                END IF;
+            END
+        ");
+        DB::unprepared("
+            CREATE TRIGGER trg_member_club_active_update
+            BEFORE UPDATE ON member_club
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+                IF OLD.left_at IS NOT NULL AND NEW.left_at IS NULL THEN
+                    SELECT COUNT(*) INTO v_count 
+                    FROM member_club 
+                    WHERE member_id = NEW.member_id 
+                    AND club_id = NEW.club_id 
+                    AND sport_id = NEW.sport_id
+                    AND left_at IS NULL
+                    AND member_club_id != NEW.member_club_id;
+                    IF v_count > 0 THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB FOR THIS SPORT.';
+                    END IF;
+                END IF;
             END
         ");
         DB::unprepared("
@@ -91,7 +114,8 @@ return new class extends Migration
     {
         DB::statement('DROP TRIGGER IF EXISTS trg_club_stats_member_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_club_stats_member_leave');
-        DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active');
+        DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_insert');
+        DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_update');
         Schema::dropIfExists('member_club');
     }
 };
