@@ -12,9 +12,48 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
-        <form id="updateEventForm" data-action="{{ route('panel.events.update', $event) }}" method="POST" class="space-y-6">
+        <form
+            id="updateEventForm"
+            data-action="{{ route('panel.events.update', $event) }}"
+            method="POST"
+            class="space-y-6"
+            x-data="{
+                openSport: false,
+                selectedSport: @js(old('sport_id', $event->sport_id)),
+                previousSport: @js(old('sport_id', $event->sport_id)),
+                sportOptions: @js($sportOptions),
+                openEventType: false,
+                selectedEventType: @js(old('event_type_id', $event->event_type_id)),
+                eventTypesBySport: @js($eventTypesBySport),
+                selectedClubIds: @js(collect(old('club_ids', $selectedClubIds))->map(fn($id) => (string) $id)->values()),
+                clubsBySport: @js($clubsBySport),
+                get availableEventTypes() {
+                    if (!this.selectedSport) {
+                        return {};
+                    }
+
+                    return this.eventTypesBySport[this.selectedSport] ?? {};
+                },
+                get availableClubs() {
+                    if (!this.selectedSport) {
+                        return {};
+                    }
+
+                    return this.clubsBySport[this.selectedSport] ?? {};
+                },
+                syncSportChange() {
+                    if (this.selectedSport !== this.previousSport) {
+                        this.selectedEventType = '';
+                        this.selectedClubIds = [];
+                        this.previousSport = this.selectedSport;
+                    }
+                }
+            }"
+        >
+            <div x-effect="syncSportChange()"></div>
             @csrf
             @method('PATCH')
+            <input type="hidden" name="status" value="{{ $event->status->value }}">
 
             <div id="formErrorBox">
                 <span id="formErrorMessage"></span>
@@ -29,6 +68,45 @@
                     </div>
 
                     <div>
+                        <x-input-label :value="__('Sport')" />
+                        <x-filtered-select
+                            name="sport_id"
+                            open-var="openSport"
+                            selected-var="selectedSport"
+                            options-var="sportOptions"
+                            :placeholder="__('Select sport')"
+                        />
+                    </div>
+
+                    <div>
+                        <x-input-label :value="__('Event Type')" />
+                        <x-filtered-select
+                            name="event_type_id"
+                            open-var="openEventType"
+                            selected-var="selectedEventType"
+                            options-var="availableEventTypes"
+                            disabled-when="!selectedSport"
+                            :placeholder="__('Select type')"
+                        />
+                    </div>
+
+                    <div>
+                        <x-input-label :value="__('Participating Clubs')" />
+                        <div class="mt-2">
+                            <x-multiselect-input
+                                id="club_ids"
+                                name="club_ids"
+                                options-var="availableClubs"
+                                :selected="$selectedClubIds"
+                                :placeholder="__('Select participating clubs')"
+                                disabled-when="!selectedSport"
+                                x-model="selectedClubIds"
+                                class="w-full"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
                         <x-input-label :value="__('Sport Field')" />
                         <x-select-input
                             id="sport_field_id"
@@ -36,17 +114,6 @@
                             :options="$sportFieldOptions"
                             :selected="$event->sport_field_id"
                             placeholder="Select location"
-                        />
-                    </div>
-
-                    <div>
-                        <x-input-label :value="__('Event Type')" />
-                        <x-select-input
-                            id="event_type_id"
-                            name="event_type_id"
-                            :options="$eventTypeOptions"
-                            :selected="$event->event_type_id"
-                            placeholder="Select type"
                         />
                     </div>
 
@@ -71,7 +138,7 @@
 
             <div class="flex gap-4 mt-4">
                 <x-primary-button>{{ __('Update') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('events.index') }}'">
+                <x-danger-button :href="route('panel.events.index')">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>

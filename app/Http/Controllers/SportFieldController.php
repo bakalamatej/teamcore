@@ -49,16 +49,15 @@ class SportFieldController extends Controller
     {
         $this->authorize('create', SportField::class);
 
-        $addresses = Address::orderBy('city')->get();
-        $sports = Sport::orderBy('name')->get();
-        $fieldTypes = FieldType::orderBy('name')->get();
-        $addressOptions = $addresses
-            ->mapWithKeys(fn($address) => [
-                $address->address_id => trim(($address->street ?? '') . ', ' . ($address->zip_code ?? '') . ' ' . ($address->city ?? '')),
-            ])
+        $addressOptions = Address::query()
+            ->orderBy('city')
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(zip_code, ''), ' ', COALESCE(city, ''))) as label")
+            ->pluck('label', 'address_id')
             ->toArray();
+        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
+        $fieldTypeOptions = FieldType::orderBy('name')->pluck('name', 'field_type_id')->toArray();
 
-        return view('panel.sport-fields.create', compact('sports', 'fieldTypes', 'addressOptions'));
+        return view('panel.sport-fields.create', compact('sportOptions', 'fieldTypeOptions', 'addressOptions'));
     }
 
     /**
@@ -110,16 +109,16 @@ class SportFieldController extends Controller
     {
         $this->authorize('update', $sportField);
 
-        $addresses = Address::orderBy('city')->get();
-        $sports = Sport::orderBy('name')->get();
-        $fieldTypes = FieldType::orderBy('name')->get();
-        $addressOptions = $addresses
-            ->mapWithKeys(fn($address) => [
-                $address->address_id => trim(($address->street ?? '') . ', ' . ($address->zip_code ?? '') . ' ' . ($address->city ?? '')),
-            ])
+        $addressOptions = Address::query()
+            ->orderBy('city')
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(zip_code, ''), ' ', COALESCE(city, ''))) as label")
+            ->pluck('label', 'address_id')
             ->toArray();
+        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
+        $fieldTypeOptions = FieldType::orderBy('name')->pluck('name', 'field_type_id')->toArray();
+        $selectedSportIds = $sportField->sports()->pluck('sports.sport_id')->toArray();
 
-        return view('panel.sport-fields.edit', compact('sportField', 'sports', 'fieldTypes', 'addressOptions'));
+        return view('panel.sport-fields.edit', compact('sportField', 'sportOptions', 'fieldTypeOptions', 'addressOptions', 'selectedSportIds'));
     }
 
     /**

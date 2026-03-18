@@ -13,6 +13,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\EventTypeController;
 use App\Http\Controllers\FieldTypeController;
 use App\Http\Controllers\PanelCoachEvaluationController;
+use App\Http\Controllers\PanelReservationController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -38,8 +39,8 @@ Route::middleware(['auth'])->group(function () {
     // CLUB ROUTES
     // --------------------------------------------------
     Route::prefix('clubs')->group(function () {
-        Route::get('/', [ClubController::class, 'index'])->name('clubs.index');
         Route::get('/my-club', [ClubController::class, 'myClub'])->name('clubs.my');
+        Route::get('/{club}', [ClubController::class, 'publicShow'])->name('clubs.show');
     });
 
     // --------------------------------------------------
@@ -72,72 +73,100 @@ Route::middleware(['auth'])->group(function () {
     // ADMIN ROUTES
     // --------------------------------------------------
     Route::prefix('admin')->middleware('admin')->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('panel.users.index');
-        Route::get('/users/{user}', [UserController::class, 'show'])->name('panel.users.show');
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('panel.users.edit');
-        Route::patch('/users/{user}', [UserController::class, 'update'])->name('panel.users.update');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('panel.users.destroy');
-        
-        Route::prefix('clubs')->group(function () {
-            Route::get('/create', [ClubController::class, 'create'])->name('clubs.create');
-            Route::post('/', [ClubController::class, 'store'])->name('clubs.store');
-            Route::get('/', [ClubController::class, 'adminIndex'])->name('panel.clubs.index');
-            Route::get('/{club}', [ClubController::class, 'show'])->name('clubs.show');
-            Route::get('/{club}/edit', [ClubController::class, 'edit'])->name('clubs.edit');
-            Route::patch('/{club}', [ClubController::class, 'update'])->name('clubs.update');
-            Route::delete('/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
+        Route::prefix('users')->name('panel.users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/{user}', [UserController::class, 'show'])->name('show');
+            Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+            Route::patch('/{user}', [UserController::class, 'update'])->name('update');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
-        
-        Route::prefix('events')->group(function () {
-            Route::get('/', [EventController::class, 'adminIndex'])->name('panel.events.index');
-            Route::get('/{event}', [EventController::class, 'adminShow'])->name('panel.events.show');
-            Route::get('/{event}/edit', [EventController::class, 'edit'])->name('panel.events.edit');
-            Route::patch('/{event}', [EventController::class, 'update'])->name('panel.events.update');
-            Route::delete('/{event}', [EventController::class, 'destroy'])->name('panel.events.destroy');
+
+        Route::prefix('clubs')->name('panel.clubs.')->group(function () {
+            Route::get('/create', [ClubController::class, 'create'])->name('create');
+            Route::post('/', [ClubController::class, 'store'])->name('store');
+            Route::get('/', [ClubController::class, 'adminIndex'])->name('index');
+            Route::get('/{club}', [ClubController::class, 'show'])->name('show');
+            Route::get('/{club}/edit', [ClubController::class, 'edit'])->name('edit');
+            Route::patch('/{club}', [ClubController::class, 'update'])->name('update');
+            Route::delete('/{club}', [ClubController::class, 'destroy'])->name('destroy');
         });
-        
-        Route::get('/sports', [SportController::class, 'index'])->name('panel.sports.index');
-        Route::get('/sports/create', [SportController::class, 'create'])->name('panel.sports.create');
-        Route::post('/sports', [SportController::class, 'store'])->name('panel.sports.store');
-        Route::get('/sports/{sport}/edit', [SportController::class, 'edit'])->name('panel.sports.edit');
-        Route::patch('/sports/{sport}', [SportController::class, 'update'])->name('panel.sports.update');
-        Route::delete('/sports/{sport}', [SportController::class, 'destroy'])->name('panel.sports.destroy');
-        
-        Route::get('/sport-fields', [SportFieldController::class, 'index'])->name('panel.sport-fields.index');
-        Route::get('/sport-fields/create', [SportFieldController::class, 'create'])->name('panel.sport-fields.create');
-        Route::post('/sport-fields', [SportFieldController::class, 'store'])->name('panel.sport-fields.store');
-        Route::get('/sport-fields/{sportField}/edit', [SportFieldController::class, 'edit'])->name('panel.sport-fields.edit');
-        Route::patch('/sport-fields/{sportField}', [SportFieldController::class, 'update'])->name('panel.sport-fields.update');
-        Route::delete('/sport-fields/{sportField}', [SportFieldController::class, 'destroy'])->name('panel.sport-fields.destroy');
-        
-        Route::get('/addresses', [AddressController::class, 'index'])->name('panel.addresses.index');
-        Route::get('/addresses/create', [AddressController::class, 'create'])->name('panel.addresses.create');
-        Route::post('/addresses', [AddressController::class, 'store'])->name('panel.addresses.store');
-        Route::get('/addresses/{address}/edit', [AddressController::class, 'edit'])->name('panel.addresses.edit');
-        Route::patch('/addresses/{address}', [AddressController::class, 'update'])->name('panel.addresses.update');
-        Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('panel.addresses.destroy');
-        
-        Route::get('/event-types', [EventTypeController::class, 'index'])->name('panel.event-types.index');
-        Route::get('/event-types/create', [EventTypeController::class, 'create'])->name('panel.event-types.create');
-        Route::post('/event-types', [EventTypeController::class, 'store'])->name('panel.event-types.store');
-        Route::get('/event-types/{eventType}/edit', [EventTypeController::class, 'edit'])->name('panel.event-types.edit');
-        Route::patch('/event-types/{eventType}', [EventTypeController::class, 'update'])->name('panel.event-types.update');
-        Route::delete('/event-types/{eventType}', [EventTypeController::class, 'destroy'])->name('panel.event-types.destroy');
 
-        Route::get('/field-types', [FieldTypeController::class, 'index'])->name('panel.field-types.index');
-        Route::get('/field-types/create', [FieldTypeController::class, 'create'])->name('panel.field-types.create');
-        Route::post('/field-types', [FieldTypeController::class, 'store'])->name('panel.field-types.store');
-        Route::get('/field-types/{fieldType}/edit', [FieldTypeController::class, 'edit'])->name('panel.field-types.edit');
-        Route::patch('/field-types/{fieldType}', [FieldTypeController::class, 'update'])->name('panel.field-types.update');
-        Route::delete('/field-types/{fieldType}', [FieldTypeController::class, 'destroy'])->name('panel.field-types.destroy');
+        Route::prefix('events')->name('panel.events.')->group(function () {
+            Route::get('/', [EventController::class, 'adminIndex'])->name('index');
+            Route::get('/{event}', [EventController::class, 'adminShow'])->name('show');
+            Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+            Route::patch('/{event}', [EventController::class, 'update'])->name('update');
+            Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+        });
 
-        Route::get('/memberships', [PanelMembershipController::class, 'index'])->name('panel.memberships.index');
-        Route::get('/memberships/{member}/edit', [PanelMembershipController::class, 'edit'])->name('panel.memberships.edit');
-        Route::patch('/memberships/{member}', [PanelMembershipController::class, 'update'])->name('panel.memberships.update');
-        Route::post('/memberships/{member}/clubs', [PanelMembershipController::class, 'storeMemberClub'])->name('panel.memberships.club.store');
+        Route::prefix('sports')->name('panel.sports.')->group(function () {
+            Route::get('/', [SportController::class, 'index'])->name('index');
+            Route::get('/create', [SportController::class, 'create'])->name('create');
+            Route::post('/', [SportController::class, 'store'])->name('store');
+            Route::get('/{sport}/edit', [SportController::class, 'edit'])->name('edit');
+            Route::patch('/{sport}', [SportController::class, 'update'])->name('update');
+            Route::delete('/{sport}', [SportController::class, 'destroy'])->name('destroy');
+        });
 
-        Route::get('/coach-evaluations', [PanelCoachEvaluationController::class, 'index'])->name('panel.coach-evaluations.index');
-        Route::get('/coach-evaluations/{member}', [PanelCoachEvaluationController::class, 'show'])->name('panel.coach-evaluations.show');
+        Route::prefix('sport-fields')->name('panel.sport-fields.')->group(function () {
+            Route::get('/', [SportFieldController::class, 'index'])->name('index');
+            Route::get('/create', [SportFieldController::class, 'create'])->name('create');
+            Route::post('/', [SportFieldController::class, 'store'])->name('store');
+            Route::get('/{sportField}/edit', [SportFieldController::class, 'edit'])->name('edit');
+            Route::patch('/{sportField}', [SportFieldController::class, 'update'])->name('update');
+            Route::delete('/{sportField}', [SportFieldController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('addresses')->name('panel.addresses.')->group(function () {
+            Route::get('/', [AddressController::class, 'index'])->name('index');
+            Route::get('/create', [AddressController::class, 'create'])->name('create');
+            Route::post('/', [AddressController::class, 'store'])->name('store');
+            Route::get('/{address}/edit', [AddressController::class, 'edit'])->name('edit');
+            Route::patch('/{address}', [AddressController::class, 'update'])->name('update');
+            Route::delete('/{address}', [AddressController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('event-types')->name('panel.event-types.')->group(function () {
+            Route::get('/', [EventTypeController::class, 'index'])->name('index');
+            Route::get('/create', [EventTypeController::class, 'create'])->name('create');
+            Route::post('/', [EventTypeController::class, 'store'])->name('store');
+            Route::get('/{eventType}/edit', [EventTypeController::class, 'edit'])->name('edit');
+            Route::patch('/{eventType}', [EventTypeController::class, 'update'])->name('update');
+            Route::delete('/{eventType}', [EventTypeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('field-types')->name('panel.field-types.')->group(function () {
+            Route::get('/', [FieldTypeController::class, 'index'])->name('index');
+            Route::get('/create', [FieldTypeController::class, 'create'])->name('create');
+            Route::post('/', [FieldTypeController::class, 'store'])->name('store');
+            Route::get('/{fieldType}/edit', [FieldTypeController::class, 'edit'])->name('edit');
+            Route::patch('/{fieldType}', [FieldTypeController::class, 'update'])->name('update');
+            Route::delete('/{fieldType}', [FieldTypeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('memberships')->name('panel.memberships.')->group(function () {
+            Route::get('/', [PanelMembershipController::class, 'index'])->name('index');
+            Route::get('/create', [PanelMembershipController::class, 'create'])->name('create');
+            Route::post('/', [PanelMembershipController::class, 'store'])->name('store');
+            Route::get('/{memberClub}/edit', [PanelMembershipController::class, 'edit'])->name('edit');
+            Route::patch('/{memberClub}', [PanelMembershipController::class, 'update'])->name('update');
+            Route::delete('/{memberClub}', [PanelMembershipController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('coach-evaluations')->name('panel.coach-evaluations.')->group(function () {
+            Route::get('/', [PanelCoachEvaluationController::class, 'index'])->name('index');
+            Route::get('/{member}', [PanelCoachEvaluationController::class, 'show'])->name('show');
+        });
+
+        Route::prefix('reservations')->name('panel.reservations.')->group(function () {
+            Route::get('/', [PanelReservationController::class, 'index'])->name('index');
+            Route::get('/create', [PanelReservationController::class, 'create'])->name('create');
+            Route::post('/', [PanelReservationController::class, 'store'])->name('store');
+            Route::get('/{reservation}', [PanelReservationController::class, 'show'])->name('show');
+            Route::get('/{reservation}/edit', [PanelReservationController::class, 'edit'])->name('edit');
+            Route::patch('/{reservation}', [PanelReservationController::class, 'update'])->name('update');
+            Route::delete('/{reservation}', [PanelReservationController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // --------------------------------------------------

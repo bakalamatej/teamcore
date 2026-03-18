@@ -114,11 +114,11 @@ class Member extends Model
      */
     public function visibleClubs()
     {
-        $ownClubIds = $this->clubs()->pluck('club_id');
+        $ownClubIds = $this->clubs()->pluck('clubs.club_id');
         $sportIds = $this->clubMemberships()->active()->pluck('sport_id')->unique();
 
-        return Club::whereIn('club_id', $ownClubIds)
-            ->orWhereHas('sports', fn($q) => $q->whereIn('sport_id', $sportIds));
+        return Club::whereIn('clubs.club_id', $ownClubIds)
+            ->orWhereHas('sports', fn($q) => $q->whereIn('sports.sport_id', $sportIds));
     }
 
     /**

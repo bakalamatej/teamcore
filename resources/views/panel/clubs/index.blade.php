@@ -54,7 +54,7 @@
                         </div>
 
                         <div class="flex items-end justify-end">
-                            <x-add-button href="{{ route('clubs.create') }}" class="!h-9" />
+                            <x-add-button href="{{ route('panel.clubs.create') }}" class="!h-9" />
                         </div>
                     </form>
                 </div>

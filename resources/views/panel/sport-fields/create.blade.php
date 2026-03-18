@@ -7,7 +7,7 @@
 
         {{-- Content --}}
         <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+            <div class="mx-auto bg-white overflow-visible shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Create Sport Field') }}</h1>
         <p class="my-text">{{ __('Add a new sport field.') }}</p>
 
@@ -22,9 +22,16 @@
                 </div>
 
                 <div class="max-w-xl">
-                    <x-input-label for="field_type" :value="__('Field Type')" />
-                    <x-text-input id="field_type" name="field_type" type="text" class="mt-1 block w-[70%]" value="{{ old('field_type') }}" required />
-                    <x-input-error :messages="$errors->get('field_type')" class="mt-2" />
+                    <x-input-label for="field_type_id" :value="__('Field Type')" />
+                    <x-select-input
+                        id="field_type_id"
+                        name="field_type_id"
+                        :options="$fieldTypeOptions"
+                        :selected="old('field_type_id')"
+                        placeholder="{{ __('Select field type') }}"
+                        class="w-[70%]"
+                    />
+                    <x-input-error :messages="$errors->get('field_type_id')" class="mt-2" />
                 </div>
 
                 <div class="max-w-xl">
@@ -39,11 +46,25 @@
                     />
                     <x-input-error :messages="$errors->get('address_id')" class="mt-2" />
                 </div>
+
+                <div class="max-w-xl">
+                    <x-input-label :value="__('Sports')" />
+                    <x-multiselect-input
+                        id="sport_ids"
+                        name="sport_ids"
+                        :options="$sportOptions"
+                        :selected="old('sport_ids', [])"
+                        :placeholder="__('Select sports')"
+                        class="mt-1 block w-[70%]"
+                    />
+                    <x-input-error :messages="$errors->get('sport_ids')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('sport_ids.*')" class="mt-2" />
+                </div>
             </div>
 
             <div class="flex gap-4 mt-6">
                 <x-primary-button>{{ __('Save') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('panel.sport-fields.index') }}'">
+                <x-danger-button :href="route('panel.sport-fields.index')">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>

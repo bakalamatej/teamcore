@@ -12,7 +12,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Edit Club') }}</h1>
 
-        <form id="updateClubForm" data-action="{{ route('clubs.update', $club) }}" method="POST" class="space-y-6">
+        <form id="updateClubForm" data-action="{{ route('panel.clubs.update', $club) }}" method="POST" class="space-y-6">
             @csrf
             @method('PATCH')
 
@@ -73,7 +73,7 @@
 
             <div class="flex gap-4 mt-4">
                 <x-primary-button>{{ __('Update') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('clubs.index') }}'">
+                <x-danger-button :href="route('panel.clubs.index')">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>

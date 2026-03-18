@@ -69,9 +69,9 @@
                     <!-- Buttons -->
                     <div class="flex gap-4 mt-6">
                         <x-primary-button>{{ __('Update User') }}</x-primary-button>
-                        <x-secondary-button type="button" onclick="window.history.back()">
-                            {{ __('Cancel') }}
-                        </x-secondary-button>
+                        <x-danger-button :href="route('panel.users.index')">
+                            {{ __('Discard') }}
+                        </x-danger-button>
                     </div>
                 </form>
             </div>

@@ -47,7 +47,7 @@ class ClubRequest extends FormRequest
             'city' => ['required_without:address_id', 'nullable', 'string', 'max:100'],
             'street' => 'nullable|string|max:100',
             'zip_code' => 'nullable|string|max:20',
-            'sport_ids' => 'required|array',
+            'sport_ids' => 'required|array|min:1',
             'sport_ids.*' => [
                 'integer',
                 Rule::exists('sports', 'sport_id'),
@@ -76,6 +76,7 @@ class ClubRequest extends FormRequest
             'city.required_without' => 'City is required when not selecting an existing address.',
             'sport_ids.required' => 'At least one sport is required.',
             'sport_ids.array' => 'Sports must be an array.',
+            'sport_ids.min' => 'At least one sport is required.',
             'sport_ids.*.exists' => 'One or more selected sports do not exist.',
         ];
     }

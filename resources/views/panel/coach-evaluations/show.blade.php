@@ -6,15 +6,8 @@
 
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h1 class="my-heading text-2xl">{{ $member->full_name }}</h1>
-                        <p class="my-text">{{ __('Coach rating overview') }}</p>
-                    </div>
-                    <x-secondary-button :href="route('panel.coach-evaluations.index')">
-                        {{ __('Back') }}
-                    </x-secondary-button>
-                </div>
+                <h1 class="my-heading text-2xl">{{ $member->full_name }}</h1>
+                <p class="my-text mb-4">{{ __('Coach rating overview') }} </p>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                     <div class="detail-card lg:col-span-2">

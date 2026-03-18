@@ -1,5 +1,5 @@
 @php
-$panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
+$panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
 @endphp
 
 <div x-show="open"
@@ -55,13 +55,13 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
                         {{ __('Trainings') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('events.create')" :active="request()->routeIs('events.create')">
+                    <x-responsive-nav-link :href="route('panel.events.create')" :active="request()->routeIs('panel.events.create')">
                         {{ __('Create event') }}
                     </x-responsive-nav-link>
                 @endif
 
                 @if($role === 'admin')
-                    <x-responsive-nav-link :href="route('clubs.create')" :active="request()->routeIs('clubs.create')">
+                    <x-responsive-nav-link :href="route('panel.clubs.create')" :active="request()->routeIs('panel.clubs.create')">
                         {{ __('Add club') }}
                     </x-responsive-nav-link>
 
@@ -69,7 +69,7 @@ $panelRoutes = ['panel.index', 'clubs.create', 'events.create'];
                         {{ __('Users') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('events.create')" :active="request()->routeIs('events.create')">
+                    <x-responsive-nav-link :href="route('panel.events.create')" :active="request()->routeIs('panel.events.create')">
                         {{ __('Create event') }}
                     </x-responsive-nav-link>
 

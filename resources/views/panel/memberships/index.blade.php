@@ -12,7 +12,7 @@
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="my-heading text-2xl">{{ __('Membership Management') }}</h1>
-                    <span class="text-sm text-gray-600">{{ $members->total() }} {{ __('members total') }}</span>
+                    <span class="text-sm text-gray-600">{{ $memberships->total() }} {{ __('memberships total') }}</span>
                 </div>
 
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -52,11 +52,15 @@
                                 class="mt-1 block w-full"
                             />
                         </div>
+
+                        <div class="flex items-end justify-end">
+                            <x-add-button href="{{ route('panel.memberships.create') }}" class="!h-9" />
+                        </div>
                     </form>
                 </div>
 
                 <div id="results">
-                    @include('panel.memberships._table', compact('members'))
+                    @include('panel.memberships._table', compact('memberships'))
                 </div>
             </div>
         </main>

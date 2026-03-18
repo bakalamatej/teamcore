@@ -64,7 +64,7 @@
                 <!-- Active Members -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">
-                        {{ __('Members') }} ({{ $activeMembersCount }})
+                        {{ __('Members') }}
                     </h2>
                     
                     @if($activeMembersCount > 0)
@@ -109,7 +109,7 @@
                 <!-- Recent Events -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">
-                        {{ __('Recent Events') }} ({{ $activeEventsCount }})
+                        {{ __('Recent Events') }}
                     </h2>
                     
                     @if($activeEventsCount > 0)
@@ -134,9 +134,6 @@
                                 </div>
                             @endforeach
                         </div>
-                        @if($moreEventsCount > 0)
-                            <p class="text-sm text-gray-600 mt-3">{{ __('and') }} {{ $moreEventsCount }} {{ __('more...') }}</p>
-                        @endif
                     @else
                         <p class="text-gray-600">{{ __('No events found') }}</p>
                     @endif
@@ -150,12 +147,20 @@
                     <h3 class="sidebar-card-title">{{ __('Statistics') }}</h3>
                     <div class="space-y-3">
                         <div>
-                            <p class="stat-label" style="color: #3730a3;">{{ __('Total Members') }}</p>
-                            <p class="stat-value" style="color: #4f46e5;">{{ $activeMembersCount }}</p>
+                            <p class="stat-label" style="color: #3730a3;">{{ __('Members') }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsMembersCount }}</p>
                         </div>
                         <div class="stat-divider" style="border-top-color: #c7d2fe;">
-                            <p class="stat-label" style="color: #3730a3;">{{ __('Total Events') }}</p>
-                            <p class="stat-value" style="color: #4f46e5;">{{ $activeEventsCount }}</p>
+                            <p class="stat-label" style="color: #3730a3;">{{ __('Matches Played') }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsMatchesPlayedCount }}</p>
+                        </div>
+                        <div class="stat-divider" style="border-top-color: #c7d2fe;">
+                            <p class="stat-label" style="color: #3730a3;">{{ __('Total Wins') }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsTotalWinsCount }}</p>
+                        </div>
+                        <div class="stat-divider" style="border-top-color: #c7d2fe;">
+                            <p class="stat-label" style="color: #3730a3;">{{ __('Total Losses') }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsTotalLossesCount }}</p>
                         </div>
                     </div>
                 </div>

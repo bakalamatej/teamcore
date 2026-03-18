@@ -29,28 +29,6 @@ class ClubController extends Controller
     }
 
     /**
-     * Display a listing of user's clubs
-     */
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-
-        $cities = Address::distinct()->orderBy('city')->pluck('city');
-        $cityOptions = $cities->combine($cities)->all();
-        
-        $clubs = $user->member?->visibleClubs() ?? Club::query()->whereRaw('1=0');
-        $clubs = $clubs
-            ->when($request->filled('search'), 
-                fn($q) => $q->search($request->input('search')))
-            ->when($request->filled('city'), 
-                fn($q) => $q->byCity($request->input('city')))
-            ->with('address', 'members')
-            ->paginate(10);
-
-        return view('clubs.index', compact('clubs', 'cityOptions'));
-    }
-
-    /**
      * Display a listing of all clubs for admin
      */
     public function adminIndex(Request $request)
@@ -90,19 +68,28 @@ class ClubController extends Controller
     }
 
     /**
+     * Display club details outside admin panel.
+     */
+    public function publicShow(Club $club)
+    {
+        $this->authorize('view', $club);
+
+        return $this->renderClubShow($club, 'clubs.my-club');
+    }
+
+    /**
      * Show create form
      */
     public function create()
     {
         $this->authorize('create', Club::class);
-        $addresses = Address::orderBy('city')->orderBy('street')->get();
-        $sports = Sport::orderBy('name')->get();
-        $addressOptions = $addresses
-            ->mapWithKeys(fn($address) => [
-                $address->address_id => trim(($address->street ?? '') . ' ' . ($address->number ?? '') . ', ' . ($address->city ?? '')),
-            ])
+        $addressOptions = Address::query()
+            ->orderBy('city')
+            ->orderBy('street')
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(city, ''))) as label")
+            ->pluck('label', 'address_id')
             ->toArray();
-        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
+        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
 
         return view('panel.clubs.create', compact('addressOptions', 'sportOptions'));
     }
@@ -115,6 +102,7 @@ class ClubController extends Controller
         $this->authorize('create', Club::class);
 
         $validated = $request->validated();
+        $primarySportId = (int) ($validated['sport_ids'][0] ?? 0);
 
         $addressId = $validated['address_id'] ?? null;
         if (!$addressId) {
@@ -133,6 +121,7 @@ class ClubController extends Controller
             'email' => $validated['email'] ?? null,
             'webpage' => $validated['webpage'] ?? null,
             'address_id' => $addressId,
+            'sport_id' => $primarySportId,
         ]);
 
         $club->sports()->sync($validated['sport_ids']);
@@ -146,15 +135,14 @@ class ClubController extends Controller
     public function edit(Club $club)
     {
         $this->authorize('update', $club);
-        $addresses = Address::orderBy('city')->orderBy('street')->get();
-        $sports = Sport::orderBy('name')->get();
-        $club->load('sports');
-        $addressOptions = $addresses
-            ->mapWithKeys(fn($address) => [
-                $address->address_id => trim(($address->street ?? '') . ' ' . ($address->number ?? '') . ', ' . ($address->city ?? '')),
-            ])
+        $addressOptions = Address::query()
+            ->orderBy('city')
+            ->orderBy('street')
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(city, ''))) as label")
+            ->pluck('label', 'address_id')
             ->toArray();
-        $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
+        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
+        $club->load('sports');
         $selectedSportIds = $club->sports->pluck('sport_id')->toArray();
 
         return view('panel.clubs.edit', compact('club', 'addressOptions', 'sportOptions', 'selectedSportIds'));
@@ -168,6 +156,7 @@ class ClubController extends Controller
         $this->authorize('update', $club);
 
         $validated = $request->validated();
+        $primarySportId = (int) ($validated['sport_ids'][0] ?? 0);
 
         $addressId = $validated['address_id'] ?? null;
         if (!$addressId) {
@@ -186,6 +175,7 @@ class ClubController extends Controller
             'email' => $validated['email'] ?? null,
             'webpage' => $validated['webpage'] ?? null,
             'address_id' => $addressId,
+            'sport_id' => $primarySportId,
         ]);
 
         $club->sports()->sync($validated['sport_ids']);
@@ -202,12 +192,12 @@ class ClubController extends Controller
 
         $club->delete();
 
-        return redirect()->route('clubs.index')->with('success', 'Club deleted successfully!');
+        return redirect()->route('panel.clubs.index')->with('success', 'Club deleted successfully!');
     }
 
     private function renderClubShow(Club $club, $view = 'panel.clubs.show')
     {
-        $club->load('address');
+        $club->load('address', 'clubStatistic');
 
         $activeMembers = $club->members()
             ->wherePivotNull('left_at')
@@ -233,6 +223,10 @@ class ClubController extends Controller
 
         $activeMembersCount = $activeMembers->count();
         $activeEventsCount = $activeEvents->count();
+        $statisticsMembersCount = $club->clubStatistic?->active_members ?? 0;
+        $statisticsMatchesPlayedCount = $club->clubStatistic?->matches_played ?? 0;
+        $statisticsTotalWinsCount = $club->clubStatistic?->total_wins ?? 0;
+        $statisticsTotalLossesCount = $club->clubStatistic?->total_losses ?? 0;
         $recentEvents = $activeEvents->take(5);
         $moreEventsCount = max($activeEventsCount - 5, 0);
         $coaches = $activeMembers->where('roleValue', MemberClubRole::COACH->value)->values();
@@ -244,6 +238,10 @@ class ClubController extends Controller
             'activeMembersCount',
             'activeEvents',
             'activeEventsCount',
+            'statisticsMembersCount',
+            'statisticsMatchesPlayedCount',
+            'statisticsTotalWinsCount',
+            'statisticsTotalLossesCount',
             'recentEvents',
             'moreEventsCount',
             'coaches',

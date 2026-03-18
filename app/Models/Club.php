@@ -16,6 +16,7 @@ class Club extends Model
 
     protected $fillable = [
         'address_id',
+        'sport_id',
         'name',
         'phone',
         'email',

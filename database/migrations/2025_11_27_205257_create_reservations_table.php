@@ -49,7 +49,6 @@ return new class extends Migration
             $table->index('status');
             $table->index('start_date');
 
-            $table->check('end_date > start_date');
         });
 
         DB::unprepared("
@@ -119,6 +118,24 @@ return new class extends Migration
                 END IF;
             END
         ");
+        DB::unprepared("
+            CREATE TRIGGER trg_reservation_event_overlap
+            BEFORE INSERT ON reservations
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+                SELECT COUNT(*) INTO v_count
+                FROM events
+                WHERE sport_field_id = NEW.sport_field_id
+                AND deleted_at IS NULL
+                AND status NOT IN ('canceled', 'finished')
+                AND start_date < NEW.end_date
+                AND end_date > NEW.start_date;
+                IF v_count > 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'FIELD HAS AN EVENT AT THIS TIME.';
+                END IF;
+            END
+        ");
     }
 
     /**
@@ -129,6 +146,7 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_reservation_overlap');
         DB::statement('DROP TRIGGER IF EXISTS trg_reservation_overlap_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_reservation_sport_club');
+        DB::statement('DROP TRIGGER IF EXISTS trg_reservation_event_overlap');
         DB::statement('DROP TRIGGER IF EXISTS trg_reservation_sport_field');
         Schema::dropIfExists('reservations');
     }

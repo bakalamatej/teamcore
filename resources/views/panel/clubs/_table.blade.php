@@ -21,11 +21,11 @@
                         @endif
                     </td>
                     <td class="p-3 text-right">
-                        <a href="{{ route('clubs.show', $club) }}" class="table-action view mr-2">
+                        <a href="{{ route('panel.clubs.show', $club) }}" class="table-action view mr-2">
                             {{ __('View') }}
                         </a>
 
-                        <a href="{{ route('clubs.edit', $club) }}" class="table-action edit mr-2">
+                        <a href="{{ route('panel.clubs.edit', $club) }}" class="table-action edit mr-2">
                             {{ __('Edit') }}
                         </a>
 
@@ -36,7 +36,7 @@
                         </button>
 
                         <x-modal name="confirm-club-deletion-{{ $club->club_id }}" :show="false" focusable>
-                            <form method="POST" action="{{ route('clubs.destroy', $club) }}" class="p-6 text-left">
+                            <form method="POST" action="{{ route('panel.clubs.destroy', $club) }}" class="p-6 text-left">
                                 @csrf
                                 @method('DELETE')
 

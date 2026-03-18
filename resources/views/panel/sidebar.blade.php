@@ -20,6 +20,7 @@
         <a href="{{ route('panel.memberships.index') }}" class="sidebar-link">{{ __('Memberships') }}</a>
         <a href="{{ route('panel.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
         <a href="{{ route('panel.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
+        <a href="{{ route('panel.reservations.index') }}" class="sidebar-link">{{ __('Reservations') }}</a>
         <a href="{{ route('panel.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>
         <a href="{{ route('panel.sport-fields.index') }}" class="sidebar-link">{{ __('Sport Fields') }}</a>
         <a href="{{ route('panel.field-types.index') }}" class="sidebar-link">{{ __('Field Types') }}</a>

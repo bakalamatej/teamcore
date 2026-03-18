@@ -15,7 +15,7 @@
                 <h1 class="my-heading">{{ __('Create Club') }}</h1>
                 <p class="my-text">{{ __('Create a new sports club. Provide all necessary information including name, contact details, and location.') }}</p>
 
-                <form id="clubCreateForm" data-action="{{ route('clubs.store') }}" method="POST" class="space-y-6">
+                <form id="clubCreateForm" data-action="{{ route('panel.clubs.store') }}" method="POST" class="space-y-6">
                     @csrf
 
                     <div id="formErrorBox">
@@ -78,7 +78,7 @@
 
                     <div class="flex gap-4 mt-4">
                         <x-primary-button>{{ __('Save') }}</x-primary-button>
-                        <x-danger-button type="button" onclick="window.location='{{ route('panel.index') }}'">
+                        <x-danger-button :href="route('panel.index')">
                             {{ __('Discard') }}
                         </x-danger-button>
                     </div>

@@ -11,6 +11,18 @@ export function validateEventForm(form) {
         messages.push('Title must be between 5 and 80 characters.');
     }
 
+    const sport = form.querySelector('[name="sport_id"]');
+    if (!sport || !sport.value) {
+        valid = false;
+        messages.push('Sport is required.');
+    }
+
+    const eventType = form.querySelector('[name="event_type_id"]');
+    if (!eventType || !eventType.value) {
+        valid = false;
+        messages.push('Event type is required.');
+    }
+
     const start = form.querySelector('[name="start_date"]');
     const end = form.querySelector('[name="end_date"]');
 
@@ -41,6 +53,12 @@ export function validateEventForm(form) {
         description.classList.add('border-red-500');
         valid = false;
         messages.push('Description must be at least 10 characters if provided.');
+    }
+
+    const selectedClubs = form.querySelectorAll('input[type="hidden"][name="club_ids[]"]');
+    if (selectedClubs.length === 0) {
+        valid = false;
+        messages.push('At least one participating club is required.');
     }
 
     return { valid, messages };

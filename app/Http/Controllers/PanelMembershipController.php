@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreMemberClubRequest;
-use App\Http\Requests\UpdateMembershipRequest;
+use App\Http\Requests\MemberClubRequest;
 use App\Models\Club;
 use App\Models\Member;
 use App\Models\MemberClub;
-use App\Models\Sport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PanelMembershipController extends Controller
 {
@@ -16,99 +15,125 @@ class PanelMembershipController extends Controller
     {
         $this->authorize('viewAny', MemberClub::class);
 
-        $clubs = Club::orderBy('name')->get();
-        $clubOptions = $clubs->pluck('name', 'club_id')->toArray();
+        $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
 
-        $members = Member::with([
-                'user',
-                'clubMemberships' => fn($q) => $q->whereNull('left_at')->with('club', 'sport'),
-            ])
-            ->when($request->filled('search'), fn($q) => $q->search($request->input('search')))
-            ->when($request->filled('club_id'), fn($q) => $q->whereHas('clubMemberships', fn($q2) =>
-                $q2->whereNull('left_at')->where('club_id', $request->input('club_id'))
-            ))
-            ->when($request->filled('role'), fn($q) => $q->whereHas('clubMemberships', fn($q2) =>
-                $q2->whereNull('left_at')->where('role', $request->input('role'))
-            ))
-            ->orderByName()
+        $memberships = MemberClub::query()
+            ->with(['member.user', 'club', 'sport'])
+            ->whereNull('left_at')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->input('search');
+
+                $query->whereHas('member', function ($memberQuery) use ($search) {
+                    $memberQuery
+                        ->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn($userQuery) => $userQuery->where('email', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('club_id'), fn($query) => $query->where('club_id', $request->input('club_id')))
+            ->when($request->filled('role'), fn($query) => $query->where('role', $request->input('role')))
+            ->latest('member_club_id')
             ->paginate(15);
 
         if ($request->ajax()) {
-            return view('panel.memberships._table', compact('members'));
+            return view('panel.memberships._table', compact('memberships'));
         }
 
-        return view('panel.memberships.index', compact('members', 'clubOptions'));
+        return view('panel.memberships.index', compact('memberships', 'clubOptions'));
     }
 
-    public function edit(Member $member)
-    {
-        $this->authorize('viewAny', MemberClub::class);
-
-        $member->load('user');
-
-        $allMemberships = $member->clubMemberships()
-            ->whereNull('left_at')
-            ->with(['club.sports', 'sport'])
-            ->get();
-
-        $memberSportIds = $allMemberships->pluck('sport_id')->filter()->unique()->values();
-
-        $allSports = Sport::orderBy('name')->get();
-        $allSportOptions = $allSports->pluck('name', 'sport_id')->toArray();
-
-        $membershipSportOptions = $allMemberships
-            ->mapWithKeys(fn($membership) => [
-                $membership->member_club_id => $membership->club->sports->pluck('name', 'sport_id')->toArray(),
-            ])
-            ->toArray();
-
-        $allClubsWithSports = Club::with('sports')->orderBy('name')->get()
-            ->mapWithKeys(fn($club) => [
-                (string) $club->club_id => [
-                    'name'   => $club->name,
-                    'sports' => $club->sports->pluck('sport_id')->values()->toArray(),
-                ],
-            ]);
-
-        return view('panel.memberships.edit', compact(
-            'member',
-            'allMemberships',
-            'memberSportIds',
-            'allSports',
-            'allSportOptions',
-            'allClubsWithSports',
-            'membershipSportOptions',
-        ));
-    }
-
-    public function update(UpdateMembershipRequest $request, Member $member)
-    {
-        $validated = $request->validated();
-
-        foreach ($validated['memberships'] ?? [] as $mcId => $data) {
-            MemberClub::where('member_club_id', $mcId)
-                ->where('member_id', $member->member_id)
-                ->update([
-                    'role'     => $data['role'],
-                    'sport_id' => $data['sport_id'],
-                ]);
-        }
-
-        return redirect()->route('panel.memberships.edit', $member)->with('success', 'Memberships updated.');
-    }
-
-    public function storeMemberClub(StoreMemberClubRequest $request, Member $member)
+    public function create(Request $request)
     {
         $this->authorize('create', MemberClub::class);
 
-        MemberClub::create([
-            'member_id' => $member->member_id,
-            'club_id'   => $request->validated('club_id'),
-            'sport_id'  => $request->validated('sport_id'),
-            'role'      => $request->validated('role'),
-            'joined_at' => $request->validated('joined_at'),
+        $memberOptions = $this->memberOptions();
+        $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
+        $sportsByClub = $this->sportsByClub();
+        $selectedMemberId = old('member_id', $request->input('member_id'));
+
+        return view('panel.memberships.create', compact(
+            'memberOptions',
+            'clubOptions',
+            'sportsByClub',
+            'selectedMemberId'
+        ));
+    }
+
+    public function store(MemberClubRequest $request)
+    {
+        $this->authorize('create', MemberClub::class);
+
+        MemberClub::create($request->validated());
+
+        return redirect()->route('panel.memberships.index')->with('success', 'Membership created successfully.');
+    }
+
+    public function edit(MemberClub $memberClub)
+    {
+        $this->authorize('update', $memberClub);
+
+        $memberClub->load(['member.user', 'club', 'sport']);
+        $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
+        $sportsByClub = $this->sportsByClub();
+
+        return view('panel.memberships.edit', compact('memberClub', 'clubOptions', 'sportsByClub'));
+    }
+
+    public function update(MemberClubRequest $request, MemberClub $memberClub)
+    {
+        $this->authorize('update', $memberClub);
+
+        $memberClub->update($request->validated());
+
+        return redirect()->route('panel.memberships.edit', $memberClub)->with('success', 'Membership updated.');
+    }
+
+    public function destroy(MemberClub $memberClub)
+    {
+        $this->authorize('delete', $memberClub);
+
+        $memberClub->update([
+            'left_at' => now(),
         ]);
 
-        return redirect()->route('panel.memberships.edit', $member)->with('success', 'Membership added.');
+        return redirect()->route('panel.memberships.index')->with('success', 'Membership ended successfully.');
+    }
+
+    private function memberOptions(): array
+    {
+        return Member::query()
+            ->with('user:user_id,email')
+            ->orderByName()
+            ->get()
+            ->mapWithKeys(function (Member $member) {
+                $label = $member->full_name;
+
+                if ($member->user?->email) {
+                    $label .= ' (' . $member->user->email . ')';
+                }
+
+                return [(string) $member->member_id => $label];
+            })
+            ->toArray();
+    }
+
+    private function sportsByClub(): array
+    {
+        $rows = DB::table('club_sport')
+            ->join('sports', 'club_sport.sport_id', '=', 'sports.sport_id')
+            ->orderBy('sports.name')
+            ->get([
+                'club_sport.club_id',
+                'sports.sport_id',
+                'sports.name',
+            ]);
+
+        $result = [];
+
+        foreach ($rows as $row) {
+            $result[(string) $row->club_id][(string) $row->sport_id] = $row->name;
+        }
+
+        return $result;
     }
 }

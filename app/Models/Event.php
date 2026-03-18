@@ -11,6 +11,13 @@ class Event extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::creating(function (Event $event): void {
+            $event->status ??= EventStatus::SCHEDULED;
+        });
+    }
+
     protected $table = 'events';
     protected $primaryKey = 'event_id';
 

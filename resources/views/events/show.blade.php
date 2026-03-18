@@ -79,7 +79,7 @@
                 <!-- Participating Clubs -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">
-                        {{ __('Participating Clubs') }} ({{ $activeClubsCount }})
+                        {{ __('Participating Clubs') }}
                     </h2>
                     
                     @if($activeClubsCount > 0)
@@ -101,7 +101,7 @@
                 <!-- Participating Members -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">
-                        {{ __('Participating Members') }} ({{ $activeMembersCount }})
+                        {{ __('Participating Members') }}
                     </h2>
                     
                     @if($activeMembersCount > 0)
@@ -133,11 +133,11 @@
                     <div class="space-y-3">
                         <div>
                             <p class="stat-label">{{ __('Clubs') }}</p>
-                            <p class="stat-value" style="color: #4f46e5;">{{ $activeClubsCount }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsClubsCount }}</p>
                         </div>
                         <div class="stat-divider">
-                            <p class="stat-label">{{ __('Members') }}</p>
-                            <p class="stat-value" style="color: #4f46e5;">{{ $activeMembersCount }}</p>
+                            <p class="stat-label">{{ __('Participants') }}</p>
+                            <p class="stat-value" style="color: #4f46e5;">{{ $statisticsMembersCount }}</p>
                         </div>
                     </div>
                 </div>

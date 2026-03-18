@@ -15,7 +15,45 @@
                 <h1 class="my-heading">{{ __('Create Event') }}</h1>
                 <p class="my-text">{{ __('Create a new sporting event. Fill in all required fields and select the appropriate location and type.') }}</p>
 
-                <form id="eventCreateForm" data-action="{{ route('panel.events.store') }}" method="POST" class="space-y-6">
+                <form
+                    id="eventCreateForm"
+                    data-action="{{ route('panel.events.store') }}"
+                    method="POST"
+                    class="space-y-6"
+                    x-data="{
+                        openSport: false,
+                        selectedSport: @js(old('sport_id')),
+                        previousSport: @js(old('sport_id')),
+                        sportOptions: @js($sportOptions),
+                        openEventType: false,
+                        selectedEventType: @js(old('event_type_id')),
+                        eventTypesBySport: @js($eventTypesBySport),
+                        selectedClubIds: @js(collect(old('club_ids', []))->map(fn($id) => (string) $id)->values()),
+                        clubsBySport: @js($clubsBySport),
+                        get availableEventTypes() {
+                            if (!this.selectedSport) {
+                                return {};
+                            }
+
+                            return this.eventTypesBySport[this.selectedSport] ?? {};
+                        },
+                        get availableClubs() {
+                            if (!this.selectedSport) {
+                                return {};
+                            }
+
+                            return this.clubsBySport[this.selectedSport] ?? {};
+                        },
+                        syncSportChange() {
+                            if (this.selectedSport !== this.previousSport) {
+                                this.selectedEventType = '';
+                                this.selectedClubIds = [];
+                                this.previousSport = this.selectedSport;
+                            }
+                        }
+                    }"
+                >
+                    <div x-effect="syncSportChange()"></div>
                     @csrf
 
                     <div id="formErrorBox">
@@ -31,15 +69,42 @@
                             </div>
 
                             <div>
-                                <x-input-label for="event_type_id" :value="__('Event Type')" />
-                                <x-select-input
-                                    id="event_type_id"
-                                    name="event_type_id"
-                                    :options="$eventTypeOptions"
-                                    :selected="old('event_type_id')"
-                                    placeholder="{{ __('Select type') }}"
-                                    class="w-full"
+                                <x-input-label for="sport_id" :value="__('Sport')" />
+                                <x-filtered-select
+                                    name="sport_id"
+                                    open-var="openSport"
+                                    selected-var="selectedSport"
+                                    options-var="sportOptions"
+                                    :placeholder="__('Select sport')"
                                 />
+                            </div>
+
+                            <div>
+                                <x-input-label for="event_type_id" :value="__('Event Type')" />
+                                <x-filtered-select
+                                    name="event_type_id"
+                                    open-var="openEventType"
+                                    selected-var="selectedEventType"
+                                    options-var="availableEventTypes"
+                                    disabled-when="!selectedSport"
+                                    :placeholder="__('Select type')"
+                                />
+                            </div>
+
+                            <div>
+                                <x-input-label :value="__('Participating Clubs')" />
+                                <div class="mt-2">
+                                    <x-multiselect-input
+                                        id="club_ids"
+                                        name="club_ids"
+                                        options-var="availableClubs"
+                                        :selected="old('club_ids', [])"
+                                        :placeholder="__('Select participating clubs')"
+                                        disabled-when="!selectedSport"
+                                        x-model="selectedClubIds"
+                                        class="w-full"
+                                    />
+                                </div>
                             </div>
 
                             <div>
@@ -73,7 +138,7 @@
 
                     <div class="flex gap-4 mt-4">
                         <x-primary-button>{{ __('Save') }}</x-primary-button>
-                        <x-danger-button type="button" onclick="window.location='{{ route('panel.index') }}'">
+                        <x-danger-button :href="route('panel.index')">
                             {{ __('Discard') }}
                         </x-danger-button>
                     </div>

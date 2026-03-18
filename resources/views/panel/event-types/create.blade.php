@@ -37,7 +37,7 @@
 
             <div class="flex gap-4 mt-6">
                 <x-primary-button>{{ __('Save') }}</x-primary-button>
-                <x-danger-button type="button" onclick="window.location='{{ route('panel.event-types.index') }}'">
+                <x-danger-button :href="route('panel.event-types.index')">
                     {{ __('Discard') }}
                 </x-danger-button>
             </div>
