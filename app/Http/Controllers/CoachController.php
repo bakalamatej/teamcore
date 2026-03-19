@@ -94,11 +94,19 @@ class CoachController extends Controller
 
     private function getCoachClubs(): array
     {
-        return Auth::user()->member
-            ->clubMemberships()
-            ->active()
-            ->byRole(MemberClubRole::COACH)
-            ->pluck('club_id')
-            ->toArray();
+        $membership = Auth::user()?->activeMembership();
+
+        if (!$membership) {
+            return [];
+        }
+
+        $role = $membership->role;
+        $roleValue = is_object($role) && isset($role->value) ? $role->value : (string) $role;
+
+        if ($roleValue !== MemberClubRole::COACH->value) {
+            return [];
+        }
+
+        return [(int) $membership->club_id];
     }
 }

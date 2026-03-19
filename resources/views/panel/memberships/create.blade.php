@@ -6,31 +6,16 @@
 
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8"
-                x-data="{
-                    openMember: false,
-                    openClub: false,
-                    openSport: false,
-                    selectedMember: @js((string) ($selectedMemberId ?? old('member_id', ''))),
-                    selectedClub: @js((string) old('club_id', '')),
-                    previousClub: @js((string) old('club_id', '')),
-                    selectedSport: @js((string) old('sport_id', '')),
-                    memberOptions: @js(collect($memberOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label])),
-                    clubOptions: @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label])),
-                    sportsByClub: @js($sportsByClub),
-                    get availableSports() {
-                        if (!this.selectedClub) {
-                            return {};
-                        }
-
-                        return this.sportsByClub[this.selectedClub] ?? {};
-                    },
-                    syncClubChange() {
-                        if (this.selectedClub !== this.previousClub) {
-                            this.selectedSport = '';
-                            this.previousClub = this.selectedClub;
-                        }
-                    }
-                }"
+                x-data="membershipForm"
+                x-init="
+                    selectedMember = @js((string) ($selectedMemberId ?? old('member_id', '')));
+                    selectedClub = @js((string) old('club_id', ''));
+                    previousClub = @js((string) old('club_id', ''));
+                    selectedSport = @js((string) old('sport_id', ''));
+                    memberOptions = @js(collect($memberOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
+                    clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
+                    sportsByClub = @js($sportsByClub);
+                "
             >
                 <div x-effect="syncClubChange()"></div>
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\MemberClub;
 
 class User extends Authenticatable
 {
@@ -170,37 +171,91 @@ class User extends Authenticatable
             return 'admin';
         }
 
-        if (!$this->member) {
+        $membership = $this->activeMembership();
+        if (!$membership) {
             return 'player';
         }
-        
-        $role = $this->member->activeClubs()
-            ->orderBy('member_club.created_at', 'asc')
-            ->first()?->pivot->role ?? 'player';
-        
-        return $role;
+
+        $role = $membership->role;
+        return is_object($role) && isset($role->value) ? $role->value : (string) $role;
     }
 
     public function isPlayer(): bool
     {
-        if (!$this->member) return false;
-        
-        return $this->member->activeClubs()
-            ->wherePivot('role', 'player')
-            ->exists();
+        return $this->getRole() === 'player';
     }
 
     public function isCoach(): bool
     {
-        if (!$this->member) return false;
-
-        return $this->member->activeClubs()
-            ->wherePivot('role', 'coach')
-            ->exists();
+        return $this->getRole() === 'coach';
     }
 
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    public function activeMembership(): ?MemberClub
+    {
+        if (!$this->member) {
+            return null;
+        }
+
+        $baseQuery = $this->member->clubMemberships()
+            ->active()
+            ->with(['club', 'sport'])
+            ->orderBy('joined_at', 'asc')
+            ->orderBy('member_club_id', 'asc');
+
+        $selectedId = null;
+        if (app()->bound('session')) {
+            $selectedId = (int) session('active_member_club_id');
+        }
+
+        if ($selectedId) {
+            $selected = (clone $baseQuery)
+                ->where('member_club_id', $selectedId)
+                ->first();
+
+            if ($selected) {
+                return $selected;
+            }
+
+            if (app()->bound('session')) {
+                session()->forget('active_member_club_id');
+            }
+        }
+
+        return $baseQuery->first();
+    }
+
+    public function availableMembershipOptions(): array
+    {
+        if (!$this->member) {
+            return [];
+        }
+
+        return $this->member->clubMemberships()
+            ->active()
+            ->with(['club', 'sport'])
+            ->orderBy('joined_at', 'asc')
+            ->orderBy('member_club_id', 'asc')
+            ->get()
+            ->map(function (MemberClub $membership) {
+                $role = $membership->role;
+                $roleText = is_object($role) && isset($role->value) ? ucfirst($role->value) : ucfirst((string) $role);
+
+                return [
+                    'id' => (string) $membership->member_club_id,
+                    'label' => sprintf(
+                        '%s · %s (%s)',
+                        $membership->club?->name ?? 'Club',
+                        $membership->sport?->name ?? 'Sport',
+                        $roleText
+                    ),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

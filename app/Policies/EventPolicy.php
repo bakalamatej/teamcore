@@ -50,12 +50,11 @@ class EventPolicy extends Policy
     {
         if (!$this->isCoach($user)) return false;
 
-        $member = $user->member;
-        if (!$member) return false;
+        $membership = $user->activeMembership();
+        if (!$membership) return false;
 
-        return $member->activeClubs()
-            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
-            ->exists();
+        return $this->isCoachInClub($user, (int) $membership->club_id)
+            && $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }
 
     /**
@@ -66,12 +65,11 @@ class EventPolicy extends Policy
         if ($event->status === EventStatus::FINISHED) return false;
         if (!$this->isCoach($user)) return false;
 
-        $member = $user->member;
-        if (!$member) return false;
+        $membership = $user->activeMembership();
+        if (!$membership) return false;
 
-        return $member->activeClubs()
-            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
-            ->exists();
+        return $this->isCoachInClub($user, (int) $membership->club_id)
+            && $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }
 
     /**
@@ -79,15 +77,16 @@ class EventPolicy extends Policy
      */
     public function register(User $user, Event $event): bool
     {
-        // Check if member is in one of the event's clubs
-        $member = $user->member;
-        if (!$member) {
+        $membership = $user->activeMembership();
+        if (!$membership) {
             return false;
         }
 
-        return $member->activeClubs()
-            ->whereIn('clubs.club_id', $event->clubs()->pluck('clubs.club_id'))
-            ->exists();
+        if ((int) $membership->sport_id !== (int) $event->sport_id) {
+            return false;
+        }
+
+        return $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }
 
     /**
@@ -97,11 +96,17 @@ class EventPolicy extends Policy
     {
         if ($event->status === EventStatus::FINISHED) return false;
 
-        $member = $user->member;
-        if (!$member) return false;
+        $membership = $user->activeMembership();
+        if (!$membership) return false;
 
-        return $member->events()
-            ->where('event_id', $event->event_id)
-            ->exists();
+        if ((int) $membership->sport_id !== (int) $event->sport_id) {
+            return false;
+        }
+
+        if (!$event->clubs()->where('clubs.club_id', $membership->club_id)->exists()) {
+            return false;
+        }
+
+        return $membership->events()->where('event_id', $event->event_id)->exists();
     }
 }

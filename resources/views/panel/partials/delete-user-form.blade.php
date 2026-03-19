@@ -10,7 +10,6 @@
     </header>
 
     <x-danger-button
-        x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
         class="mt-6"
     >

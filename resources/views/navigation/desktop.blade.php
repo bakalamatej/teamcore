@@ -9,7 +9,7 @@
             </div>
 
             <!-- Nav Links  -->
-            <div class="hidden xl-custom:flex space-x-8 xl-custom:ms-10">
+            <div class="hidden xl-custom:flex space-x-4 xl-custom:ms-10">
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-nav-link>
@@ -25,17 +25,31 @@
                 <x-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
                     {{ __('Media') }}
                 </x-nav-link>
-                
             </div>
         </div>
 
         <!-- Auth Buttons -->
         <div class="hidden xl:flex items-center">
             @auth
+                @if(count($membershipOptions) > 1)
+                    <form method="POST" action="{{ route('memberships.active.update') }}" class="ms-3 flex items-center">
+                        @csrf
+                        <label for="active_member_club_id" class="sr-only">{{ __('Active membership') }}</label>
+                        <x-select-refresh
+                            id="active_member_club_id"
+                            name="member_club_id"
+                            :options="collect($membershipOptions)->mapWithKeys(fn($option) => [ $option['id'] => $option['label'] ])->toArray()"
+                            :selected="(string) ($activeMembership?->member_club_id ?? '')"
+                            :required="true"
+                            :disabled="false"
+                            placeholder="Choose club & sport"
+                            class="text-sm"
+                        />
+                    </form>
+                @endif
                 <x-secondary-button class="ms-3" :href="route('panel.index')">
                     {{ __($panelLabel) }}
                 </x-secondary-button>
-
                 <form method="POST" action="{{ route('logout') }}" class="ms-3">
                     @csrf
                     <x-danger-button type="submit">
@@ -46,7 +60,6 @@
                 <x-secondary-button class="ms-3" :href="route('register')">
                     {{ __('Sign up') }}
                 </x-secondary-button>
-
                 <x-primary-button class="ms-3" :href="route('login')">
                     {{ __('Sign in') }}
                 </x-primary-button>

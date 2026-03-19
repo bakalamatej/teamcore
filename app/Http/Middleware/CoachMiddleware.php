@@ -14,7 +14,9 @@ class CoachMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if (!Auth::check() || !Auth::user()->isCoach()) {
+        $user = Auth::user();
+
+        if (!$user || $user->getRole() !== 'coach') {
             abort(403);
         }
 

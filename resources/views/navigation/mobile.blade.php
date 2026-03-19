@@ -14,6 +14,30 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
 
     <!-- Links -->
     <div class="block xl-custom:hidden pt-2 pb-3">
+        @auth
+            @if(count($membershipOptions) > 1)
+                <form method="POST" action="{{ route('memberships.active.update') }}" class="px-4 pb-3">
+                    @csrf
+                    <label for="active_member_club_id_mobile" class="block text-xs text-gray-500 mb-1">{{ __('Active membership') }}</label>
+                    <select
+                        id="active_member_club_id_mobile"
+                        name="member_club_id"
+                        onchange="this.form.submit()"
+                        class="w-full border border-gray-300 rounded-md shadow-sm text-sm px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        @foreach($membershipOptions as $option)
+                            <option
+                                value="{{ $option['id'] }}"
+                                @selected((string) ($activeMembership?->member_club_id ?? '') === (string) $option['id'])
+                            >
+                                {{ $option['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
+        @endauth
+
         <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
         </x-responsive-nav-link>

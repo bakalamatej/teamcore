@@ -17,9 +17,8 @@ class ClubController extends Controller
      */
     public function myClub()
     {
-        $member = Auth::user()?->member;
-
-        $club = $member?->activeClubs()->first();
+        $membership = Auth::user()?->activeMembership();
+        $club = $membership?->club;
 
         abort_if(!$club, 404, 'You are not part of any active club.');
 

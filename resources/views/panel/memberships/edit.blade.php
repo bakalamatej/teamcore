@@ -6,28 +6,14 @@
 
         <main class="flex-1 pl-0 xl:pl-[280px]">
             <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8"
-                x-data="{
-                    openClub: false,
-                    openSport: false,
-                    selectedClub: @js(old('club_id', (string) $memberClub->club_id)),
-                    previousClub: @js(old('club_id', (string) $memberClub->club_id)),
-                    selectedSport: @js(old('sport_id', (string) $memberClub->sport_id)),
-                    clubOptions: @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label])),
-                    sportsByClub: @js($sportsByClub),
-                    get availableSports() {
-                        if (!this.selectedClub) {
-                            return {};
-                        }
-
-                        return this.sportsByClub[this.selectedClub] ?? {};
-                    },
-                    syncClubChange() {
-                        if (this.selectedClub !== this.previousClub) {
-                            this.selectedSport = '';
-                            this.previousClub = this.selectedClub;
-                        }
-                    }
-                }"
+                x-data="membershipForm"
+                x-init="
+                    selectedClub = @js(old('club_id', (string) $memberClub->club_id));
+                    previousClub = @js(old('club_id', (string) $memberClub->club_id));
+                    selectedSport = @js(old('sport_id', (string) $memberClub->sport_id));
+                    clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
+                    sportsByClub = @js($sportsByClub);
+                "
             >
                 <div x-effect="syncClubChange()"></div>
 

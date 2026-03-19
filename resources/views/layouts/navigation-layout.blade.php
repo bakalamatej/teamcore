@@ -1,5 +1,8 @@
 @php
-    $role = Auth::user()->role ?? null;
+    $user = Auth::user();
+    $role = $user?->getRole();
+    $activeMembership = $user?->activeMembership();
+    $membershipOptions = $user?->availableMembershipOptions() ?? [];
     $currentRoute = Route::currentRouteName();
 
     $panelLabel = match ($role) {

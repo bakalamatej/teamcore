@@ -11,96 +11,14 @@
 ])
 
 <div
-    x-data="{
-        open: false,
-        dropdownUp: false,
+    x-data="selectInput({
         options: @js($options),
-        search: '',
         selected: @js($selected),
         placeholderText: @js($placeholder ?? ''),
         inputPlaceholderText: @js($placeholder ?? $searchPlaceholder),
         isDisabled: @js($disabled),
-        init() {
-            this.search = this.selected !== '' && this.selected !== null
-                ? (this.options[this.selected] ?? '')
-                : '';
-        },
-        updateDropdownPlacement() {
-            this.$nextTick(() => {
-                const triggerRect = this.$el.getBoundingClientRect();
-                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-                const dropdownHeight = 240;
-                const spaceBelow = viewportHeight - triggerRect.bottom - 8;
-                const spaceAbove = triggerRect.top;
-
-                this.dropdownUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-            });
-        },
-        openDropdown() {
-            if (this.isDisabled) {
-                return;
-            }
-
-            this.open = true;
-            this.updateDropdownPlacement();
-            requestAnimationFrame(() => this.updateDropdownPlacement());
-        },
-        toggleDropdown() {
-            if (this.isDisabled) {
-                return;
-            }
-
-            this.open = !this.open;
-            if (this.open) {
-                this.updateDropdownPlacement();
-                requestAnimationFrame(() => this.updateDropdownPlacement());
-            }
-        },
-        get filteredOptions() {
-            if (!{{ $searchable ? 'true' : 'false' }}) {
-                return this.options;
-            }
-
-            if (!this.search) {
-                return this.options;
-            }
-
-            const query = this.search.toLowerCase();
-            return Object.fromEntries(
-                Object.entries(this.options).filter(([, label]) =>
-                    String(label).toLowerCase().includes(query)
-                )
-            );
-        },
-        choose(val) {
-            this.selected = val;
-            this.open = false;
-            this.search = this.options[val] ?? '';
-            this.$nextTick(() => {
-                this.$el.dispatchEvent(new Event('input', { bubbles: true }));
-            });
-        },
-        clearAndOpen() {
-            if (!this.open) {
-                this.selected = '';
-                this.search = '';
-                this.$nextTick(() => {
-                    this.$el.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-            }
-
-            this.openDropdown();
-        },
-        closeDropdown() {
-            this.open = false;
-
-            if ({{ $searchable ? 'true' : 'false' }}) {
-                this.search = this.selected !== '' && this.selected !== null
-                    ? (this.options[this.selected] ?? '')
-                    : '';
-            }
-        }
-    }"
+        searchable: {{ $searchable ? 'true' : 'false' }}
+    })"
     x-on:click.outside="closeDropdown()"
     {{ $attributes->merge(['class' => 'relative']) }}
 >
@@ -118,7 +36,7 @@
                 x-model="search"
                 x-on:focus="clearAndOpen()"
                 x-on:click="clearAndOpen()"
-                x-on:input="selected = ''; open = true; updateDropdownPlacement()"
+                x-on:input="handleInput()"
                 :placeholder="inputPlaceholderText"
                 @disabled($disabled)
                 class="w-full text-sm text-left text-gray-800 placeholder:text-gray-400 border-0 p-0 m-0 bg-transparent focus:ring-0"
@@ -141,8 +59,9 @@
             @if($id) id="{{ $id }}" @endif
             x-on:click="toggleDropdown()"
             @disabled($disabled)
-            class="w-full flex items-center justify-between border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-md shadow-md bg-white px-3 py-[10px] text-sm text-left text-gray-800"
+            class="w-full flex items-center justify-between border border-gray-300 rounded-md shadow-sm text-sm px-3 py-1 focus:border-indigo-500 focus:ring-indigo-500 bg-white text-left text-gray-800"
             :class="{ 'opacity-50 cursor-not-allowed': isDisabled }"
+            style="min-height: 2.25rem;"
         >
             <span
                 x-text="selected !== '' && selected !== null ? options[selected] ?? placeholderText : placeholderText"

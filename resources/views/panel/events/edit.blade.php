@@ -17,38 +17,16 @@
             data-action="{{ route('panel.events.update', $event) }}"
             method="POST"
             class="space-y-6"
-            x-data="{
-                openSport: false,
-                selectedSport: @js(old('sport_id', $event->sport_id)),
-                previousSport: @js(old('sport_id', $event->sport_id)),
-                sportOptions: @js($sportOptions),
-                openEventType: false,
-                selectedEventType: @js(old('event_type_id', $event->event_type_id)),
-                eventTypesBySport: @js($eventTypesBySport),
-                selectedClubIds: @js(collect(old('club_ids', $selectedClubIds))->map(fn($id) => (string) $id)->values()),
-                clubsBySport: @js($clubsBySport),
-                get availableEventTypes() {
-                    if (!this.selectedSport) {
-                        return {};
-                    }
-
-                    return this.eventTypesBySport[this.selectedSport] ?? {};
-                },
-                get availableClubs() {
-                    if (!this.selectedSport) {
-                        return {};
-                    }
-
-                    return this.clubsBySport[this.selectedSport] ?? {};
-                },
-                syncSportChange() {
-                    if (this.selectedSport !== this.previousSport) {
-                        this.selectedEventType = '';
-                        this.selectedClubIds = [];
-                        this.previousSport = this.selectedSport;
-                    }
-                }
-            }"
+            x-data="eventForm"
+            x-init="
+                selectedSport = @js(old('sport_id', $event->sport_id));
+                previousSport = @js(old('sport_id', $event->sport_id));
+                sportOptions = @js($sportOptions);
+                selectedEventType = @js(old('event_type_id', $event->event_type_id));
+                eventTypesBySport = @js($eventTypesBySport);
+                selectedClubIds = @js(collect(old('club_ids', $selectedClubIds))->map(fn($id) => (string) $id)->values());
+                clubsBySport = @js($clubsBySport);
+            "
         >
             <div x-effect="syncSportChange()"></div>
             @csrf

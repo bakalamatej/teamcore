@@ -16,7 +16,7 @@ class AdminOrCoachMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || (!$user->isAdmin() && !$user->isCoach())) {
+        if (!$user || (!$user->isAdmin() && $user->getRole() !== 'coach')) {
             abort(403);
         }
 

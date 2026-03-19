@@ -29,16 +29,16 @@ class Policy
      */
     protected function isCoachInClub(User $user, int $clubId): bool
     {
-        $member = $user->member;
-        if (!$member) {
+        $membership = $user->activeMembership();
+        if (!$membership) {
             return false;
         }
 
-        return $member->clubMemberships()
-            ->where('club_id', $clubId)
-            ->where('role', MemberClubRole::COACH->value)
-            ->whereNull('left_at')
-            ->exists();
+        $role = $membership->role;
+        $roleValue = is_object($role) && isset($role->value) ? $role->value : (string) $role;
+
+        return (int) $membership->club_id === (int) $clubId
+            && $roleValue === MemberClubRole::COACH->value;
     }
 
     /**

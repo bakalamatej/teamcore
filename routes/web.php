@@ -14,6 +14,7 @@ use App\Http\Controllers\EventTypeController;
 use App\Http\Controllers\FieldTypeController;
 use App\Http\Controllers\PanelCoachEvaluationController;
 use App\Http\Controllers\PanelReservationController;
+use App\Http\Controllers\ActiveMembershipController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -27,6 +28,9 @@ Route::get('/', function () {
 // PROTECTED ROUTES 
 // --------------------------------------------------
 Route::middleware(['auth'])->group(function () {
+    Route::post('/memberships/active', [ActiveMembershipController::class, 'update'])
+        ->name('memberships.active.update');
+
     Route::get('/calendar', function () {
         return view('calendar');
     })->name('calendar');

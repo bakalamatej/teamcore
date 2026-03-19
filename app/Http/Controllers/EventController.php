@@ -23,8 +23,16 @@ class EventController extends Controller
     {
         $this->authorize('viewAny', Event::class);
 
-        $events = Auth::user()->member?->events() ?? Event::query()->whereNull('event_id');
-        $events = $events
+        $activeMembership = Auth::user()?->activeMembership();
+
+        $eventsQuery = Event::query()->whereNull('event_id');
+        if ($activeMembership) {
+            $eventsQuery = Event::query()
+                ->where('sport_id', $activeMembership->sport_id)
+                ->whereHas('clubs', fn($q) => $q->where('clubs.club_id', $activeMembership->club_id));
+        }
+
+        $events = $eventsQuery
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('sport_field_id'), 
@@ -38,13 +46,13 @@ class EventController extends Controller
             ->with('sportField', 'eventType', 'clubs')
             ->paginate(10);   
 
-        $userClubIds = Auth::user()->member?->activeClubs()->pluck('clubs.club_id')->toArray() ?? [];
+        $userClubIds = $activeMembership ? [$activeMembership->club_id] : [];
         $memberClubIds = Auth::user()->member?->clubMemberships()->active()->pluck('member_club_id') ?? collect();
         $userEventIds = DB::table('event_member')
             ->whereIn('member_club_id', $memberClubIds)
             ->pluck('event_id')
             ->toArray();
-        $userHasMember = (bool) Auth::user()->member;
+        $userHasMember = (bool) $activeMembership;
 
         $userClubLookup = array_flip($userClubIds);
         $registeredEventLookup = array_flip($userEventIds);
@@ -264,10 +272,15 @@ class EventController extends Controller
     public function register(Event $event)
     {
         $this->authorize('register', $event);
-        $memberClub = Auth::user()->member?->clubMemberships()
-            ->whereIn('club_id', $event->clubs->pluck('club_id'))
-            ->active()
-            ->first();
+        $memberClub = Auth::user()?->activeMembership();
+
+        if ($memberClub && (int) $memberClub->sport_id !== (int) $event->sport_id) {
+            $memberClub = null;
+        }
+
+        if ($memberClub && !$event->clubs()->where('clubs.club_id', $memberClub->club_id)->exists()) {
+            $memberClub = null;
+        }
 
         if (!$memberClub) {
             return redirect()->back()->with('error', 'You are not a member of any club participating in this event.');
@@ -283,10 +296,15 @@ class EventController extends Controller
     public function unregister(Event $event)
     {
         $this->authorize('unregister', $event);
-        $memberClub = Auth::user()->member?->clubMemberships()
-            ->whereIn('club_id', $event->clubs->pluck('club_id'))
-            ->active()
-            ->first();
+        $memberClub = Auth::user()?->activeMembership();
+
+        if ($memberClub && (int) $memberClub->sport_id !== (int) $event->sport_id) {
+            $memberClub = null;
+        }
+
+        if ($memberClub && !$event->clubs()->where('clubs.club_id', $memberClub->club_id)->exists()) {
+            $memberClub = null;
+        }
 
         if (!$memberClub) {
             return redirect()->back()->with('error', 'You are not registered for this event.');

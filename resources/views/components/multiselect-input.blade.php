@@ -13,51 +13,10 @@
 @endphp
 
 <div
-    x-data="{
-        open: false,
-        dropdownUp: false,
+    x-data="multiselectInput({
         selected: {{ json_encode(array_map('strval', (array) $selected)) }},
-        updateDropdownPlacement() {
-            this.$nextTick(() => {
-                const triggerRect = this.$el.getBoundingClientRect();
-                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-                const dropdownHeight = 240;
-                const spaceBelow = viewportHeight - triggerRect.bottom - 8;
-                const spaceAbove = triggerRect.top;
-
-                this.dropdownUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-            });
-        },
-        toggleDropdown() {
-            if ({{ $disabledWhen ?? 'false' }}) {
-                return;
-            }
-
-            this.open = !this.open;
-            if (this.open) {
-                this.updateDropdownPlacement();
-                requestAnimationFrame(() => this.updateDropdownPlacement());
-            }
-        },
-        toggle(val) {
-            val = String(val);
-            const current = (this.selected ?? []).map(v => String(v));
-
-            if (current.includes(val)) {
-                this.selected = current.filter(v => v !== val);
-            } else {
-                this.selected = [...current, val];
-            }
-
-            this.$nextTick(() => {
-                this.$el.dispatchEvent(new Event('input', { bubbles: true }));
-            });
-        },
-        label(options) {
-            if (this.selected.length === 0) return '{{ $placeholder }}';
-            return this.selected.map(v => options[String(v)] ?? v).join(', ');
-        }
-    }"
+        placeholder: @js($placeholder)
+    })"
     x-modelable="selected"
     x-on:click.outside="open = false"
     {{ $attributes->merge(['class' => 'relative']) }}
