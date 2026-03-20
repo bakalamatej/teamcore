@@ -6,7 +6,7 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 
                 'resources/js/app.js' , 
-                'resources/js/events/event-update.js',
+                'resources/js/events/event-form.js',
                 'resources/js/events/event-create.js',
                 'resources/js/clubs/club-create.js',
                 'resources/js/clubs/club-update.js',

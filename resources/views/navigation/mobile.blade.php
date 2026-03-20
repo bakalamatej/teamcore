@@ -1,5 +1,5 @@
 @php
-$panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
+$panelRoutes = request()->routeIs('panel.*') || request()->routeIs('admin.*') || request()->routeIs('coach.*');
 @endphp
 
 <div x-show="open"
@@ -13,7 +13,7 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
         @click.away="open = false">
 
     <!-- Links -->
-    <div class="block xl-custom:hidden pt-2 pb-3">
+    <div class="pt-2 pb-3">
         @auth
             @if(count($membershipOptions) > 1)
                 <form method="POST" action="{{ route('memberships.active.update') }}" class="px-4 pb-3">
@@ -47,7 +47,7 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
         <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
             {{ __('Events') }}
         </x-responsive-nav-link>
-        <x-responsive-nav-link :href="route('calendar')" :active="request()->routeIs('calendar')">
+        <x-responsive-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
             {{ __('Calendar') }}
         </x-responsive-nav-link>
         <x-responsive-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
@@ -58,9 +58,9 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
     <!-- PANEL LINKS -->
     @auth
         <div>
-            @if(in_array($currentRoute, $panelRoutes))
+            @if($panelRoutes)
                 <div class="border-t border-gray-200 pt-3 pb-3 mt-2">
-                <x-responsive-nav-link :href="route('panel.index')" :active="request()->routeIs('panel.index')">
+                <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.update.index')">
                     {{ __('Panel') }}
                 </x-responsive-nav-link>
 
@@ -105,7 +105,7 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
     <!-- Auth buttons -->
     <div class="flex flex-col px-4 pb-3">
         @auth
-            <x-responsive-secondary-button :href="route('panel.index')" class="">
+            <x-responsive-secondary-button :href="route('panel.update.index')" class="">
                 {{ __($panelLabel) }}
             </x-responsive-secondary-button>
 

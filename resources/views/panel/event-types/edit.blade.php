@@ -1,13 +1,5 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        {{-- Sidebar --}}
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        {{-- Content --}}
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
         <h1 class="my-heading">{{ __('Edit Event Type') }}</h1>
 
         <form method="POST" action="{{ route('panel.event-types.update', $eventType) }}" class="space-y-6">
@@ -42,7 +34,5 @@
                 </x-danger-button>
             </div>
         </form>
-            </div>
-        </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

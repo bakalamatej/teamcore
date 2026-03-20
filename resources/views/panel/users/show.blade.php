@@ -1,14 +1,6 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        {{-- Sidebar --}}
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        {{-- Content --}}
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-                <div class="flex justify-between items-start mb-6">
+<x-panel-layout>
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+            <div class="flex justify-between items-start mb-4">
             <div>
                 <h1 class="my-heading text-2xl">{{ $user->member?->full_name ?? 'N/A' }}</h1>
                 <p class="text-gray-600">{{ $user->email }}</p>
@@ -176,4 +168,4 @@
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachController;
 use App\Http\Controllers\PanelMembershipController;
@@ -31,9 +32,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/memberships/active', [ActiveMembershipController::class, 'update'])
         ->name('memberships.active.update');
 
-    Route::get('/calendar', function () {
-        return view('calendar');
-    })->name('calendar');
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('/calendar/{year}/{month}/{day}', [CalendarController::class, 'showDay'])->name('calendar.day');
 
     Route::get('/gallery', function () {
         return view('gallery');
@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
     // PANEL ROUTES
     // --------------------------------------------------
     Route::prefix('panel')->group(function () {
-        Route::get('/', [PanelController::class, 'index'])->name('panel.index');
+        Route::get('/', [PanelController::class, 'index'])->name('panel.update.index');
         Route::get('/stats', [PanelController::class, 'stats'])->name('panel.stats');
         Route::patch('/profile', [PanelController::class, 'update'])->name('panel.profile.update');
         Route::delete('/profile', [PanelController::class, 'destroy'])->name('panel.profile.destroy');

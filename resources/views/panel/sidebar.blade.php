@@ -1,7 +1,7 @@
 <x-sidebar :title="__($panelLabel)">
     <div class="flex flex-col flex-1">
         <div class="flex flex-col gap-1">
-            <a href="{{ route('panel.index') }}" class="sidebar-link">{{ __('Profile') }}</a>
+            <a href="{{ route('panel.update.index') }}" class="sidebar-link">{{ __('Profile') }}</a>
             <!-- Player menu: statistics -->
             @if($role === 'player')
                 <a href="{{ route('panel.stats') }}" class="sidebar-link">{{ __('Statistics') }}</a>
@@ -30,7 +30,7 @@
         <div class="mt-auto mb-0">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <x-danger-button type="submit" class="w-full text-center px-6">
+                <x-danger-button type="submit" class="w-full text-center">
                     <span class="w-full block text-center">{{ __('Sign out') }}</span>
                 </x-danger-button>
             </form>

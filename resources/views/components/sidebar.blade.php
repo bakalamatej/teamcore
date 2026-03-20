@@ -1,5 +1,5 @@
 @props(['title' => 'Panel'])
-<aside class="fixed w-64 bg-white h-[calc(100vh-11rem)] shadow-xl rounded-lg p-4 sm:p-8 flex flex-col">
+<aside class="fixed h-[calc(100vh-11rem)] bg-white shadow-xl rounded-lg p-4 sm:p-8 flex flex-col pb-4" style="width: inherit;">
     <div class="sidebar-heading">
         {{ $title }}
     </div>

@@ -1,13 +1,5 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        {{-- Sidebar --}}
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        {{-- Content --}}
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+            <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
                 <h1 class="my-heading">{{ __('Edit User') }}</h1>
                 <p class="my-text">{{ __('Update the user information such as name, email, and role.') }}</p>
 
@@ -77,4 +69,4 @@
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

@@ -13,7 +13,7 @@ class PanelController extends Controller
     // Display user's profile/dashboard
     public function index(Request $request)
     {
-        return view('panel.index', [
+        return view('panel.update.index', [
             'user' => $request->user(),
         ]);
     }
@@ -39,7 +39,7 @@ class PanelController extends Controller
             $user->member()->create($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
         }
 
-        return Redirect::route('panel.index')
+        return Redirect::route('panel.update.index')
             ->with('status', 'profile-updated');
     }
 

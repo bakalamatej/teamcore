@@ -1,16 +1,10 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8"
-                x-data="membershipForm"
-                x-init="
-                    selectedMember = @js((string) ($selectedMemberId ?? old('member_id', '')));
-                    selectedClub = @js((string) old('club_id', ''));
-                    previousClub = @js((string) old('club_id', ''));
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8"
+        x-data="membershipForm"
+        x-init="
+            selectedMember = @js((string) ($selectedMemberId ?? old('member_id', '')));
+            selectedClub = @js((string) old('club_id', ''));
+            previousClub = @js((string) old('club_id', ''));
                     selectedSport = @js((string) old('sport_id', ''));
                     memberOptions = @js(collect($memberOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
                     clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
@@ -98,4 +92,4 @@
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

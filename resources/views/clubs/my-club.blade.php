@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
     <!-- Header -->
-        <div class="mb-8 pb-6 border-b-2 border-gray-200">
+        <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $club->name }}</h1>
             <p class="text-gray-600">{{ __('Created') }}: {{ $club->created_at->format('d.m.Y H:i') }}</p>
         </div>

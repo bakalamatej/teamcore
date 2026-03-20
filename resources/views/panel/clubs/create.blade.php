@@ -1,104 +1,77 @@
-@push('scripts')
-    @vite(['resources/js/clubs/club-create.js'])
-@endpush
+// ...existing code...
 
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        {{-- Sidebar --}}
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+        <h1 class="my-heading">{{ __('Create Club') }}</h1>
+        <p class="my-text">{{ __('Create a new sports club. Provide all necessary information including name, contact details, and location.') }}</p>
 
-        {{-- Content --}}
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-                <h1 class="my-heading">{{ __('Create Club') }}</h1>
-                <p class="my-text">{{ __('Create a new sports club. Provide all necessary information including name, contact details, and location.') }}</p>
+        <form id="clubCreateForm" data-action="{{ route('panel.clubs.store') }}" method="POST" class="space-y-6">
+            @csrf
 
-                <form id="clubCreateForm" data-action="{{ route('panel.clubs.store') }}" method="POST" class="space-y-6">
-                    @csrf
-
-                    <div id="formErrorBox">
-                        <span id="formErrorMessage"></span>
-                        <button type="button" id="formErrorClose">×</button>
-                    </div>
-
-                    <div class="flex flex-col lg:flex-row gap-6">
-                        <div class="flex-1 space-y-4">
-                            <div>
-                                <x-input-label for="name" :value="__('Name')" />
-                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" required />
-                            </div>
-
-                            <div>
-                                <x-input-label for="phone" :value="__('Phone')" />
-                                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" required />
-                            </div>
-
-                            <div>
-                                <x-input-label for="email" :value="__('Email')" />
-                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />
-                            </div>
-
-                            <div>
-                                <x-input-label for="webpage" :value="__('Webpage')" />
-                                <x-text-input id="webpage" name="webpage" type="text" class="mt-1 block w-full" />
-                            </div>
-                        </div>
-
-                        <div class="flex-1 space-y-4">
-                            <div>
-                                <x-input-label for="address_id" :value="__('Address')" />
-                                <x-select-input
-                                    id="address_id"
-                                    name="address_id"
-                                    :options="$addressOptions"
-                                    :selected="old('address_id')"
-                                    placeholder="{{ __('Select address') }}"
-                                    class="mt-1 block w-full"
-                                />
-                            </div>
-
-                            <div>
-                                <x-input-label :value="__('Sports')" />
-                                <x-multiselect-input
-                                    id="sport_ids"
-                                    name="sport_ids"
-                                    :options="$sportOptions"
-                                    :selected="old('sport_ids', [])"
-                                    placeholder="{{ __('Select sports...') }}"
-                                    class="mt-1 block w-full"
-                                />
-                                @error('sport_ids')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4 mt-4">
-                        <x-primary-button>{{ __('Save') }}</x-primary-button>
-                        <x-danger-button :href="route('panel.index')">
-                            {{ __('Discard') }}
-                        </x-danger-button>
-                    </div>
-                </form>
-
-                <x-modal name="create-club" :show="false">
-                    <div class="p-4">
-                        <h2 class="text-lg font-semibold mb-2">{{ __('Club created successfully!') }}</h2>
-                        <p class="text-sm text-gray-700">{{ __('The club has been saved.') }}</p>
-                        <div class="mt-4 text-right">
-                            <button
-                                x-on:click="$dispatch('close-modal', 'create-club')"
-                                class="bg-indigo-600 text-white px-4 py-2 rounded"
-                            >
-                                {{ __('Close') }}
-                            </button>
-                        </div>
-                    </div>
-                </x-modal>
+            <div id="formErrorBox">
+                <span id="formErrorMessage"></span>
+                <button type="button" id="formErrorClose">×</button>
             </div>
-        </main>
+
+            <div class="flex flex-col lg:flex-row gap-6">
+                <div class="flex-1 space-y-4">
+                    <div>
+                        <x-input-label for="name" :value="__('Name')" />
+                        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" required />
+                    </div>
+
+                    <div>
+                        <x-input-label for="phone" :value="__('Phone')" />
+                        <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" required />
+                    </div>
+
+                    <div>
+                        <x-input-label for="email" :value="__('Email')" />
+                        <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />
+                    </div>
+
+                    <div>
+                        <x-input-label for="webpage" :value="__('Webpage')" />
+                        <x-text-input id="webpage" name="webpage" type="text" class="mt-1 block w-full" />
+                    </div>
+                </div>
+
+                <div class="flex-1 space-y-4">
+                    <div>
+                        <x-input-label for="address_id" :value="__('Address')" />
+                        <x-select-input
+                            id="address_id"
+                            name="address_id"
+                            :options="$addressOptions"
+                            :selected="old('address_id')"
+                            placeholder="{{ __('Select address') }}"
+                            class="mt-1 block w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <x-input-label :value="__('Sports')" />
+                        <x-multiselect-input
+                            id="sport_ids"
+                            name="sport_ids"
+                            :options="$sportOptions"
+                            :selected="old('sport_ids', [])"
+                            placeholder="{{ __('Select sports...') }}"
+                            class="mt-1 block w-full"
+                        />
+                        @error('sport_ids')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-4">
+                <x-primary-button>{{ __('Create') }}</x-primary-button>
+                <x-danger-button :href="route('panel.clubs.index')">
+                    {{ __('Discard') }}
+                </x-danger-button>
+            </div>
+        </form>
     </div>
-</x-app-layout>
+</x-panel-layout>

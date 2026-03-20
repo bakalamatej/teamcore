@@ -1,4 +1,4 @@
-<div class="w-full px-4 sm:px-6 lg:px-8">
+<div class="w-full px-6">
     <div class="flex justify-between min-h-[80px] items-center">
         <div class="flex">
             <!-- Logo -->
@@ -9,7 +9,7 @@
             </div>
 
             <!-- Nav Links  -->
-            <div class="hidden xl-custom:flex space-x-4 xl-custom:ms-4">
+            <div class="hidden xl:flex space-x-4 xl:ms-4">
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-nav-link>
@@ -19,7 +19,7 @@
                 <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                     {{ __('Events') }}
                 </x-nav-link>
-                <x-nav-link :href="route('calendar')" :active="request()->routeIs('calendar')">
+                <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
                     {{ __('Calendar') }}
                 </x-nav-link>
                 <x-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
@@ -47,7 +47,7 @@
                         />
                     </form>
                 @endif
-                <x-secondary-button class="ms-3 px-6" :href="route('panel.index')">
+                <x-secondary-button class="ms-3 px-6" :href="route('panel.update.index')">
                     {{ __('Panel') }}
                 </x-secondary-button>
             @else

@@ -2,14 +2,8 @@
     @vite(['resources/js/clubs/club-update.js'])
 @endpush
 
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
         <h1 class="my-heading">{{ __('Edit Club') }}</h1>
 
         <form id="updateClubForm" data-action="{{ route('panel.clubs.update', $club) }}" method="POST" class="space-y-6">
@@ -78,22 +72,5 @@
                 </x-danger-button>
             </div>
         </form>
-
-        <x-modal name="update-club" :show="false">
-            <div class="p-4">
-                <h2 class="text-lg font-semibold mb-2">{{ __('Club updated successfully!') }}</h2>
-                <p class="text-sm text-gray-700">{{ __('Your changes have been saved.') }}</p>
-                <div class="mt-4 text-right">
-                    <button
-                        x-on:click="$dispatch('close-modal', 'update-club')"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded"
-                    >
-                        {{ __('Close') }}
-                    </button>
-                </div>
-            </div>
-        </x-modal>
-            </div>
-        </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

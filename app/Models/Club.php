@@ -126,7 +126,7 @@ class Club extends Model
 
     public function scopeBySport($query, $sportId)
     {
-        return $sportId ? $query->whereHas('sports', fn($q) => $q->where('sport_id', $sportId)) : $query;
+        return $sportId ? $query->whereHas('sports', fn($q) => $q->where('sports.sport_id', $sportId)) : $query;
     }
 
     public function scopeActive($query)

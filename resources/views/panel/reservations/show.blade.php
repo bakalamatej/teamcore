@@ -1,14 +1,8 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+            <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
                 @php($statusValue = $reservation->status->value)
 
-                <div class="mb-8 pb-6 border-b-2 border-gray-200">
+                <div class="mb-4 pb-4 border-b-2 border-gray-200">
                     <h1 class="my-heading text-3xl mb-2">{{ $reservation->title }}</h1>
                     <div class="flex items-center gap-4">
                         <span @class([
@@ -120,4 +114,4 @@
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'update-event' }));
+            window.location.href = '/admin/events';
         } catch {
             showError('Unknown error');
         }

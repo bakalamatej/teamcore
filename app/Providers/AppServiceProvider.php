@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::component('layouts.panel-layout', 'panel-layout');
+
         View::composer('panel.sidebar', function ($view) {
             $role = Auth::user()?->getRole() ?? 'player';
             $panelLabel = match ($role) {

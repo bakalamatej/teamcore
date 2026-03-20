@@ -1,13 +1,7 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
         <!-- Header -->
-        <div class="mb-8 pb-6 border-b-2 border-gray-200">
+        <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $club->name }}</h1>
             <p class="text-gray-600">{{ __('Created') }}: {{ $club->created_at->format('d.m.Y H:i') }}</p>
         </div>
@@ -18,7 +12,6 @@
                 <!-- Club Details -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">{{ __('Club Information') }}</h2>
-                    
                     <div class="space-y-4">
                         <!-- Email -->
                         @if($club->email)
@@ -29,7 +22,6 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Phone -->
                         @if($club->phone)
                             <div class="detail-item">
@@ -39,7 +31,6 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Website -->
                         @if($club->webpage)
                             <div class="detail-item">
@@ -49,30 +40,22 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Location -->
                         <div class="detail-item-divider">
                             <div class="detail-item">
                                 <span class="detail-item-label">{{ __('Location:') }}</span>
                                 <div class="detail-item-value">
                                     <p class="text-gray-900">{{ $club->address?->street ?? __('N/A') }}</p>
-                                    <p class="text-sm text-gray-600">
-                                        {{ $club->address?->zip_code ?? '' }} 
-                                        {{ $club->address?->city ?? '' }}
-                                    </p>
+                                    <p class="text-sm text-gray-600">{{ $club->address?->zip_code ?? '' }} {{ $club->address?->city ?? '' }}</p>
                                     <p class="text-sm text-gray-600">{{ $club->address?->country ?? '' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- Active Members -->
                 <div class="detail-card">
-                    <h2 class="detail-card-header">
-                        {{ __('Members') }}
-                    </h2>
-                    
+                    <h2 class="detail-card-header">{{ __('Members') }}</h2>
                     @if($activeMembersCount > 0)
                         <div class="overflow-x-auto">
                             <table class="data-table w-full text-left">
@@ -111,13 +94,9 @@
                         <p class="text-gray-600">{{ __('No members in this club') }}</p>
                     @endif
                 </div>
-
                 <!-- Recent Events -->
                 <div class="detail-card">
-                    <h2 class="detail-card-header">
-                        {{ __('Recent Events') }}
-                    </h2>
-                    
+                    <h2 class="detail-card-header">{{ __('Recent Events') }}</h2>
                     @if($activeEventsCount > 0)
                         <div class="space-y-2">
                             @foreach($recentEvents as $event)
@@ -145,7 +124,6 @@
                     @endif
                 </div>
             </div>
-
             <!-- Sidebar -->
             <div class="lg:col-span-1 flex flex-col">
                 <!-- Club Statistics -->
@@ -170,11 +148,9 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Coaches -->
                 <div class="sidebar-card sidebar-card-gray">
                     <h3 class="sidebar-card-title">{{ __('Coaches') }}</h3>
-                    
                     @if($coaches->count() > 0)
                         <div class="space-y-2">
                             @foreach($coaches as $coach)
@@ -188,7 +164,6 @@
                         <p class="text-sm text-gray-600">{{ __('No coaches assigned') }}</p>
                     @endif
                 </div>
-
                 <!-- Actions -->
                 <div class="space-y-3 mt-auto">
                     @auth
@@ -196,26 +171,21 @@
                             <x-primary-button class="w-full justify-center" :href="route('panel.clubs.edit', $club)">
                                 {{ __('Edit Club') }}
                             </x-primary-button>
-
                             <x-danger-button type="button" class="w-full justify-center"
                                     x-data
                                     x-on:click="$dispatch('open-modal', 'confirm-club-deletion-{{ $club->id }}')">
                                 {{ __('Delete Club') }}
                             </x-danger-button>
-
                             <x-modal name="confirm-club-deletion-{{ $club->id }}" :show="false" focusable>
                                 <form method="POST" action="{{ route('panel.clubs.destroy', $club) }}" class="p-6 text-left">
                                     @csrf
                                     @method('DELETE')
-
                                     <h2 class="my-heading">{{ __('Delete Club') }}</h2>
                                     <p class="my-text">{{ __('Are you sure you want to delete this club? This action cannot be undone.') }}</p>
-
                                     <div class="flex justify-end gap-3 mt-6">
                                         <x-secondary-button type="button" x-on:click="$dispatch('close')">
                                             {{ __('Cancel') }}
                                         </x-secondary-button>
-
                                         <x-danger-button type="submit">
                                             {{ __('Delete') }}
                                         </x-danger-button>
@@ -227,7 +197,5 @@
                 </div>
             </div>
         </div>
-            </div>
-        </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

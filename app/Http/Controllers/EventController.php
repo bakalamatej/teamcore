@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Club;
 use App\Models\Event;
 use App\Models\EventType;
 use App\Models\Sport;
@@ -13,6 +12,7 @@ use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
+use App\Enums\EventStatus;
 
 class EventController extends Controller
 {
@@ -77,7 +77,11 @@ class EventController extends Controller
         $sportFieldOptions = $this->getSportFieldOptionsWithCity();
         $eventTypeOptions = EventType::orderBy('name')->pluck('name', 'event_type_id')->toArray();
 
-        return view('events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions', 'userHasMember'));
+        $statusOptions = collect(EventStatus::cases())
+            ->mapWithKeys(fn($case) => [$case->value => __(ucfirst(strtolower($case->name)))])
+            ->toArray();
+
+        return view('events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions', 'statusOptions', 'userHasMember'));
     }
 
     /**

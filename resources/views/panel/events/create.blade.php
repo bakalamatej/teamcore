@@ -1,19 +1,9 @@
-@push('scripts')
-    @vite(['resources/js/events/event-create.js'])
-@endpush
+// ...existing code...
 
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        {{-- Sidebar --}}
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        {{-- Content --}}
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-                <h1 class="my-heading">{{ __('Create Event') }}</h1>
-                <p class="my-text">{{ __('Create a new sporting event. Fill in all required fields and select the appropriate location and type.') }}</p>
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+        <h1 class="my-heading">{{ __('Create Event') }}</h1>
+        <p class="my-text">{{ __('Create a new sporting event. Fill in all required fields and select the appropriate location and type.') }}</p>
 
                 <form
                     id="eventCreateForm"
@@ -116,27 +106,12 @@
 
                     <div class="flex gap-4 mt-4">
                         <x-primary-button>{{ __('Save') }}</x-primary-button>
-                        <x-danger-button :href="route('panel.index')">
+                        <x-danger-button :href="route('panel.events.index')">
                             {{ __('Discard') }}
                         </x-danger-button>
                     </div>
                 </form>
-
-                <x-modal name="create-event" :show="false">
-                    <div class="p-4">
-                        <h2 class="text-lg font-semibold mb-2">{{ __('Event created successfully!') }}</h2>
-                        <p class="text-sm text-gray-700">{{ __('Your event has been saved.') }}</p>
-                        <div class="mt-4 text-right">
-                            <button
-                                x-on:click="$dispatch('close-modal', 'create-event')"
-                                class="bg-indigo-600 text-white px-4 py-2 rounded"
-                            >
-                                {{ __('Close') }}
-                            </button>
-                        </div>
-                    </div>
-                </x-modal>
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

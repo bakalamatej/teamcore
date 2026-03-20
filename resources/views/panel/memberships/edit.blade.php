@@ -1,16 +1,10 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8"
-                x-data="membershipForm"
-                x-init="
-                    selectedClub = @js(old('club_id', (string) $memberClub->club_id));
-                    previousClub = @js(old('club_id', (string) $memberClub->club_id));
-                    selectedSport = @js(old('sport_id', (string) $memberClub->sport_id));
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8"
+        x-data="membershipForm"
+        x-init="
+            selectedClub = @js(old('club_id', (string) $memberClub->club_id));
+            previousClub = @js(old('club_id', (string) $memberClub->club_id));
+            selectedSport = @js(old('sport_id', (string) $memberClub->sport_id));
                     clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
                     sportsByClub = @js($sportsByClub);
                 "
@@ -18,9 +12,9 @@
                 <div x-effect="syncClubChange()"></div>
 
                 <h1 class="my-heading">{{ __('Edit Membership') }}</h1>
-                <p class="my-text">{{ __('Manage membership details for this user.') }}</p>
+                <p class="my-text mb-4">{{ __('Manage membership details for this user.') }}</p>
 
-                <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <p class="text-sm text-gray-700">
                         <span class="font-semibold">{{ __('Member') }}:</span>
                         {{ $memberClub->member?->full_name ?? '—' }}
@@ -95,4 +89,4 @@
             </div>
         </main>
     </div>
-</x-app-layout>
+</x-panel-layout>

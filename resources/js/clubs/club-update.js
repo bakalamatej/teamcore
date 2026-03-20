@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'update-club' }));
+
+            window.location.href = '/admin/clubs';
         } catch {
             showError('Unknown error');
         }

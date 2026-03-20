@@ -1,13 +1,7 @@
-<x-app-layout>
-    <div class="flex min-h-[calc(100vh-11rem)]">
-        <div class="hidden xl:block">
-            @include('panel.sidebar')
-        </div>
-
-        <main class="flex-1 pl-0 xl:pl-[280px]">
-            <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
         <!-- Header -->
-        <div class="mb-8 pb-6 border-b-2 border-gray-200">
+        <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
             <div class="flex items-center gap-4">
                 <span @class([
@@ -28,14 +22,12 @@
                 <!-- Event Details -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">{{ __('Event Details') }}</h2>
-                    
                     <div class="space-y-4">
                         <!-- Type -->
                         <div class="detail-item">
                             <span class="detail-item-label">{{ __('Type:') }}</span>
                             <span class="detail-item-value">{{ $event->eventType?->name ?? __('N/A') }}</span>
                         </div>
-
                         <!-- Location -->
                         <div class="detail-item">
                             <span class="detail-item-label">{{ __('Location:') }}</span>
@@ -51,7 +43,6 @@
                                 </p>
                             </div>
                         </div>
-
                         <!-- Field Type -->
                         @if($event->sportField?->field_type)
                             <div class="detail-item">
@@ -73,7 +64,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Description -->
                 @if($event->description)
                     <div class="detail-card">
@@ -124,7 +114,6 @@
                     @endif
                 </div>
             </div>
-
             <!-- Sidebar -->
             <div class="lg:col-span-1 flex flex-col">
                 <!-- Event Duration -->
@@ -186,7 +175,5 @@
                 </div>
             </div>
         </div>
-            </div>
-        </main>
     </div>
-</x-app-layout>
+</x-panel-layout>
