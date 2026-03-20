@@ -61,7 +61,7 @@ $panelRoutes = ['panel.index', 'panel.clubs.create', 'panel.events.create'];
             @if(in_array($currentRoute, $panelRoutes))
                 <div class="border-t border-gray-200 pt-3 pb-3 mt-2">
                 <x-responsive-nav-link :href="route('panel.index')" :active="request()->routeIs('panel.index')">
-                    {{ __('Profile') }}
+                    {{ __('Panel') }}
                 </x-responsive-nav-link>
 
                 @if($role === 'player')

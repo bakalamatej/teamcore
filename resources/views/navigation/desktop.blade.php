@@ -9,7 +9,7 @@
             </div>
 
             <!-- Nav Links  -->
-            <div class="hidden xl-custom:flex space-x-4 xl-custom:ms-10">
+            <div class="hidden xl-custom:flex space-x-4 xl-custom:ms-4">
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-nav-link>
@@ -47,15 +47,9 @@
                         />
                     </form>
                 @endif
-                <x-secondary-button class="ms-3" :href="route('panel.index')">
-                    {{ __($panelLabel) }}
+                <x-secondary-button class="ms-3 px-6" :href="route('panel.index')">
+                    {{ __('Panel') }}
                 </x-secondary-button>
-                <form method="POST" action="{{ route('logout') }}" class="ms-3">
-                    @csrf
-                    <x-danger-button type="submit">
-                        {{ __('Sign out') }}
-                    </x-danger-button>
-                </form>
             @else
                 <x-secondary-button class="ms-3" :href="route('register')">
                     {{ __('Sign up') }}
