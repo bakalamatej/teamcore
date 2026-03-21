@@ -10,21 +10,21 @@
             @if($role === 'coach')
                 <a href="{{ route('coach.players') }}" class="sidebar-link">{{ __('Players') }}</a>
                 <a href="{{ route('coach.trainings') }}" class="sidebar-link">{{ __('Trainings') }}</a>
-                <a href="{{ route('panel.events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
+                <a href="{{ route('panel.admin.events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
             @endif
             <!-- Admin menu: users, clubs, events -->
             @if($role === 'admin')
-                <a href="{{ route('panel.users.index') }}" class="sidebar-link">{{ __('Users') }}</a>
-                <a href="{{ route('panel.memberships.index') }}" class="sidebar-link">{{ __('Memberships') }}</a>
-                <a href="{{ route('panel.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
-                <a href="{{ route('panel.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
-                <a href="{{ route('panel.reservations.index') }}" class="sidebar-link">{{ __('Reservations') }}</a>
-                <a href="{{ route('panel.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>
-                <a href="{{ route('panel.sport-fields.index') }}" class="sidebar-link">{{ __('Sport Fields') }}</a>
-                <a href="{{ route('panel.field-types.index') }}" class="sidebar-link">{{ __('Field Types') }}</a>
-                <a href="{{ route('panel.addresses.index') }}" class="sidebar-link">{{ __('Addresses') }}</a>
-                <a href="{{ route('panel.event-types.index') }}" class="sidebar-link">{{ __('Event Types') }}</a>
-                <a href="{{ route('panel.coach-evaluations.index') }}" class="sidebar-link">{{ __('Coach Evaluations') }}</a>
+                <a href="{{ route('panel.admin.users.index') }}" class="sidebar-link">{{ __('Users') }}</a>
+                <a href="{{ route('panel.admin.memberships.index') }}" class="sidebar-link">{{ __('Memberships') }}</a>
+                <a href="{{ route('panel.admin.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
+                <a href="{{ route('panel.admin.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
+                <a href="{{ route('panel.admin.reservations.index') }}" class="sidebar-link">{{ __('Reservations') }}</a>
+                <a href="{{ route('panel.admin.sports.index') }}" class="sidebar-link">{{ __('Sports') }}</a>
+                <a href="{{ route('panel.admin.sport-fields.index') }}" class="sidebar-link">{{ __('Sport Fields') }}</a>
+                <a href="{{ route('panel.admin.field-types.index') }}" class="sidebar-link">{{ __('Field Types') }}</a>
+                <a href="{{ route('panel.admin.addresses.index') }}" class="sidebar-link">{{ __('Addresses') }}</a>
+                <a href="{{ route('panel.admin.event-types.index') }}" class="sidebar-link">{{ __('Event Types') }}</a>
+                <a href="{{ route('panel.admin.coach-evaluations.index') }}" class="sidebar-link">{{ __('Coach Evaluations') }}</a>
             @endif
         </div>
         <div class="mt-auto mb-0">

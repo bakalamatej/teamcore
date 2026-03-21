@@ -28,10 +28,10 @@ class UserController extends Controller
         });
 
         if ($request->ajax()) {
-            return view('panel.users._table', compact('users'));
+            return view('panel.admin.users._table', compact('users'));
         }
 
-        return view('panel.users.index', compact('users'));
+        return view('panel.admin.users.index', compact('users'));
     }
 
     // Show create user form (admin only)
@@ -39,7 +39,7 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        return view('panel.users.create');
+        return view('panel.admin.users.create');
     }
 
     // Store new user (admin only)
@@ -63,7 +63,7 @@ class UserController extends Controller
             return response()->json(['success' => true, 'message' => 'User created', 'user' => $user], 201);
         }
 
-        return redirect()->route('panel.users.index')->with('success', 'User created successfully!');
+        return redirect()->route('panel.admin.users.index')->with('success', 'User created successfully!');
     }
 
     // Display user details (admin only)
@@ -83,7 +83,7 @@ class UserController extends Controller
             $activeEventsCount = $user->member->activeEventsQuery()->count();
         }
 
-        return view('panel.users.show', compact(
+        return view('panel.admin.users.show', compact(
             'user',
             'primaryRole',
             'activeClubsCount',
@@ -97,7 +97,7 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $user->load('member');
-        return view('panel.users.edit', compact('user'));
+        return view('panel.admin.users.edit', compact('user'));
     }
 
     // Update user (admin only)
@@ -118,7 +118,7 @@ class UserController extends Controller
             return response()->json(['success' => true, 'message' => 'User updated']);
         }
 
-        return redirect()->route('panel.users.index')->with('success', 'User updated successfully!');
+        return redirect()->route('panel.admin.users.index')->with('success', 'User updated successfully!');
     }
 
     // Delete user (admin only, cannot delete self)
@@ -128,6 +128,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect()->route('panel.users.index')->with('success', 'User deleted successfully!');
+        return redirect()->route('panel.admin.users.index')->with('success', 'User deleted successfully!');
     }
 }

@@ -27,10 +27,10 @@ class EventTypeController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.event-types._table', compact('eventTypes'));
+            return view('panel.admin.event-types._table', compact('eventTypes'));
         }
 
-        return view('panel.event-types.index', compact('eventTypes', 'sportOptions'));
+        return view('panel.admin.event-types.index', compact('eventTypes', 'sportOptions'));
     }
 
     /**
@@ -43,7 +43,7 @@ class EventTypeController extends Controller
         $sports = Sport::orderBy('name')->get();
         $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
 
-        return view('panel.event-types.create', compact('sportOptions'));
+        return view('panel.admin.event-types.create', compact('sportOptions'));
     }
 
     /**
@@ -54,7 +54,7 @@ class EventTypeController extends Controller
         $this->authorize('view', $eventType);
 
         $eventType->load('sport');
-        return view('panel.event-types.show', compact('eventType'));
+        return view('panel.admin.event-types.show', compact('eventType'));
     }
 
     /**
@@ -66,7 +66,7 @@ class EventTypeController extends Controller
 
         EventType::create($request->validated());
 
-        return redirect()->route('panel.event-types.index')->with('success', 'Event type created successfully!');
+        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type created successfully!');
     }
 
     /**
@@ -79,7 +79,7 @@ class EventTypeController extends Controller
         $sports = Sport::orderBy('name')->get();
         $sportOptions = $sports->pluck('name', 'sport_id')->toArray();
 
-        return view('panel.event-types.edit', compact('eventType', 'sportOptions'));
+        return view('panel.admin.event-types.edit', compact('eventType', 'sportOptions'));
     }
 
     /**
@@ -91,7 +91,7 @@ class EventTypeController extends Controller
 
         $eventType->update($request->validated());
 
-        return redirect()->route('panel.event-types.index')->with('success', 'Event type updated successfully!');
+        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type updated successfully!');
     }
 
     /**
@@ -103,6 +103,6 @@ class EventTypeController extends Controller
 
         $eventType->delete();
 
-        return redirect()->route('panel.event-types.index')->with('success', 'Event type deleted successfully!');
+        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type deleted successfully!');
     }
 }

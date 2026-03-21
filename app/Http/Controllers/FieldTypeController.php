@@ -21,10 +21,10 @@ class FieldTypeController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.field-types._table', compact('fieldTypes'));
+            return view('panel.admin.field-types._table', compact('fieldTypes'));
         }
 
-        return view('panel.field-types.index', compact('fieldTypes'));
+        return view('panel.admin.field-types.index', compact('fieldTypes'));
     }
 
     /**
@@ -34,7 +34,7 @@ class FieldTypeController extends Controller
     {
         $this->authorize('create', FieldType::class);
 
-        return view('panel.field-types.create');
+        return view('panel.admin.field-types.create');
     }
 
     /**
@@ -46,7 +46,7 @@ class FieldTypeController extends Controller
 
         FieldType::create($request->validated());
 
-        return redirect()->route('panel.field-types.index')->with('success', 'Field type created successfully!');
+        return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type created successfully!');
     }
 
     /**
@@ -56,7 +56,7 @@ class FieldTypeController extends Controller
     {
         $this->authorize('update', $fieldType);
 
-        return view('panel.field-types.edit', compact('fieldType'));
+        return view('panel.admin.field-types.edit', compact('fieldType'));
     }
 
     /**
@@ -68,7 +68,7 @@ class FieldTypeController extends Controller
 
         $fieldType->update($request->validated());
 
-        return redirect()->route('panel.field-types.index')->with('success', 'Field type updated successfully!');
+        return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type updated successfully!');
     }
 
     /**
@@ -80,6 +80,6 @@ class FieldTypeController extends Controller
 
         $fieldType->delete();
 
-        return redirect()->route('panel.field-types.index')->with('success', 'Field type deleted successfully!');
+        return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type deleted successfully!');
     }
 }

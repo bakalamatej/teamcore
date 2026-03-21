@@ -36,10 +36,10 @@ class SportFieldController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.sport-fields._table', compact('sportFields'));
+            return view('panel.admin.sport-fields._table', compact('sportFields'));
         }
 
-        return view('panel.sport-fields.index', compact('sportFields', 'cityOptions', 'fieldTypeOptions'));
+        return view('panel.admin.sport-fields.index', compact('sportFields', 'cityOptions', 'fieldTypeOptions'));
     }
 
     /**
@@ -57,7 +57,7 @@ class SportFieldController extends Controller
         $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
         $fieldTypeOptions = FieldType::orderBy('name')->pluck('name', 'field_type_id')->toArray();
 
-        return view('panel.sport-fields.create', compact('sportOptions', 'fieldTypeOptions', 'addressOptions'));
+        return view('panel.admin.sport-fields.create', compact('sportOptions', 'fieldTypeOptions', 'addressOptions'));
     }
 
     /**
@@ -68,7 +68,7 @@ class SportFieldController extends Controller
         $this->authorize('view', $sportField);
 
         $sportField->load('address', 'sports');
-        return view('panel.sport-fields.show', compact('sportField'));
+        return view('panel.admin.sport-fields.show', compact('sportField'));
     }
 
     /**
@@ -99,7 +99,7 @@ class SportFieldController extends Controller
 
         $sportField->sports()->sync($data['sport_ids']);
 
-        return redirect()->route('panel.sport-fields.index')->with('success', 'Sport field created successfully!');
+        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field created successfully!');
     }
 
     /**
@@ -118,7 +118,7 @@ class SportFieldController extends Controller
         $fieldTypeOptions = FieldType::orderBy('name')->pluck('name', 'field_type_id')->toArray();
         $selectedSportIds = $sportField->sports()->pluck('sports.sport_id')->toArray();
 
-        return view('panel.sport-fields.edit', compact('sportField', 'sportOptions', 'fieldTypeOptions', 'addressOptions', 'selectedSportIds'));
+        return view('panel.admin.sport-fields.edit', compact('sportField', 'sportOptions', 'fieldTypeOptions', 'addressOptions', 'selectedSportIds'));
     }
 
     /**
@@ -149,7 +149,7 @@ class SportFieldController extends Controller
 
         $sportField->sports()->sync($data['sport_ids']);
 
-        return redirect()->route('panel.sport-fields.index')->with('success', 'Sport field updated successfully!');
+        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field updated successfully!');
     }
 
     /**
@@ -161,6 +161,6 @@ class SportFieldController extends Controller
 
         $sportField->delete();
 
-        return redirect()->route('panel.sport-fields.index')->with('success', 'Sport field deleted successfully!');
+        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field deleted successfully!');
     }
 }

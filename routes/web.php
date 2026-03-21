@@ -55,13 +55,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stats', [PanelController::class, 'stats'])->name('panel.stats');
         Route::patch('/profile', [PanelController::class, 'update'])->name('panel.profile.update');
         Route::delete('/profile', [PanelController::class, 'destroy'])->name('panel.profile.destroy');
-
-        // Panel - Create Event (Admin & Coach only)
-        Route::prefix('events')->middleware('admin_or_coach')->group(function () {
-            Route::get('/create', [EventController::class, 'create'])->name('panel.events.create');
-            Route::post('/', [EventController::class, 'store'])->name('panel.events.store');
-        });
-
     });
 
     // --------------------------------------------------
@@ -76,8 +69,8 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------
     // ADMIN ROUTES
     // --------------------------------------------------
-    Route::prefix('admin')->middleware('admin')->group(function () {
-        Route::prefix('users')->name('panel.users.')->group(function () {
+    Route::prefix('panel/admin')->name('panel.admin.')->middleware('admin')->group(function () {
+        Route::prefix('users')->name('users.')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('index');
             Route::get('/{user}', [UserController::class, 'show'])->name('show');
             Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
@@ -85,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('clubs')->name('panel.clubs.')->group(function () {
+        Route::prefix('clubs')->name('clubs.')->group(function () {
             Route::get('/create', [ClubController::class, 'create'])->name('create');
             Route::post('/', [ClubController::class, 'store'])->name('store');
             Route::get('/', [ClubController::class, 'adminIndex'])->name('index');
@@ -95,7 +88,9 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{club}', [ClubController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('events')->name('panel.events.')->group(function () {
+        Route::prefix('events')->name('events.')->group(function () {
+            Route::get('/create', [EventController::class, 'create'])->name('create');
+            Route::post('/', [EventController::class, 'store'])->name('store');
             Route::get('/', [EventController::class, 'adminIndex'])->name('index');
             Route::get('/{event}', [EventController::class, 'adminShow'])->name('show');
             Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
@@ -103,7 +98,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('sports')->name('panel.sports.')->group(function () {
+        Route::prefix('sports')->name('sports.')->group(function () {
             Route::get('/', [SportController::class, 'index'])->name('index');
             Route::get('/create', [SportController::class, 'create'])->name('create');
             Route::post('/', [SportController::class, 'store'])->name('store');
@@ -112,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{sport}', [SportController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('sport-fields')->name('panel.sport-fields.')->group(function () {
+        Route::prefix('sport-fields')->name('sport-fields.')->group(function () {
             Route::get('/', [SportFieldController::class, 'index'])->name('index');
             Route::get('/create', [SportFieldController::class, 'create'])->name('create');
             Route::post('/', [SportFieldController::class, 'store'])->name('store');
@@ -121,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{sportField}', [SportFieldController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('addresses')->name('panel.addresses.')->group(function () {
+        Route::prefix('addresses')->name('addresses.')->group(function () {
             Route::get('/', [AddressController::class, 'index'])->name('index');
             Route::get('/create', [AddressController::class, 'create'])->name('create');
             Route::post('/', [AddressController::class, 'store'])->name('store');
@@ -130,7 +125,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{address}', [AddressController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('event-types')->name('panel.event-types.')->group(function () {
+        Route::prefix('event-types')->name('event-types.')->group(function () {
             Route::get('/', [EventTypeController::class, 'index'])->name('index');
             Route::get('/create', [EventTypeController::class, 'create'])->name('create');
             Route::post('/', [EventTypeController::class, 'store'])->name('store');
@@ -139,7 +134,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{eventType}', [EventTypeController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('field-types')->name('panel.field-types.')->group(function () {
+        Route::prefix('field-types')->name('field-types.')->group(function () {
             Route::get('/', [FieldTypeController::class, 'index'])->name('index');
             Route::get('/create', [FieldTypeController::class, 'create'])->name('create');
             Route::post('/', [FieldTypeController::class, 'store'])->name('store');
@@ -148,7 +143,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{fieldType}', [FieldTypeController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('memberships')->name('panel.memberships.')->group(function () {
+        Route::prefix('memberships')->name('memberships.')->group(function () {
             Route::get('/', [PanelMembershipController::class, 'index'])->name('index');
             Route::get('/create', [PanelMembershipController::class, 'create'])->name('create');
             Route::post('/', [PanelMembershipController::class, 'store'])->name('store');
@@ -157,12 +152,12 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{memberClub}', [PanelMembershipController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('coach-evaluations')->name('panel.coach-evaluations.')->group(function () {
+        Route::prefix('coach-evaluations')->name('coach-evaluations.')->group(function () {
             Route::get('/', [PanelCoachEvaluationController::class, 'index'])->name('index');
             Route::get('/{member}', [PanelCoachEvaluationController::class, 'show'])->name('show');
         });
 
-        Route::prefix('reservations')->name('panel.reservations.')->group(function () {
+        Route::prefix('reservations')->name('reservations.')->group(function () {
             Route::get('/', [PanelReservationController::class, 'index'])->name('index');
             Route::get('/create', [PanelReservationController::class, 'create'])->name('create');
             Route::post('/', [PanelReservationController::class, 'store'])->name('store');

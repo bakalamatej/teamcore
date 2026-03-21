@@ -108,10 +108,10 @@ class EventController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.events._table', compact('events'));
+            return view('panel.admin.events._table', compact('events'));
         }
 
-        return view('panel.events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions'));
+        return view('panel.admin.events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions'));
     }
 
     /**
@@ -126,7 +126,7 @@ class EventController extends Controller
         $eventTypesBySport = $this->getEventTypesBySportOptions();
         $clubsBySport = $this->getClubsBySportOptions();
 
-        return view('panel.events.create', compact('sportFieldOptions', 'sportOptions', 'eventTypesBySport', 'clubsBySport'));
+        return view('panel.admin.events.create', compact('sportFieldOptions', 'sportOptions', 'eventTypesBySport', 'clubsBySport'));
     }
 
     /**
@@ -159,7 +159,7 @@ class EventController extends Controller
             return response()->json(['success' => true, 'event' => $event], 201);
         }
 
-        return redirect()->route('events.index');
+        return redirect()->route('panel.admin.events.index');
     }
 
     /**
@@ -175,7 +175,7 @@ class EventController extends Controller
      */
     public function adminShow(Event $event)
     {
-        return $this->renderEventShow($event, 'panel.events.show');
+        return $this->renderEventShow($event, 'panel.admin.events.show');
     }
 
     private function renderEventShow(Event $event, string $view)
@@ -227,7 +227,7 @@ class EventController extends Controller
         $clubsBySport = $this->getClubsBySportOptions();
         $selectedClubIds = $event->clubs->pluck('club_id')->map(fn($id) => (string) $id)->values()->toArray();
 
-        return view('panel.events.edit', compact('event', 'sportFieldOptions', 'sportOptions', 'eventTypesBySport', 'clubsBySport', 'selectedClubIds'));
+        return view('panel.admin.events.edit', compact('event', 'sportFieldOptions', 'sportOptions', 'eventTypesBySport', 'clubsBySport', 'selectedClubIds'));
     }
 
     /**
@@ -256,7 +256,7 @@ class EventController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('events.index');
+        return redirect()->route('panel.admin.events.index');
     }
 
     /**
@@ -267,7 +267,7 @@ class EventController extends Controller
         $this->authorize('delete', $event);
 
         $event->delete();
-        return redirect()->route('events.index');
+        return redirect()->route('panel.admin.events.index');
     }
 
     /**

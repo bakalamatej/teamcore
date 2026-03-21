@@ -21,10 +21,10 @@ class SportController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.sports._table', compact('sports'));
+            return view('panel.admin.sports._table', compact('sports'));
         }
 
-        return view('panel.sports.index', compact('sports'));
+        return view('panel.admin.sports.index', compact('sports'));
     }
 
     /**
@@ -34,7 +34,7 @@ class SportController extends Controller
     {
         $this->authorize('create', Sport::class);
 
-        return view('panel.sports.create');
+        return view('panel.admin.sports.create');
     }
 
     /**
@@ -44,7 +44,7 @@ class SportController extends Controller
     {
         $this->authorize('view', $sport);
 
-        return view('panel.sports.show', compact('sport'));
+        return view('panel.admin.sports.show', compact('sport'));
     }
 
     /**
@@ -56,7 +56,7 @@ class SportController extends Controller
 
         Sport::create($request->validated());
 
-        return redirect()->route('panel.sports.index')->with('success', 'Sport created successfully!');
+        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport created successfully!');
     }
 
     /**
@@ -66,7 +66,7 @@ class SportController extends Controller
     {
         $this->authorize('update', $sport);
 
-        return view('panel.sports.edit', compact('sport'));
+        return view('panel.admin.sports.edit', compact('sport'));
     }
 
     /**
@@ -78,7 +78,7 @@ class SportController extends Controller
 
         $sport->update($request->validated());
 
-        return redirect()->route('panel.sports.index')->with('success', 'Sport updated successfully!');
+        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport updated successfully!');
     }
 
     /**
@@ -90,6 +90,6 @@ class SportController extends Controller
 
         $sport->delete();
 
-        return redirect()->route('panel.sports.index')->with('success', 'Sport deleted successfully!');
+        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport deleted successfully!');
     }
 }

@@ -30,10 +30,10 @@ class AddressController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.addresses._table', compact('addresses'));
+            return view('panel.admin.addresses._table', compact('addresses'));
         }
 
-        return view('panel.addresses.index', compact('addresses', 'countryOptions', 'cityOptions'));
+        return view('panel.admin.addresses.index', compact('addresses', 'countryOptions', 'cityOptions'));
     }
 
     /**
@@ -43,7 +43,7 @@ class AddressController extends Controller
     {
         $this->authorize('create', Address::class);
 
-        return view('panel.addresses.create');
+        return view('panel.admin.addresses.create');
     }
 
     /**
@@ -55,7 +55,7 @@ class AddressController extends Controller
 
         Address::create($request->validated());
 
-        return redirect()->route('panel.addresses.index')->with('success', 'Address created successfully!');
+        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address created successfully!');
     }
 
     /**
@@ -65,7 +65,7 @@ class AddressController extends Controller
     {
         $this->authorize('update', $address);
 
-        return view('panel.addresses.edit', compact('address'));
+        return view('panel.admin.addresses.edit', compact('address'));
     }
 
     /**
@@ -77,7 +77,7 @@ class AddressController extends Controller
 
         $address->update($request->validated());
 
-        return redirect()->route('panel.addresses.index')->with('success', 'Address updated successfully!');
+        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address updated successfully!');
     }
 
     /**
@@ -89,6 +89,6 @@ class AddressController extends Controller
 
         $address->delete();
 
-        return redirect()->route('panel.addresses.index')->with('success', 'Address deleted successfully!');
+        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address deleted successfully!');
     }
 }

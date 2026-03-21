@@ -36,10 +36,10 @@ class PanelMembershipController extends Controller
             ->paginate(15);
 
         if ($request->ajax()) {
-            return view('panel.memberships._table', compact('memberships'));
+            return view('panel.admin.memberships._table', compact('memberships'));
         }
 
-        return view('panel.memberships.index', compact('memberships', 'clubOptions'));
+        return view('panel.admin.memberships.index', compact('memberships', 'clubOptions'));
     }
 
     public function create(Request $request)
@@ -51,7 +51,7 @@ class PanelMembershipController extends Controller
         $sportsByClub = $this->sportsByClub();
         $selectedMemberId = old('member_id', $request->input('member_id'));
 
-        return view('panel.memberships.create', compact(
+        return view('panel.admin.memberships.create', compact(
             'memberOptions',
             'clubOptions',
             'sportsByClub',
@@ -65,7 +65,7 @@ class PanelMembershipController extends Controller
 
         MemberClub::create($request->validated());
 
-        return redirect()->route('panel.memberships.index')->with('success', 'Membership created successfully.');
+        return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership created successfully.');
     }
 
     public function edit(MemberClub $memberClub)
@@ -76,7 +76,7 @@ class PanelMembershipController extends Controller
         $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
         $sportsByClub = $this->sportsByClub();
 
-        return view('panel.memberships.edit', compact('memberClub', 'clubOptions', 'sportsByClub'));
+        return view('panel.admin.memberships.edit', compact('memberClub', 'clubOptions', 'sportsByClub'));
     }
 
     public function update(MemberClubRequest $request, MemberClub $memberClub)
@@ -85,7 +85,7 @@ class PanelMembershipController extends Controller
 
         $memberClub->update($request->validated());
 
-        return redirect()->route('panel.memberships.edit', $memberClub)->with('success', 'Membership updated.');
+        return redirect()->route('panel.admin.memberships.edit', $memberClub)->with('success', 'Membership updated.');
     }
 
     public function destroy(MemberClub $memberClub)
@@ -96,7 +96,7 @@ class PanelMembershipController extends Controller
             'left_at' => now(),
         ]);
 
-        return redirect()->route('panel.memberships.index')->with('success', 'Membership ended successfully.');
+        return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership ended successfully.');
     }
 
     private function memberOptions(): array

@@ -28,10 +28,10 @@ class PanelCoachEvaluationController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.coach-evaluations._table', compact('members'));
+            return view('panel.admin.coach-evaluations._table', compact('members'));
         }
 
-        return view('panel.coach-evaluations.index', compact('members'));
+        return view('panel.admin.coach-evaluations.index', compact('members'));
     }
 
     /**
@@ -61,7 +61,7 @@ class PanelCoachEvaluationController extends Controller
             ->orderByDate()
             ->get();
 
-        return view('panel.coach-evaluations.show', compact(
+        return view('panel.admin.coach-evaluations.show', compact(
             'member',
             'activeCoachClubs',
             'averageRating',

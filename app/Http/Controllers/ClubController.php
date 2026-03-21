@@ -50,10 +50,10 @@ class ClubController extends Controller
             ->paginate(10);
 
         if ($request->ajax()) {
-            return view('panel.clubs._table', compact('clubs'));
+            return view('panel.admin.clubs._table', compact('clubs'));
         }
 
-        return view('panel.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
+        return view('panel.admin.clubs.index', compact('clubs', 'cityOptions', 'sportOptions'));
     }
 
     /**
@@ -63,7 +63,7 @@ class ClubController extends Controller
     {
         $this->authorize('view', $club);
 
-        return $this->renderClubShow($club, 'panel.clubs.show');
+        return $this->renderClubShow($club, 'panel.admin.clubs.show');
     }
 
     /**
@@ -85,12 +85,18 @@ class ClubController extends Controller
         $addressOptions = Address::query()
             ->orderBy('city')
             ->orderBy('street')
-            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(city, ''))) as label")
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(CONCAT(street, ', '), ''), COALESCE(city, ''))) as label")
             ->pluck('label', 'address_id')
+            ->toArray();
+        $countryOptions = Address::query()
+            ->select('country')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country', 'country')
             ->toArray();
         $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
 
-        return view('panel.clubs.create', compact('addressOptions', 'sportOptions'));
+        return view('panel.admin.clubs.create', compact('addressOptions', 'countryOptions', 'sportOptions'));
     }
 
     /**
@@ -125,7 +131,7 @@ class ClubController extends Controller
 
         $club->sports()->sync($validated['sport_ids']);
 
-        return redirect()->route('panel.clubs.index')->with('success', 'Club created successfully!');
+        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club created successfully!');
     }
 
     /**
@@ -137,14 +143,20 @@ class ClubController extends Controller
         $addressOptions = Address::query()
             ->orderBy('city')
             ->orderBy('street')
-            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(street, ''), ', ', COALESCE(city, ''))) as label")
+            ->selectRaw("address_id, TRIM(CONCAT(COALESCE(CONCAT(street, ', '), ''), COALESCE(city, ''))) as label")
             ->pluck('label', 'address_id')
+            ->toArray();
+        $countryOptions = Address::query()
+            ->select('country')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country', 'country')
             ->toArray();
         $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
         $club->load('sports');
         $selectedSportIds = $club->sports->pluck('sport_id')->toArray();
 
-        return view('panel.clubs.edit', compact('club', 'addressOptions', 'sportOptions', 'selectedSportIds'));
+        return view('panel.admin.clubs.edit', compact('club', 'addressOptions', 'countryOptions', 'sportOptions', 'selectedSportIds'));
     }
 
     /**
@@ -179,7 +191,7 @@ class ClubController extends Controller
 
         $club->sports()->sync($validated['sport_ids']);
 
-        return redirect()->route('panel.clubs.index')->with('success', 'Club updated successfully!');
+        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club updated successfully!');
     }
 
     /**
@@ -191,7 +203,7 @@ class ClubController extends Controller
 
         $club->delete();
 
-        return redirect()->route('panel.clubs.index')->with('success', 'Club deleted successfully!');
+        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club deleted successfully!');
     }
 
     private function renderClubShow(Club $club, $view = 'panel.clubs.show')

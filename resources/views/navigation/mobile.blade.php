@@ -1,5 +1,5 @@
 @php
-$panelRoutes = request()->routeIs('panel.*') || request()->routeIs('admin.*') || request()->routeIs('coach.*');
+$panelRoutes = request()->routeIs('panel.admin.*') || request()->routeIs('admin.*') || request()->routeIs('coach.*');
 @endphp
 
 <div x-show="open"
@@ -60,12 +60,12 @@ $panelRoutes = request()->routeIs('panel.*') || request()->routeIs('admin.*') ||
         <div>
             @if($panelRoutes)
                 <div class="border-t border-gray-200 pt-3 pb-3 mt-2">
-                <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.update.index')">
+                <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.admin.update.index')">
                     {{ __('Panel') }}
                 </x-responsive-nav-link>
 
                 @if($role === 'player')
-                    <x-responsive-nav-link :href="route('panel.stats')" :active="request()->routeIs('panel.stats')">
+                    <x-responsive-nav-link :href="route('panel.stats')" :active="request()->routeIs('panel.admin.stats')">
                         {{ __('Statistics') }}
                     </x-responsive-nav-link>
                 @endif
@@ -79,21 +79,21 @@ $panelRoutes = request()->routeIs('panel.*') || request()->routeIs('admin.*') ||
                         {{ __('Trainings') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('panel.events.create')" :active="request()->routeIs('panel.events.create')">
+                    <x-responsive-nav-link :href="route('panel.admin.events.create')" :active="request()->routeIs('panel.admin.events.create')">
                         {{ __('Create event') }}
                     </x-responsive-nav-link>
                 @endif
 
                 @if($role === 'admin')
-                    <x-responsive-nav-link :href="route('panel.clubs.create')" :active="request()->routeIs('panel.clubs.create')">
+                    <x-responsive-nav-link :href="route('panel.admin.clubs.create')" :active="request()->routeIs('panel.admin.clubs.create')">
                         {{ __('Add club') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('panel.users.index')" :active="request()->routeIs('panel.users.index')">
+                    <x-responsive-nav-link :href="route('panel.admin.users.index')" :active="request()->routeIs('panel.admin.users.index')">
                         {{ __('Users') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('panel.events.create')" :active="request()->routeIs('panel.events.create')">
+                    <x-responsive-nav-link :href="route('panel.admin.events.create')" :active="request()->routeIs('panel.admin.events.create')">
                         {{ __('Create event') }}
                     </x-responsive-nav-link>
 

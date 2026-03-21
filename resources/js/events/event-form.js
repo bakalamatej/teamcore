@@ -6,7 +6,7 @@ export default () => ({
     openEventType: false,
     selectedEventType: '',
     eventTypesBySport: {},
-    selectedClubIds: [],
+    selectedClubs: [],
     clubsBySport: {},
     get availableEventTypes() {
         if (!this.selectedSport) return {};
@@ -17,10 +17,13 @@ export default () => ({
         return this.clubsBySport[this.selectedSport] ?? {};
     },
     syncSportChange() {
-        if (this.selectedSport !== this.previousSport) {
-            this.selectedEventType = '';
-            this.selectedClubIds = [];
-            this.previousSport = this.selectedSport;
-        }
+    if (this.selectedSport !== this.previousSport) {
+        this.selectedEventType = '';
+        this.selectedClubs = [];
+        this.previousSport = this.selectedSport;
+        this.$nextTick(() => {
+            this.selectedClubs = [];
+        });
     }
+}
 });

@@ -59,9 +59,9 @@
             @if($id) id="{{ $id }}" @endif
             x-on:click="toggleDropdown()"
             @disabled($disabled)
-            class="w-full flex items-center justify-between border border-gray-300 rounded-md shadow-sm text-sm px-3 py-1 focus:border-indigo-500 focus:ring-indigo-500 bg-white text-left text-gray-800"
+            class="w-full flex items-center justify-between border border-gray-300 rounded-md shadow-sm text-sm px-3 py-[10px] focus:border-indigo-500 focus:ring-indigo-500 bg-white text-left text-gray-800"
             :class="{ 'opacity-50 cursor-not-allowed': isDisabled }"
-            style="min-height: 2.25rem; height: 2.25rem;"
+            style="min-height: 2.25rem;"
         >
             <span
                 x-text="selected !== '' && selected !== null ? options[selected] ?? placeholderText : placeholderText"
