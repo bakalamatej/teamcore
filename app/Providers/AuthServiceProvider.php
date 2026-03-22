@@ -6,12 +6,12 @@ namespace App\Providers;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use App\Models\{
     Club, Event, Member, Reservation, File, MemberClub, CoachEvaluation,
-    EventMemberResult, EventClubResult, EventType, Sport, Address, SportField, FieldType,
+    EventType, Sport, Address, SportField, FieldType,
     EventStatistic, ClubStatistic, MemberStatistic, User
 };
 use App\Policies\{
-    ClubPolicy, EventPolicy, MemberPolicy, ReservationPolicy, FilePolicy,
-    MemberClubPolicy, CoachEvaluationPolicy, EventMemberResultPolicy, EventClubResultPolicy,
+    ClubPolicy, MemberPolicy, ReservationPolicy, FilePolicy, EventPolicy,
+    MemberClubPolicy, CoachEvaluationPolicy,
     EventTypePolicy, SportPolicy, AddressPolicy, SportFieldPolicy, FieldTypePolicy,
     EventStatisticPolicy, ClubStatisticPolicy, MemberStatisticPolicy, UserPolicy
 };
@@ -31,8 +31,6 @@ class AuthServiceProvider extends ServiceProvider
         File::class => FilePolicy::class,
         MemberClub::class => MemberClubPolicy::class,
         CoachEvaluation::class => CoachEvaluationPolicy::class,
-        EventMemberResult::class => EventMemberResultPolicy::class,
-        EventClubResult::class => EventClubResultPolicy::class,
         EventType::class => EventTypePolicy::class,
         Sport::class => SportPolicy::class,
         Address::class => AddressPolicy::class,

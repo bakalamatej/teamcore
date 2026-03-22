@@ -146,8 +146,5 @@ class Reservation extends Model
         return $this->hasMany(Event::class, 'reservation_id');
     }
 
-    public function evaluations()
-    {
-        return $this->hasMany(CoachEvaluation::class, 'reservation_id');
-    }
+
 }

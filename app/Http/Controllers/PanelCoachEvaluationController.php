@@ -44,7 +44,7 @@ class PanelCoachEvaluationController extends Controller
         $coachMemberId = Auth::user()?->member?->member_id;
         $evaluations = CoachEvaluation::whereHas('coach', fn($q) => $q->where('member_id', $coachMemberId))
             ->when($request->filled('search'), fn($q) => $q->searchByEvaluator($request->input('search')))
-            ->with('coach.member', 'evaluatedByMember', 'reservation')
+            ->with('coach.member', 'evaluatedByMember')
             ->orderByDesc('created_at')
             ->paginate(15);
 

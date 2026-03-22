@@ -12,7 +12,6 @@ class CoachEvaluation extends Model
     protected $fillable = [
         'coach_member_club_id',
         'evaluated_by_member_id',
-        'reservation_id',
         'rating',
         'comment',
     ];
@@ -85,12 +84,7 @@ class CoachEvaluation extends Model
         return $query->where('rating', '>=', $minRating);
     }
 
-    public function scopeByReservation($query, $reservationId)
-    {
-        if (!$reservationId) return $query;
-        
-        return $query->where('reservation_id', $reservationId);
-    }
+
 
     public function scopeRecent($query, $days = 30)
     {
@@ -126,8 +120,5 @@ class CoachEvaluation extends Model
         return $this->belongsTo(Member::class, 'evaluated_by_member_id');
     }
 
-    public function reservation()
-    {
-        return $this->belongsTo(Reservation::class, 'reservation_id');
-    }
+
 }

@@ -23,10 +23,6 @@ return new class extends Migration
                 ->constrained('members', 'member_id')
                 ->restrictOnDelete();
 
-            $table->foreignId('reservation_id')
-                ->constrained('reservations', 'reservation_id')
-                ->restrictOnDelete();
-
             $table->decimal('rating', 3, 1);
             $table->longText('comment')->nullable();
             $table->timestamps();

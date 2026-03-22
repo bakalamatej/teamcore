@@ -8,6 +8,7 @@ use App\Http\Controllers\CoachEventController;
 use App\Http\Controllers\CoachReservationController;
 use App\Http\Controllers\CoachClubController;
 use App\Http\Controllers\PanelMembershipController;
+use App\Http\Controllers\EventResultsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\SportController;
@@ -77,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{event}/edit', [CoachEventController::class, 'edit'])->name('edit');
             Route::patch('/{event}', [CoachEventController::class, 'update'])->name('update');
             Route::delete('/{event}', [CoachEventController::class, 'destroy'])->name('destroy');
+            Route::get('/{event}/results', [EventResultsController::class, 'edit'])->name('results.edit');
+            Route::post('/{event}/results', [EventResultsController::class, 'store'])->name('results.store');
         });
         Route::prefix('clubs')->name('clubs.')->group(function () {
             Route::get('/', [CoachClubController::class, 'index'])->name('index');

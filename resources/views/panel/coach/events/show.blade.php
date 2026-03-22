@@ -3,7 +3,7 @@
 		<!-- Header -->
 		<div class="mb-4 pb-4 border-b-2 border-gray-200">
 			<h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
-			<div class="flex items-center gap-4">
+			<div class="flex items-center gap-4 mt-2">
 				<span @class([
 					'px-3 py-1 rounded-full text-sm font-semibold',
 					'bg-gray-200 text-gray-800' => $statusValue === 'finished',
@@ -141,6 +141,13 @@
 				<div class="space-y-3 mt-auto">
 					@auth
 						@if($canManageEvent)
+							<x-secondary-button 
+								class="w-full justify-center {{ $statusValue !== 'finished' ? 'opacity-50 cursor-not-allowed' : '' }}" 
+								:href="$statusValue === 'finished' ? route('panel.coach.events.results.edit', $event) : null"
+								:disabled="$statusValue !== 'finished'">
+								{{ __('Add Results') }}
+							</x-secondary-button>
+
 							<x-primary-button class="w-full justify-center" :href="route('panel.coach.events.edit', $event)">
 								{{ __('Edit Event') }}
 							</x-primary-button>

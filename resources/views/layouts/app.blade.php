@@ -19,14 +19,36 @@
         @stack('scripts')
 
     </head>
-    <body class="font-sans antialiased bg-neutral-300">
+    <body class="font-sans antialiased bg-neutral-300">        
         <div class="w-[90%] lg:w-[70%] mx-auto ">
             @include('layouts.navigation-layout')
-
+            
             <!-- Page Content -->
             <main class="pt-[128px] pb-12" >
                 {{ $slot }}
             </main>
         </div>
+
+        <x-modal name="error-modal" :show="false" focusable>
+            <div class="p-6 text-left">
+                <h2 class="my-heading">{{ __('Error') }}</h2>
+                <p class="my-text">{{ session('error') }}</p>
+                <div class="flex justify-end gap-3 mt-6">
+                    <x-primary-button x-on:click="$dispatch('close-modal', 'error-modal')">
+                        {{ __('Cancel') }}
+                    </x-primary-button>
+                </div>
+            </div>
+        </x-modal>
+
+        @if(session()->has('error'))
+        <script>
+            document.addEventListener('alpine:init', () => {
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('open-modal', { detail: 'error-modal' }));
+                }, 100);
+            });
+        </script>
+        @endif
     </body>
 </html>

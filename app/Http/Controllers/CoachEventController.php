@@ -44,6 +44,8 @@ class CoachEventController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Event::class);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
@@ -57,6 +59,8 @@ class CoachEventController extends Controller
 
     public function store(StoreEventRequest $request)
     {
+        $this->authorize('create', Event::class);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
@@ -80,6 +84,8 @@ class CoachEventController extends Controller
 
     public function show(Event $event)
     {
+        $this->authorize('view', $event);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
@@ -88,7 +94,11 @@ class CoachEventController extends Controller
 
         $event->load('clubs', 'memberClubs.member.user', 'sportField', 'eventType', 'eventStatistic');
         $activeClubs = $event->activeClubs;
-        $activeMembers = $event->activeMembers;
+        $activeMembers = $event->memberClubs
+            ->where('club_id', $club->club_id)
+            ->map(fn($mc) => $mc->member)
+            ->filter()
+            ->values();
         $activeClubsCount = $activeClubs->count();
         $activeMembersCount = $activeMembers->count();
         $statisticsClubsCount = $event->eventStatistic?->total_teams ?? 0;
@@ -110,6 +120,8 @@ class CoachEventController extends Controller
 
     public function edit(Event $event)
     {
+        $this->authorize('update', $event);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
@@ -127,6 +139,8 @@ class CoachEventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event)
     {
+        $this->authorize('update', $event);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
@@ -152,6 +166,8 @@ class CoachEventController extends Controller
 
     public function destroy(Event $event)
     {
+        $this->authorize('delete', $event);
+
         $membership = Auth::user()?->activeMembership();
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');

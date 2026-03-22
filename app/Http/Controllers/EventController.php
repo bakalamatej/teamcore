@@ -185,7 +185,12 @@ class EventController extends Controller
         $event->load('clubs', 'memberClubs.member.user', 'sportField', 'eventType', 'eventStatistic');
 
         $activeClubs = $event->activeClubs;
-        $activeMembers = $event->activeMembers;
+        $clubId = Auth::user()?->activeMembership()?->club_id;
+        $activeMembers = $event->memberClubs
+            ->where('club_id', $clubId)
+            ->map(fn($mc) => $mc->member)
+            ->filter()
+            ->values();
         $activeClubsCount = $activeClubs->count();
         $activeMembersCount = $activeMembers->count();
         $statisticsClubsCount = $event->eventStatistic?->total_teams ?? 0;
