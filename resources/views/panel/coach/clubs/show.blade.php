@@ -1,6 +1,6 @@
-<x-app-layout>
-    <div class="mx-auto bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
-    <!-- Header -->
+<x-panel-layout>
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+        <!-- Header -->
         <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $club->name }}</h1>
             <p class="text-gray-600">{{ __('Created') }}: {{ $club->created_at->format('d.m.Y H:i') }}</p>
@@ -12,7 +12,6 @@
                 <!-- Club Details -->
                 <div class="detail-card">
                     <h2 class="detail-card-header">{{ __('Club Information') }}</h2>
-                    
                     <div class="space-y-4">
                         <!-- Email -->
                         @if($club->email)
@@ -23,7 +22,6 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Phone -->
                         @if($club->phone)
                             <div class="detail-item">
@@ -33,7 +31,6 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Website -->
                         @if($club->webpage)
                             <div class="detail-item">
@@ -43,30 +40,22 @@
                                 </a>
                             </div>
                         @endif
-
                         <!-- Location -->
                         <div class="detail-item-divider">
                             <div class="detail-item">
                                 <span class="detail-item-label">{{ __('Location:') }}</span>
                                 <div class="detail-item-value">
                                     <p class="text-gray-900">{{ $club->address?->street ?? __('N/A') }}</p>
-                                    <p class="text-sm text-gray-600">
-                                        {{ $club->address?->zip_code ?? '' }} 
-                                        {{ $club->address?->city ?? '' }}
-                                    </p>
+                                    <p class="text-sm text-gray-600">{{ $club->address?->zip_code ?? '' }} {{ $club->address?->city ?? '' }}</p>
                                     <p class="text-sm text-gray-600">{{ $club->address?->country ?? '' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- Active Members -->
                 <div class="detail-card">
-                    <h2 class="detail-card-header">
-                        {{ __('Members') }}
-                    </h2>
-                    
+                    <h2 class="detail-card-header">{{ __('Members') }}</h2>
                     @if($activeMembersCount > 0)
                         <div class="overflow-x-auto">
                             <table class="data-table w-full text-left">
@@ -105,20 +94,16 @@
                         <p class="text-gray-600">{{ __('No members in this club') }}</p>
                     @endif
                 </div>
-
                 <!-- Recent Events -->
                 <div class="detail-card">
-                    <h2 class="detail-card-header">
-                        {{ __('Recent Events') }}
-                    </h2>
-                    
+                    <h2 class="detail-card-header">{{ __('Recent Events') }}</h2>
                     @if($activeEventsCount > 0)
                         <div class="space-y-2">
                             @foreach($recentEvents as $event)
                                 <div class="detail-list-item" style="display: block;">
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
-                                            <a href="{{ route('events.show', $event) }}" class="detail-list-item-link">
+                                            <a href="{{ route('panel.coach.events.show', $event) }}" class="detail-list-item-link">
                                                 {{ $event->title }}
                                             </a>
                                             <p class="detail-list-secondary" style="font-size: 0.75rem;">
@@ -127,7 +112,7 @@
                                         </div>
                                         <span class="status-badge
                                             {{ $event->statusValue === 'finished' ? 'status-finished' : 
-                                                ($event->statusValue === 'canceled' ? 'status-cancelled' : 'status-scheduled') }}">
+                                               ($event->statusValue === 'canceled' ? 'status-cancelled' : 'status-scheduled') }}">
                                             {{ ucfirst($event->statusValue) }}
                                         </span>
                                     </div>
@@ -139,13 +124,11 @@
                     @endif
                 </div>
             </div>
-
-            <!-- Sidebar -->
             <div class="lg:col-span-1 flex flex-col">
                 <!-- Club Statistics -->
                 <div class="sidebar-card sidebar-card-indigo">
                     <div class="space-y-2">
-                         <div>
+                        <div>
                             <p class="stat-label" style="color: #3730a3;">{{ __('Active Members') }}</p>
                             <p class="stat-value" style="color: #4f46e5;">{{ $stats?->active_members ?? 0 }}</p>
                         </div>
@@ -171,11 +154,9 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Coaches -->
                 <div class="sidebar-card sidebar-card-gray">
                     <h3 class="sidebar-card-title">{{ __('Coaches') }}</h3>
-                    
                     @if($coaches->count() > 0)
                         <div class="space-y-2">
                             @foreach($coaches as $coach)
@@ -189,7 +170,17 @@
                         <p class="text-sm text-gray-600">{{ __('No coaches assigned') }}</p>
                     @endif
                 </div>
+                <!-- Actions -->
+                <div class="space-y-3 mt-auto">
+                    @auth
+                        @if($canManageClub)
+                            <x-primary-button class="w-full justify-center" :href="route('panel.coach.clubs.edit', $club)">
+                                {{ __('Edit Club') }}
+                            </x-primary-button>
+                        @endif
+                    @endauth
+                </div>
             </div>
-        </div>  
+        </div>
     </div>
-</x-app-layout>
+</x-panel-layout>

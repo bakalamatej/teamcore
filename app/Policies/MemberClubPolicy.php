@@ -39,7 +39,7 @@ class MemberClubPolicy extends Policy
         // Club members can view each other's memberships
         if ($user->member) {
             return $user->member->clubs()
-                ->where('club_id', $memberClub->club_id)
+                ->where('clubs.club_id', $memberClub->club_id)
                 ->exists();
         }
 
@@ -52,7 +52,11 @@ class MemberClubPolicy extends Policy
     public function delete(User $user, MemberClub $memberClub): bool
     {
         // Member can remove themselves from club
-        return $this->isCreatorByMemberId($user, $memberClub->member_id);
+        if ($this->isCreatorByMemberId($user, $memberClub->member_id)) {
+            return true;
+        }
+        // Coach in the same club can end membership
+        return $this->isCoachInClub($user, $memberClub->club_id);
     }
 
     /**

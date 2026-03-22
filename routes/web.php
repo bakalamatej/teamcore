@@ -4,7 +4,9 @@ use App\Http\Controllers\ClubController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\PanelController;
-use App\Http\Controllers\CoachController;
+use App\Http\Controllers\CoachEventController;
+use App\Http\Controllers\CoachReservationController;
+use App\Http\Controllers\CoachClubController;
 use App\Http\Controllers\PanelMembershipController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\FieldTypeController;
 use App\Http\Controllers\PanelCoachEvaluationController;
 use App\Http\Controllers\PanelReservationController;
 use App\Http\Controllers\ActiveMembershipController;
+use App\Http\Controllers\PlayerController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -60,10 +63,39 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------
     // COACH ROUTES
     // --------------------------------------------------
-    Route::prefix('coach')->middleware('coach')->group(function () {
-        Route::get('/players', [CoachController::class, 'players'])->name('coach.players');
-        Route::get('/trainings', [CoachController::class, 'trainings'])->name('coach.trainings');
-        Route::get('/events', [CoachController::class, 'events'])->name('coach.events');
+    Route::prefix('panel/coach')->name('panel.coach.')->middleware('coach')->group(function () {
+        Route::prefix('players')->name('players.')->group(function () {
+            Route::get('/', [PlayerController::class, 'index'])->name('index');
+            Route::get('/{player}', [PlayerController::class, 'show'])->name('show');
+            Route::delete('/{player}', [PlayerController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('events')->name('events.')->group(function () {
+            Route::get('/create', [CoachEventController::class, 'create'])->name('create');
+            Route::post('/', [CoachEventController::class, 'store'])->name('store');
+            Route::get('/', [CoachEventController::class, 'index'])->name('index');
+            Route::get('/{event}', [CoachEventController::class, 'show'])->name('show');
+            Route::get('/{event}/edit', [CoachEventController::class, 'edit'])->name('edit');
+            Route::patch('/{event}', [CoachEventController::class, 'update'])->name('update');
+            Route::delete('/{event}', [CoachEventController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('clubs')->name('clubs.')->group(function () {
+            Route::get('/', [CoachClubController::class, 'index'])->name('index');
+            Route::get('/{club}', [CoachClubController::class, 'show'])->name('show');
+            Route::get('/{club}/edit', [CoachClubController::class, 'edit'])->name('edit');
+            Route::patch('/{club}', [CoachClubController::class, 'update'])->name('update');
+        });
+        Route::prefix('reservations')->name('reservations.')->group(function () {
+            Route::get('/', [CoachReservationController::class, 'index'])->name('index');
+            Route::get('/create', [CoachReservationController::class, 'create'])->name('create');
+            Route::post('/', [CoachReservationController::class, 'store'])->name('store');
+            Route::get('/{reservation}', [CoachReservationController::class, 'show'])->name('show');
+            Route::get('/{reservation}/edit', [CoachReservationController::class, 'edit'])->name('edit');
+            Route::patch('/{reservation}', [CoachReservationController::class, 'update'])->name('update');
+            Route::delete('/{reservation}', [CoachReservationController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('my-evaluations')->name('my-evaluations.')->group(function () {
+            Route::get('/', [PanelCoachEvaluationController::class, 'myIndex'])->name('index');
+        });
     });
 
     // --------------------------------------------------

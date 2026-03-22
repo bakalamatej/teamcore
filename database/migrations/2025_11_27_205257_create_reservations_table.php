@@ -34,8 +34,8 @@ return new class extends Migration
 
             $table->string('title', 255);
             $table->longText('description')->nullable();
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->dateTime('start_date', 0);
+            $table->dateTime('end_date', 0);
 
             $table->enum('status', array_map(fn(ReservationStatus $status) => $status->value, ReservationStatus::cases()))
                 ->default(ReservationStatus::PENDING->value);

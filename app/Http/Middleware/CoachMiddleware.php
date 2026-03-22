@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\MemberClubRole;
 
 class CoachMiddleware
 {
@@ -16,7 +18,7 @@ class CoachMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || $user->getRole() !== 'coach') {
+        if (!$user || $user->getRole() !== MemberClubRole::COACH->value) {
             abort(403);
         }
 

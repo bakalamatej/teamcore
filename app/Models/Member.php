@@ -108,9 +108,20 @@ class Member extends Model
                     ->withPivot('left_at');
     }
 
+    public function memberStatistics()
+    {
+        return $this->hasManyThrough(
+            MemberStatistic::class,
+            MemberClub::class,
+            'member_id', // Foreign key on MemberClub
+            'member_club_id', // Foreign key on MemberStatistic
+            'member_id', // Local key on Member
+            'member_club_id' // Local key on MemberClub
+        );
+    }
+
     /**
      * Returns clubs the member can view: own clubs + clubs sharing an event.
-     * Not an Eloquent relation — returns a query builder instance.
      */
     public function visibleClubs()
     {

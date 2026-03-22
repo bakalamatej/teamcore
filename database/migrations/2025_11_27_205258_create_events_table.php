@@ -44,8 +44,8 @@ return new class extends Migration
             $table->enum('status', array_map(fn(EventStatus $status) => $status->value, EventStatus::cases()))
                 ->default(EventStatus::SCHEDULED->value);
 
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->dateTime('start_date', 0);
+            $table->dateTime('end_date', 0);
             $table->timestamps();
             $table->softDeletes();
 

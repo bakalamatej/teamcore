@@ -42,6 +42,16 @@ class CoachEvaluation extends Model
             ->orWhere('last_name', 'like', "%{$search}%"));
     }
 
+    public function scopeSearchByEvaluator($query, $search)
+    {
+        if (!$search) return $query;
+        return $query->where(function($q) use ($search) {
+            $q->whereHas('evaluatedByMember', fn($q) => $q->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%"))
+            ->orWhere('comment', 'like', "%{$search}%");
+        });
+    }
+
     public function scopeByCoach($query, $coachId)
     {
         if (!$coachId) return $query;

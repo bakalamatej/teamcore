@@ -28,7 +28,7 @@
                             <x-select-input
                                 id="role"
                                 name="role"
-                                :options="['player' => __('Player'), 'coach' => __('Coach')]"
+                                :options="$roleOptions"
                                 :selected="request('role')"
                                 placeholder="{{ __('All roles') }}"
                                 class="mt-1 block w-full"

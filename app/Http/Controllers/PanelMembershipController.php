@@ -6,6 +6,7 @@ use App\Http\Requests\MemberClubRequest;
 use App\Models\Club;
 use App\Models\Member;
 use App\Models\MemberClub;
+use App\Enums\MemberClubRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,9 @@ class PanelMembershipController extends Controller
         $this->authorize('viewAny', MemberClub::class);
 
         $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
+        $roleOptions = collect(MemberClubRole::cases())
+            ->mapWithKeys(fn($role) => [$role->value => __(ucfirst($role->value))])
+            ->toArray();
 
         $memberships = MemberClub::query()
             ->with(['member.user', 'club', 'sport'])
@@ -39,7 +43,7 @@ class PanelMembershipController extends Controller
             return view('panel.admin.memberships._table', compact('memberships'));
         }
 
-        return view('panel.admin.memberships.index', compact('memberships', 'clubOptions'));
+        return view('panel.admin.memberships.index', compact('memberships', 'clubOptions', 'roleOptions'));
     }
 
     public function create(Request $request)

@@ -7,6 +7,7 @@ use App\Models\CoachEvaluation;
 use App\Models\Member;
 use App\Models\MemberClub;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PanelCoachEvaluationController extends Controller
 {
@@ -32,6 +33,26 @@ class PanelCoachEvaluationController extends Controller
         }
 
         return view('panel.admin.coach-evaluations.index', compact('members'));
+    }
+
+    /**
+     * Show all evaluations received by the current coach
+     */
+    public function myIndex(Request $request)
+    {
+        $this->authorize('viewAny', CoachEvaluation::class);
+        $coachMemberId = Auth::user()?->member?->member_id;
+        $evaluations = CoachEvaluation::whereHas('coach', fn($q) => $q->where('member_id', $coachMemberId))
+            ->when($request->filled('search'), fn($q) => $q->searchByEvaluator($request->input('search')))
+            ->with('coach.member', 'evaluatedByMember', 'reservation')
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        if ($request->ajax()) {
+            return view('panel.coach.my-evaluations._table', ['evaluations' => $evaluations]);
+        }
+
+        return view('panel.coach.my-evaluations.index', ['evaluations' => $evaluations]);
     }
 
     /**

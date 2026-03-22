@@ -8,9 +8,11 @@
             @endif
             <!-- Coach menu: players, trainings, create event -->
             @if($role === 'coach')
-                <a href="{{ route('coach.players') }}" class="sidebar-link">{{ __('Players') }}</a>
-                <a href="{{ route('coach.trainings') }}" class="sidebar-link">{{ __('Trainings') }}</a>
-                <a href="{{ route('panel.admin.events.create') }}" class="sidebar-link">{{ __('Create event') }}</a>
+                <a href="{{ route('panel.coach.players.index') }}" class="sidebar-link">{{ __('Players') }}</a>
+                <a href="{{ route('panel.coach.events.index') }}" class="sidebar-link">{{ __('Events') }}</a>
+                <a href="{{ route('panel.coach.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
+                <a href="{{ route('panel.coach.reservations.index') }}" class="sidebar-link">{{ __('Reservations') }}</a>
+                <a href="{{ route('panel.coach.my-evaluations.index') }}" class="sidebar-link">{{ __('My Evaluations') }}</a>
             @endif
             <!-- Admin menu: users, clubs, events -->
             @if($role === 'admin')

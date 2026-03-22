@@ -7,9 +7,8 @@
             </div>
             <span @class([
                 'px-3 py-1 rounded-full text-sm font-semibold',
-                'bg-red-200 text-red-800' => $primaryRole === 'admin',
-                'bg-blue-200 text-blue-800' => $primaryRole === 'coach',
-                'bg-green-200 text-green-800' => !in_array($primaryRole, ['admin', 'coach'], true),
+                'bg-blue-200 text-blue-800' => $primaryRole === \App\Enums\MemberClubRole::COACH->value,
+                'bg-green-200 text-green-800' => $primaryRole !== \App\Enums\MemberClubRole::COACH->value,
             ])>
                 {{ ucfirst($primaryRole) }}
             </span>
@@ -132,11 +131,11 @@
 
                 <!-- Actions -->
                 <div class="space-y-3 mt-auto">
-                    <x-primary-button class="w-full justify-center" :href="route('panel.admin.users.edit', $user)">
-                        {{ __('Edit User') }}
-                    </x-primary-button>
+                    @if($user->user_id !== Auth::id())
+                        <x-primary-button class="w-full justify-center" :href="route('panel.admin.users.edit', $user)">
+                            {{ __('Edit User') }}
+                        </x-primary-button>
 
-                    @if($user->id !== Auth::id())
                         <x-danger-button type="button" class="w-full justify-center"
                                 x-data
                                 x-on:click="$dispatch('open-modal', 'confirm-user-deletion')">

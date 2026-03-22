@@ -4,7 +4,7 @@
             <tr class="border-b">
                 <th class="p-3 text-left">{{ __('Title') }}</th>
                 <th class="p-3 text-left">{{ __('Event Type') }}</th>
-                <th class="p-3 text-left">{{ __('Start Date') }}</th>
+                <th class="p-3 text-left">{{ __('Dates') }}</th>
                 <th class="p-3 text-center">{{ __('Status') }}</th>
                 <th class="p-3 text-right">{{ __('Actions') }}</th>
             </tr>
@@ -14,7 +14,11 @@
                 <tr class="border-b hover:bg-gray-50 data-row">
                     <td class="p-3 font-medium">{{ $event->title }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $event->eventType->name ?? '-' }}</td>
-                    <td class="p-3 text-sm text-gray-600">{{ $event->start_date->format('d.m.Y') }}</td>
+                    <td class="p-3 text-sm text-gray-600">
+                        {{ $event->start_date->format('d.m.Y') }}
+                        -
+                        {{ $event->end_date->format('d.m.Y') }}
+                    </td>
                     <td class="p-3 text-center">
                         <span class="px-3 py-1 rounded-full text-xs font-semibold
                             @if($event->status === \App\Enums\EventStatus::FINISHED) bg-gray-200 text-gray-800
