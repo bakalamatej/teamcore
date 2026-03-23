@@ -8,7 +8,8 @@ use App\Http\Controllers\CoachEventController;
 use App\Http\Controllers\CoachReservationController;
 use App\Http\Controllers\CoachClubController;
 use App\Http\Controllers\PanelMembershipController;
-use App\Http\Controllers\EventResultsController;
+use App\Http\Controllers\MemberStatisticsController;
+use App\Http\Controllers\EventResultsController;    
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\SportController;
@@ -52,13 +53,35 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // --------------------------------------------------
+    // EVENTS ROUTES
+    // --------------------------------------------------
+    Route::prefix('events')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::post('/{event}/register', [EventController::class, 'register'])->name('events.register');
+        Route::post('/{event}/unregister', [EventController::class, 'unregister'])->name('events.unregister');
+        Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
+    });
+
+    // --------------------------------------------------
+    // FILE ROUTES
+    // --------------------------------------------------
+    Route::prefix('files')->group(function () {
+        Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
+        Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
+        Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
+        Route::delete('/{modelType}/{modelId}/{fileId}', [FileController::class, 'delete'])->name('files.delete');
+        Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
+    });
+
+    // --------------------------------------------------
     // PANEL ROUTES
     // --------------------------------------------------
-    Route::prefix('panel')->group(function () {
-        Route::get('/', [PanelController::class, 'index'])->name('panel.update.index');
-        Route::get('/stats', [PanelController::class, 'stats'])->name('panel.stats');
-        Route::patch('/profile', [PanelController::class, 'update'])->name('panel.profile.update');
-        Route::delete('/profile', [PanelController::class, 'destroy'])->name('panel.profile.destroy');
+    Route::prefix('panel')->name('panel.')->group(function () {
+        Route::get('/', [PanelController::class, 'index'])->name('update.index');
+        Route::get('/statistics', [MemberStatisticsController::class, 'index'])->name('statistics.index');
+        Route::patch('/profile', [PanelController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [PanelController::class, 'destroy'])->name('profile.destroy');
+        Route::get('/results', [EventResultsController::class, 'index'])->name('results.index');
     });
 
     // --------------------------------------------------
@@ -131,6 +154,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
             Route::patch('/{event}', [EventController::class, 'update'])->name('update');
             Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+            Route::get('/{event}/results', [EventResultsController::class, 'adminEdit'])->name('results.edit');
+            Route::post('/{event}/results', [EventResultsController::class, 'adminStore'])->name('results.store');
         });
 
         Route::prefix('sports')->name('sports.')->group(function () {
@@ -201,37 +226,7 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{reservation}', [PanelReservationController::class, 'update'])->name('update');
             Route::delete('/{reservation}', [PanelReservationController::class, 'destroy'])->name('destroy');
         });
-    });
-
-    // --------------------------------------------------
-    // EVENTS ROUTES
-    // --------------------------------------------------
-    Route::prefix('events')->group(function () {
-        Route::get('/', [EventController::class, 'index'])->name('events.index');
-        Route::post('/{event}/register', [EventController::class, 'register'])->name('events.register');
-        Route::post('/{event}/unregister', [EventController::class, 'unregister'])->name('events.unregister');
-        
-        // Admin & Coach only - Edit & Delete
-        Route::middleware('admin_or_coach')->group(function () {
-            Route::get('/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
-            Route::patch('/{event}', [EventController::class, 'update'])->name('events.update');
-            Route::delete('/{event}', [EventController::class, 'destroy'])->name('events.destroy');
-        });
-        
-        // Generic route
-        Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
-    });
-
-    // --------------------------------------------------
-    // FILE ROUTES
-    // --------------------------------------------------
-    Route::prefix('files')->group(function () {
-        Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
-        Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
-        Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
-        Route::delete('/{modelType}/{modelId}/{fileId}', [FileController::class, 'delete'])->name('files.delete');
-        Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
-    });
+    });    
 });
 
 require __DIR__.'/auth.php';

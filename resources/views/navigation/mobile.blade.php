@@ -1,9 +1,9 @@
 @php
-$panelRoutes = request()->routeIs('panel.admin.*') || request()->routeIs('admin.*') || request()->routeIs('coach.*');
+$panelRoutes = request()->routeIs('panel.*');
 @endphp
 
 <div x-show="open"
-        class="absolute top-full left-0 w-full bg-white shadow-xl z-50 rounded-lg"
+        class="absolute top-full left-0 w-full bg-white shadow-xl z-50 rounded-lg overflow-y-auto max-h-[80vh]"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 transform -translate-y-2"
         x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -16,24 +16,21 @@ $panelRoutes = request()->routeIs('panel.admin.*') || request()->routeIs('admin.
     <div class="pt-2 pb-3">
         @auth
             @if(count($membershipOptions) > 1)
-                <form method="POST" action="{{ route('memberships.active.update') }}" class="px-4 pb-3">
+                <form method="POST" action="{{ route('memberships.active.update') }}" class="px-4 pb-1">
                     @csrf
                     <label for="active_member_club_id_mobile" class="block text-xs text-gray-500 mb-1">{{ __('Active membership') }}</label>
-                    <select
-                        id="active_member_club_id_mobile"
-                        name="member_club_id"
-                        onchange="this.form.submit()"
-                        class="w-full border border-gray-300 rounded-md shadow-sm text-sm px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                        @foreach($membershipOptions as $option)
-                            <option
-                                value="{{ $option['id'] }}"
-                                @selected((string) ($activeMembership?->member_club_id ?? '') === (string) $option['id'])
-                            >
-                                {{ $option['label'] }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="w-full">
+                        <x-select-refresh
+                            id="active_member_club_id_mobile"
+                            name="member_club_id"
+                            :options="collect($membershipOptions)->mapWithKeys(fn($option) => [$option['id'] => $option['label']])->toArray()"
+                            :selected="(string) ($activeMembership?->member_club_id ?? '')"
+                            :required="true"
+                            :disabled="false"
+                            placeholder="{{ __('Choose club & sport') }}"
+                            class="w-full text-sm"
+                        />
+                    </div>
                 </form>
             @endif
         @endauth
@@ -60,44 +57,70 @@ $panelRoutes = request()->routeIs('panel.admin.*') || request()->routeIs('admin.
         <div>
             @if($panelRoutes)
                 <div class="border-t border-gray-200 pt-3 pb-3 mt-2">
-                <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.admin.update.index')">
-                    {{ __('Panel') }}
-                </x-responsive-nav-link>
-
-                @if($role === 'player')
-                    <x-responsive-nav-link :href="route('panel.stats')" :active="request()->routeIs('panel.admin.stats')">
+                    <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.update.index')">
+                        {{ __('Profile') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('panel.statistics.index')" :active="request()->routeIs('panel.statistics.index')">
                         {{ __('Statistics') }}
                     </x-responsive-nav-link>
-                @endif
-
-                @if($role === 'coach')
-                    <x-responsive-nav-link :href="route('coach.players')" :active="request()->routeIs('coach.players')">
-                        {{ __('Players') }}
+                    <x-responsive-nav-link :href="route('panel.results.index')" :active="request()->routeIs('panel.results.index')">
+                        {{ __('Results') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('coach.trainings')" :active="request()->routeIs('coach.trainings')">
-                        {{ __('Trainings') }}
-                    </x-responsive-nav-link>
+                    @if($role === 'coach')
+                        <x-responsive-nav-link :href="route('panel.coach.players.index')" :active="request()->routeIs('panel.coach.players.*')">
+                            {{ __('Players') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.coach.events.index')" :active="request()->routeIs('panel.coach.events.*')">
+                            {{ __('Events') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.coach.clubs.index')" :active="request()->routeIs('panel.coach.clubs.*')">
+                            {{ __('Clubs') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.coach.reservations.index')" :active="request()->routeIs('panel.coach.reservations.*')">
+                            {{ __('Reservations') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.coach.my-evaluations.index')" :active="request()->routeIs('panel.coach.my-evaluations.*')">
+                            {{ __('My Evaluations') }}
+                        </x-responsive-nav-link>
+                    @endif
 
-                    <x-responsive-nav-link :href="route('panel.admin.events.create')" :active="request()->routeIs('panel.admin.events.create')">
-                        {{ __('Create event') }}
-                    </x-responsive-nav-link>
-                @endif
-
-                @if($role === 'admin')
-                    <x-responsive-nav-link :href="route('panel.admin.clubs.create')" :active="request()->routeIs('panel.admin.clubs.create')">
-                        {{ __('Add club') }}
-                    </x-responsive-nav-link>
-
-                    <x-responsive-nav-link :href="route('panel.admin.users.index')" :active="request()->routeIs('panel.admin.users.index')">
-                        {{ __('Users') }}
-                    </x-responsive-nav-link>
-
-                    <x-responsive-nav-link :href="route('panel.admin.events.create')" :active="request()->routeIs('panel.admin.events.create')">
-                        {{ __('Create event') }}
-                    </x-responsive-nav-link>
-
-                @endif  
+                    @if($role === 'admin')
+                        <x-responsive-nav-link :href="route('panel.admin.users.index')" :active="request()->routeIs('panel.admin.users.*')">
+                            {{ __('Users') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.memberships.index')" :active="request()->routeIs('panel.admin.memberships.*')">
+                            {{ __('Memberships') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.clubs.index')" :active="request()->routeIs('panel.admin.clubs.*')">
+                            {{ __('Clubs') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.events.index')" :active="request()->routeIs('panel.admin.events.*')">
+                            {{ __('Events') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.reservations.index')" :active="request()->routeIs('panel.admin.reservations.*')">
+                            {{ __('Reservations') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.sports.index')" :active="request()->routeIs('panel.admin.sports.*')">
+                            {{ __('Sports') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.sport-fields.index')" :active="request()->routeIs('panel.admin.sport-fields.*')">
+                            {{ __('Sport Fields') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.field-types.index')" :active="request()->routeIs('panel.admin.field-types.*')">
+                            {{ __('Field Types') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.addresses.index')" :active="request()->routeIs('panel.admin.addresses.*')">
+                            {{ __('Addresses') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.event-types.index')" :active="request()->routeIs('panel.admin.event-types.*')">
+                            {{ __('Event Types') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.coach-evaluations.index')" :active="request()->routeIs('panel.admin.coach-evaluations.*')">
+                            {{ __('Coach Evaluations') }}
+                        </x-responsive-nav-link>
+                    @endif
+                </div>
             @endif
         </div>
     @endauth
@@ -106,7 +129,7 @@ $panelRoutes = request()->routeIs('panel.admin.*') || request()->routeIs('admin.
     <div class="flex flex-col px-4 pb-3">
         @auth
             <x-responsive-secondary-button :href="route('panel.update.index')" class="">
-                {{ __($panelLabel) }}
+                {{ __('Panel') }}
             </x-responsive-secondary-button>
 
             <form method="POST" action="{{ route('logout') }}">

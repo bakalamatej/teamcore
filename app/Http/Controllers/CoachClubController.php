@@ -38,9 +38,7 @@ class CoachClubController extends Controller
                 fn($q) => $q->search($request->input('search')))
             ->when($request->filled('city'), 
                 fn($q) => $q->byCity($request->input('city')))
-            ->when($request->filled('sport'), 
-                fn($q) => $q->bySport($request->input('sport')))
-            ->with('address', 'sports', 'members')
+            ->with('address', 'members')
             ->paginate(10);
 
         if ($request->ajax()) {

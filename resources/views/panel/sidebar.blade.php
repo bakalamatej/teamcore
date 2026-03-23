@@ -2,10 +2,8 @@
     <div class="flex flex-col flex-1">
         <div class="flex flex-col gap-1">
             <a href="{{ route('panel.update.index') }}" class="sidebar-link">{{ __('Profile') }}</a>
-            <!-- Player menu: statistics -->
-            @if($role === 'player')
-                <a href="{{ route('panel.stats') }}" class="sidebar-link">{{ __('Statistics') }}</a>
-            @endif
+            <a href="{{ route('panel.statistics.index') }}" class="sidebar-link">{{ __('Statistics') }}</a>
+            <a href="{{ route('panel.results.index') }}" class="sidebar-link">{{ __('Results') }}</a>
             <!-- Coach menu: players, trainings, create event -->
             @if($role === 'coach')
                 <a href="{{ route('panel.coach.players.index') }}" class="sidebar-link">{{ __('Players') }}</a>

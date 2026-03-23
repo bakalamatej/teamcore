@@ -25,22 +25,20 @@
             });
         }
     }"
-    class="relative w-42"
+    class="relative w-full"
 >
     <input type="hidden" name="{{ $name }}" :value="selected" />
-    <button
-        type="button"
-        @if($id) id="{{ $id }}" @endif
-        x-on:click="open = !open"
-        @if($disabled) disabled @endif
-        class="w-full flex items-center justify-between border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-md shadow-md bg-white px-3 py-0.5 text-sm text-left text-gray-800 overflow-hidden max-w-sm"
-        :class="{ 'opacity-50 cursor-not-allowed': {{ $disabled ? 'true' : 'false' }} }"
-        style="min-height: 2rem; max-w-xs;"
-    >
+        <button
+            type="button"
+            @if($id) id="{{ $id }}" @endif
+            x-on:click="open = !open"
+            @if($disabled) disabled @endif
+            class="w-full flex items-center justify-between border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-md shadow-md bg-white px-3 py-1.5 text-sm text-left text-gray-800"
+            :class="{ 'opacity-50 cursor-not-allowed': {{ $disabled ? 'true' : 'false' }} }"
+        >
         <span
             x-text="selected !== '' && selected !== null ? options[selected] ?? '{{ $placeholder }}' : '{{ $placeholder }}'"
-            class="truncate block max-w-xs"
-            style="max-w-sm;"
+            class="truncate block"
             :class="selected !== '' && selected !== null ? 'text-gray-800' : 'text-gray-400'"
         ></span>
         <svg class="ml-2 h-4 w-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

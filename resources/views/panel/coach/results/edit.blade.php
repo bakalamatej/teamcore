@@ -7,9 +7,6 @@
 					<h1 class="my-heading text-3xl mb-2">{{ __('Results') }}: {{ $event->title }}</h1>
 					<p class="text-gray-600 text-sm">{{ $event->start_date->format('d.m.Y H:i') }} — {{ $event->end_date->format('d.m.Y H:i') }}</p>
 				</div>
-				<x-secondary-button :href="route('panel.coach.events.show', $event)">
-					{{ __('Back to Event') }}
-				</x-secondary-button>
 			</div>
 		</div>
 

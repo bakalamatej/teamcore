@@ -102,10 +102,10 @@
                     
                     @if($activeMembersCount > 0)
                         <div class="space-y-2">
-                            @foreach($activeMembers as $member)
+                            @foreach($activeMembers as $memberClub)
                                 <div class="detail-list-item">
-                                    <span class="font-medium text-gray-900">{{ $member->full_name }}</span>
-                                    <span class="detail-list-secondary">{{ $member->user?->email ?? 'N/A' }}</span>
+                                    <span class="font-medium text-gray-900">{{ $memberClub->member->full_name }}</span>
+                                    <span class="detail-list-secondary">{{ $memberClub->club?->name ?? '-' }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -141,6 +141,12 @@
                 <div class="space-y-3 mt-auto">
                     @auth
                         @if($canManageEvent)
+                            <x-secondary-button 
+								class="w-full justify-center {{ $statusValue !== 'finished' ? 'opacity-50 cursor-not-allowed' : '' }}" 
+								:href="$statusValue === 'finished' ? route('panel.admin.events.results.edit', $event) : null"
+								:disabled="$statusValue !== 'finished'">
+								{{ __('Add Results') }}
+							</x-secondary-button>
                             <x-primary-button class="w-full justify-center" :href="route('panel.admin.events.edit', $event)">
                                 {{ __('Edit Event') }}
                             </x-primary-button>

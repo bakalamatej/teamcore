@@ -34,18 +34,6 @@
                     />
                 </div>
 
-                <div class="flex-1">
-                    <x-input-label :value="__('Sport')" />
-                    <x-select-input
-                        id="sport"
-                        name="sport"
-                        :options="$sportOptions"
-                        :selected="request('sport')"
-                        placeholder="{{ __('Select sport') }}"
-                        class="mt-1 block w-full text-sm"
-                    />
-                </div>
-
             </form>
         </div>
 

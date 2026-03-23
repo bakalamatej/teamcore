@@ -4,12 +4,6 @@
     $activeMembership = $user?->activeMembership();
     $membershipOptions = $user?->availableMembershipOptions() ?? [];
     $currentRoute = Route::currentRouteName();
-
-    $panelLabel = match ($role) {
-        'admin' => 'Admin panel',
-        'coach' => 'Coach panel',
-        default => 'Profile',
-    };
 @endphp
 
 <nav x-data="{ open: false }" 
@@ -20,4 +14,4 @@
     </div>
 </nav>
 
-<div class="w-[90%] lg:w-[70%] left-1/2 transform -translate-x-1/2 fixed h-[80px] w-full bg-neutral-300/30 backdrop-blur-sm"></div>
+<div class="w-[90%] lg:w-[70%] left-1/2 -translate-x-1/2 fixed h-[80px] bg-neutral-300/30 backdrop-blur-sm"></div>

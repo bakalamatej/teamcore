@@ -171,11 +171,11 @@ class EventController extends Controller
     }
 
     /**
-     * Display event details for admin panel
+     * Display event details for admin
      */
     public function adminShow(Event $event)
     {
-        return $this->renderEventShow($event, 'panel.admin.events.show');
+        return $this->renderAdminEventShow($event, 'panel.admin.events.show');
     }
 
     private function renderEventShow(Event $event, string $view)
@@ -186,11 +186,10 @@ class EventController extends Controller
 
         $activeClubs = $event->activeClubs;
         $clubId = Auth::user()?->activeMembership()?->club_id;
-        $activeMembers = $event->memberClubs
-            ->where('club_id', $clubId)
-            ->map(fn($mc) => $mc->member)
-            ->filter()
-            ->values();
+        $activeMembers = $clubId
+            ? $event->memberClubs->where('club_id', $clubId)->map(fn($mc) => $mc->member)->filter()->values()
+            : collect();
+
         $activeClubsCount = $activeClubs->count();
         $activeMembersCount = $activeMembers->count();
         $statisticsClubsCount = $event->eventStatistic?->total_teams ?? 0;
@@ -205,16 +204,40 @@ class EventController extends Controller
         $canManageEvent = Auth::user()?->isAdmin() || Auth::user()?->isCoach();
 
         return view($view, compact(
-            'event',
-            'activeClubs',
-            'activeMembers',
-            'activeClubsCount',
-            'activeMembersCount',
-            'statisticsClubsCount',
-            'statisticsMembersCount',
-            'statusValue',
-            'durationText',
-            'canManageEvent'
+            'event', 'activeClubs', 'activeMembers',
+            'activeClubsCount', 'activeMembersCount',
+            'statisticsClubsCount', 'statisticsMembersCount',
+            'statusValue', 'durationText', 'canManageEvent'
+        ));
+    }
+
+    private function renderAdminEventShow(Event $event, string $view)
+    {
+        $this->authorize('view', $event);
+
+        $event->load('clubs', 'memberClubs.member.user', 'memberClubs.club', 'sportField', 'eventType', 'eventStatistic');
+
+        $activeClubs = $event->activeClubs;
+        $activeMembers = $event->memberClubs->filter(fn($mc) => $mc->member !== null)->values();
+
+        $activeClubsCount = $activeClubs->count();
+        $activeMembersCount = $activeMembers->count();
+        $statisticsClubsCount = $event->eventStatistic?->total_teams ?? 0;
+        $statisticsMembersCount = $event->eventStatistic?->total_participants ?? 0;
+
+        $statusValue = $event->status->value;
+        $duration = $event->start_date->diff($event->end_date);
+        $durationText = $duration->days > 0
+            ? $duration->days . ' ' . __('day(s)')
+            : $duration->h . 'h ' . $duration->i . 'm';
+
+        $canManageEvent = true;
+
+        return view($view, compact(
+            'event', 'activeClubs', 'activeMembers',
+            'activeClubsCount', 'activeMembersCount',
+            'statisticsClubsCount', 'statisticsMembersCount',
+            'statusValue', 'durationText', 'canManageEvent'
         ));
     }
 

@@ -8,7 +8,7 @@ class EventPolicy extends Policy
 {
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->is_admin) {
+        if ($user->is_admin && !in_array($ability, ['editResults', 'storeResults'])) {
             return true;
         }
         return null;
@@ -70,8 +70,12 @@ class EventPolicy extends Policy
     public function editResults(User $user, Event $event): bool
     {
         if ($event->status !== EventStatus::FINISHED) return false;
+        
+        if ($user->is_admin) return true; // Admin can edit results for any event regardless of club membership
+        
         $membership = $user->activeMembership();
         if (!$membership) return false;
+        
         return $this->isCoachInClub($user, (int) $membership->club_id)
             && $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }

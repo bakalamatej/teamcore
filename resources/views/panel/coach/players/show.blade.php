@@ -89,7 +89,7 @@
                         @if($player->member)
                             <div class="stat-divider">
                                 <p class="stat-label">{{ __('Member Since') }}</p>
-                                <p class="stat-value" style="color: #4f46e5;">{{ $player->member->created_at?->format('M Y') ?? '—' }}</p>
+                                <p class="stat-value" style="color: #4f46e5;">{{ $player->joined_at?->format('M Y') ?? '—' }}</p>
                             </div>
                         @endif
                     </div>
