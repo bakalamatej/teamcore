@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ResultType;
 use Illuminate\Database\Eloquent\Model;
 
 class EventMemberResult extends Model
@@ -13,9 +14,14 @@ class EventMemberResult extends Model
     protected $fillable = [
         'event_id',
         'member_club_id',
-        'score',
+        'value',
+        'result_type',
         'ranking',
         'note',
+    ];
+
+    protected $casts = [
+        'result_type' => ResultType::class,
     ];
 
     // -----------------------
@@ -52,9 +58,9 @@ class EventMemberResult extends Model
         return $query->orderBy('ranking', in_array($order, ['asc', 'desc']) ? $order : 'asc');
     }
 
-    public function scopeOrderByScore($query, $order = 'desc')
+    public function scopeOrderByValue($query, $order = 'desc')
     {
-        return $query->orderBy('score', in_array($order, ['asc', 'desc']) ? $order : 'desc');
+        return $query->orderBy('value', in_array($order, ['asc', 'desc']) ? $order : 'desc');
     }
 
     public function scopeWithRelations($query)
@@ -102,11 +108,20 @@ class EventMemberResult extends Model
     // -----------------------
 
     /**
-     * Update score for the member in the event
+     * Update value for the member in the event
      */
-    public function updateScore(int $score)
+    public function updateValue(string|int|float $value)
     {
-        $this->score = $score;
+        $this->value = $value;
+        $this->save();
+    }
+
+    /**
+     * Update result type for the member in the event
+     */
+    public function updateResultType(ResultType $resultType)
+    {
+        $this->result_type = $resultType;
         $this->save();
     }
 

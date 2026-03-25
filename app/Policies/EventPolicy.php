@@ -31,7 +31,7 @@ class EventPolicy extends Policy
 
     public function update(User $user, Event $event): bool
     {
-        if (in_array($event->status, [EventStatus::FINISHED, EventStatus::ONGOING])) return false;
+        if ($event->status != EventStatus::SCHEDULED) return false;
         if (!$this->isCoach($user)) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
@@ -41,7 +41,7 @@ class EventPolicy extends Policy
 
     public function delete(User $user, Event $event): bool
     {
-        if (in_array($event->status, [EventStatus::FINISHED, EventStatus::ONGOING])) return false;
+        if ($event->status != EventStatus::SCHEDULED) return false;
         if (!$this->isCoach($user)) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
@@ -51,25 +51,34 @@ class EventPolicy extends Policy
 
     public function register(User $user, Event $event): bool
     {
+        if ($event->status === EventStatus::FINISHED || $event->status === EventStatus::CANCELED) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
-        if ((int) $membership->sport_id !== (int) $event->sport_id) return false;
+
+        $eventSportId = $event->sport?->sport_id;
+        if (!$eventSportId) return false;
+
+        if ((int) ($membership->club?->sport_id ?? null) !== (int) $eventSportId) return false;
         return $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }
 
     public function unregister(User $user, Event $event): bool
     {
-        if ($event->status === EventStatus::FINISHED) return false;
+        if ($event->status === EventStatus::FINISHED || $event->status === EventStatus::CANCELED) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
-        if ((int) $membership->sport_id !== (int) $event->sport_id) return false;
+
+        $eventSportId = $event->sport?->sport_id;
+        if (!$eventSportId) return false;
+
+        if ((int) ($membership->club?->sport_id ?? null) !== (int) $eventSportId) return false;
         if (!$event->clubs()->where('clubs.club_id', $membership->club_id)->exists()) return false;
         return $membership->events()->where('events.event_id', $event->event_id)->exists();
     }
 
     public function editResults(User $user, Event $event): bool
     {
-        if ($event->status !== EventStatus::FINISHED) return false;
+        if ($event->status !== EventStatus::FINISHED || $event->status === EventStatus::CANCELED) return false;
         
         if ($user->is_admin) return true; // Admin can edit results for any event regardless of club membership
         

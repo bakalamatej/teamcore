@@ -6,6 +6,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\CoachEventController;
 use App\Http\Controllers\CoachReservationController;
+use App\Http\Controllers\CoachEvaluationController;
 use App\Http\Controllers\CoachClubController;
 use App\Http\Controllers\PanelMembershipController;
 use App\Http\Controllers\MemberStatisticsController;
@@ -18,6 +19,8 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\EventTypeController;
 use App\Http\Controllers\FieldTypeController;
 use App\Http\Controllers\PanelCoachEvaluationController;
+use App\Http\Controllers\CoachTournamentController;
+use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PanelReservationController;
 use App\Http\Controllers\ActiveMembershipController;
 use App\Http\Controllers\PlayerController;
@@ -60,6 +63,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{event}/register', [EventController::class, 'register'])->name('events.register');
         Route::post('/{event}/unregister', [EventController::class, 'unregister'])->name('events.unregister');
         Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
+        Route::post('/{event}/coaches/{memberClubId}/rate', [CoachEvaluationController::class, 'storeFromEvent'])
+            ->name('events.coach.rate');
     });
 
     // --------------------------------------------------
@@ -82,6 +87,12 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profile', [PanelController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [PanelController::class, 'destroy'])->name('profile.destroy');
         Route::get('/results', [EventResultsController::class, 'index'])->name('results.index');
+        Route::prefix('my-evaluations')->name('my-evaluations.')->group(function () {
+            Route::get('/', [PanelCoachEvaluationController::class, 'myIndex'])->name('index');
+            Route::get('/{evaluation}/edit', [PanelCoachEvaluationController::class, 'editEvaluation'])->name('edit');
+            Route::patch('/{evaluation}', [PanelCoachEvaluationController::class, 'updateEvaluation'])->name('update');
+            Route::delete('/{evaluation}', [PanelCoachEvaluationController::class, 'destroyEvaluation'])->name('destroy');
+        });
     });
 
     // --------------------------------------------------
@@ -104,6 +115,19 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{event}/results', [EventResultsController::class, 'edit'])->name('results.edit');
             Route::post('/{event}/results', [EventResultsController::class, 'store'])->name('results.store');
         });
+        Route::prefix('tournaments')->name('tournaments.')->group(function () {
+            Route::get('/', [CoachTournamentController::class, 'index'])->name('index');
+            Route::get('/create', [CoachTournamentController::class, 'create'])->name('create');
+            Route::post('/', [CoachTournamentController::class, 'store'])->name('store');
+            Route::get('/{tournament}', [CoachTournamentController::class, 'show'])->name('show');
+            Route::get('/{tournament}/edit', [CoachTournamentController::class, 'edit'])->name('edit');
+            Route::patch('/{tournament}', [CoachTournamentController::class, 'update'])->name('update');
+            Route::delete('/{tournament}', [CoachTournamentController::class, 'destroy'])->name('destroy');
+            Route::post('/{tournament}/children/attach', [CoachTournamentController::class, 'attachChild'])->name('children.attach');
+            Route::delete('/{tournament}/children/{event}/detach', [CoachTournamentController::class, 'detachChild'])->name('children.detach');
+            Route::get('/{tournament}/children/create', [CoachTournamentController::class, 'createChild'])->name('children.create');
+            Route::post('/{tournament}/children', [CoachTournamentController::class, 'storeChild'])->name('children.store');
+        });
         Route::prefix('clubs')->name('clubs.')->group(function () {
             Route::get('/', [CoachClubController::class, 'index'])->name('index');
             Route::get('/{club}', [CoachClubController::class, 'show'])->name('show');
@@ -118,9 +142,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{reservation}/edit', [CoachReservationController::class, 'edit'])->name('edit');
             Route::patch('/{reservation}', [CoachReservationController::class, 'update'])->name('update');
             Route::delete('/{reservation}', [CoachReservationController::class, 'destroy'])->name('destroy');
+            Route::get('/{reservation}/create-event', [CoachReservationController::class, 'createEventFromReservation'])->name('create-event');
+            Route::post('/{reservation}/store-event', [CoachReservationController::class, 'storeEventFromReservation'])->name('store-event');
         });
-        Route::prefix('my-evaluations')->name('my-evaluations.')->group(function () {
-            Route::get('/', [PanelCoachEvaluationController::class, 'myIndex'])->name('index');
+        Route::prefix('recieved-evaluations')->name('recieved-evaluations.')->group(function () {
+            Route::get('/', [PanelCoachEvaluationController::class, 'recievedIndex'])->name('index');
         });
     });
 
@@ -156,6 +182,22 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
             Route::get('/{event}/results', [EventResultsController::class, 'adminEdit'])->name('results.edit');
             Route::post('/{event}/results', [EventResultsController::class, 'adminStore'])->name('results.store');
+        });
+
+        Route::prefix('tournaments')->name('tournaments.')->group(function () {
+            Route::get('/', [TournamentController::class, 'index'])->name('index');
+            Route::get('/create', [TournamentController::class, 'create'])->name('create');
+            Route::post('/', [TournamentController::class, 'store'])->name('store');
+            Route::get('/{tournament}', [TournamentController::class, 'show'])->name('show');
+            Route::get('/{tournament}/edit', [TournamentController::class, 'edit'])->name('edit');
+            Route::patch('/{tournament}', [TournamentController::class, 'update'])->name('update');
+            Route::delete('/{tournament}', [TournamentController::class, 'destroy'])->name('destroy');
+
+            // Child event management
+            Route::post('/{tournament}/children/attach', [TournamentController::class, 'attachChild'])->name('children.attach');
+            Route::delete('/{tournament}/children/{event}/detach', [TournamentController::class, 'detachChild'])->name('children.detach');
+            Route::get('/{tournament}/children/create', [TournamentController::class, 'createChild'])->name('children.create');
+            Route::post('/{tournament}/children', [TournamentController::class, 'storeChild'])->name('children.store');
         });
 
         Route::prefix('sports')->name('sports.')->group(function () {

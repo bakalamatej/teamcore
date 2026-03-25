@@ -5,11 +5,11 @@
             selectedMember = @js((string) ($selectedMemberId ?? old('member_id', '')));
             selectedClub = @js((string) old('club_id', ''));
             previousClub = @js((string) old('club_id', ''));
-                    selectedSport = @js((string) old('sport_id', ''));
-                    memberOptions = @js(collect($memberOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
-                    clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
-                    sportsByClub = @js($sportsByClub);
-                "
+            selectedSport = @js((string) old('sport_id', ''));
+            memberOptions = @js(collect($memberOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
+            clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
+            sportsByClub = @js($sportsByClub);
+            "
             >
                 <div x-effect="syncClubChange()"></div>
 
@@ -42,19 +42,6 @@
                                 :placeholder="__('Select club')"
                             />
                             <x-input-error :messages="$errors->get('club_id')" class="mt-2" />
-                        </div>
-
-                        <div x-on:click.outside="openSport = false">
-                            <x-input-label :value="__('Sport')" />
-                            <x-filtered-select
-                                name="sport_id"
-                                open-var="openSport"
-                                selected-var="selectedSport"
-                                options-var="availableSports"
-                                disabled-when="!selectedClub"
-                                :placeholder="__('Select sport')"
-                            />
-                            <x-input-error :messages="$errors->get('sport_id')" class="mt-2" />
                         </div>
 
                         <div>

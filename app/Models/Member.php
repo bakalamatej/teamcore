@@ -58,21 +58,19 @@ class Member extends Model
         });
     }
 
-    public function scopeCoaches($query, $clubId = null, $sportId = null)
+    public function scopeCoaches($query, $clubId = null)
     {
-        return $query->whereHas('clubMemberships', function ($q) use ($clubId, $sportId) {
+        return $query->whereHas('clubMemberships', function ($q) use ($clubId) {
             $q->byRole(MemberClubRole::COACH)->active();
             if ($clubId) $q->byClub($clubId);
-            if ($sportId) $q->bySport($sportId);
         });
     }
 
-    public function scopePlayers($query, $clubId = null, $sportId = null)
+    public function scopePlayers($query, $clubId = null)
     {
-        return $query->whereHas('clubMemberships', function ($q) use ($clubId, $sportId) {
+        return $query->whereHas('clubMemberships', function ($q) use ($clubId) {
             $q->byRole(MemberClubRole::PLAYER)->active();
             if ($clubId) $q->byClub($clubId);
-            if ($sportId) $q->bySport($sportId);
         });
     }
 
@@ -126,10 +124,14 @@ class Member extends Model
     public function visibleClubs()
     {
         $ownClubIds = $this->clubs()->pluck('clubs.club_id');
-        $sportIds = $this->clubMemberships()->active()->pluck('sport_id')->unique();
+
+        $memberships = $this->clubMemberships()->active()->with('club')->get();
+        $sportIds = $memberships->pluck('club.sport_id')->filter()->unique();
 
         return Club::whereIn('clubs.club_id', $ownClubIds)
-            ->orWhereHas('sports', fn($q) => $q->whereIn('sports.sport_id', $sportIds));
+            ->orWhere(function ($query) use ($sportIds) {
+                $query->whereIn('sport_id', $sportIds);
+            });
     }
 
     /**
@@ -137,14 +139,10 @@ class Member extends Model
      */
     public function events()
     {
-        $memberships = $this->clubMemberships()->active()->get(['club_id', 'sport_id']);
+        $memberships = $this->clubMemberships()->active()->get();
         $clubIds = $memberships->pluck('club_id');
-        $sportIds = $memberships->pluck('sport_id');
 
-        return Event::where(function ($q) use ($clubIds, $sportIds) {
-            $q->whereIn('sport_id', $sportIds)
-            ->whereHas('clubs', fn($q) => $q->whereIn('clubs.club_id', $clubIds));
-        });
+        return Event::whereHas('clubs', fn($q) => $q->whereIn('clubs.club_id', $clubIds));
     }
 
 

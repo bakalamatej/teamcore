@@ -21,8 +21,8 @@
     })"
     x-on:click.outside="closeDropdown()"
     {{ $attributes->merge(['class' => 'relative']) }}
+    :class="open ? 'z-[9999]' : 'z-0'"
 >
-    {{-- Hidden input --}}
     <input type="hidden" name="{{ $name }}" :value="selected" @if($required) required @endif />
 
     @if($searchable)
@@ -41,6 +41,7 @@
                 @disabled($disabled)
                 class="w-full text-sm text-left text-gray-800 placeholder:text-gray-400 border-0 p-0 m-0 bg-transparent focus:ring-0"
             >
+
             <button
                 type="button"
                 x-on:click="toggleDropdown()"
@@ -68,13 +69,13 @@
                 class="truncate"
                 :class="selected !== '' && selected !== null ? 'text-gray-800' : 'text-gray-400'"
             ></span>
+
             <svg class="ml-2 h-4 w-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
         </button>
     @endif
 
-    {{-- Dropdown panel --}}
     <div
         x-ref="dropdown"
         x-show="open"
@@ -86,15 +87,17 @@
         x-transition:leave="transition ease-in duration-75"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"
+        class="absolute z-[10000] w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto"
         :class="dropdownUp ? 'bottom-full mb-1' : 'mt-1'"
-        style="display:none"
+        style="display: none;"
     >
         @if($placeholder)
             <div
                 x-on:click="choose('')"
                 class="px-3 py-2 text-sm text-gray-400 hover:bg-gray-50 cursor-pointer"
-            >{{ $placeholder }}</div>
+            >
+                {{ $placeholder }}
+            </div>
         @endif
 
         <template x-for="[key, label] in Object.entries(filteredOptions)" :key="String(key)">

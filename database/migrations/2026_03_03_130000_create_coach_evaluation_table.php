@@ -17,11 +17,12 @@ return new class extends Migration
 
             $table->foreignId('coach_member_club_id')
                 ->constrained('member_club', 'member_club_id')
-                ->restrictOnDelete();
+                ->cascadeOnDelete();
 
             $table->foreignId('evaluated_by_member_id')
+                ->nullable()
                 ->constrained('members', 'member_id')
-                ->restrictOnDelete();
+                ->nullOnDelete();
 
             $table->decimal('rating', 3, 1);
             $table->longText('comment')->nullable();

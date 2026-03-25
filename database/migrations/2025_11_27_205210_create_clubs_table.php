@@ -29,6 +29,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->unique(['name', 'sport_id']);
             $table->index('sport_id');
             $table->index('address_id');
             $table->index('name');

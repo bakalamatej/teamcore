@@ -14,10 +14,19 @@ class MemberStatisticsController extends Controller
         $user = Auth::user();
         $member = $user->member;
 
+        $emptyAggregated = [
+            'events_attended' => 0,
+            'training_sessions' => 0,
+            'matches_played' => 0,
+            'tournaments_attended' => 0,
+            'total_wins' => 0,
+        ];
+
         if (!$member) {
             return view('panel.statistics.index', [
                 'stats' => collect(),
-                'aggregated' => ['events_attended' => 0, 'training_sessions' => 0, 'matches_played' => 0, 'tournaments_attended' => 0, 'total_wins' => 0],
+                'aggregated' => $emptyAggregated,
+                'totalAggregated' => $emptyAggregated,
                 'clubOptions' => [],
                 'selectedMemberClubId' => null,
             ]);
@@ -33,6 +42,17 @@ class MemberStatisticsController extends Controller
 
         $selectedMemberClubId = $request->input('member_club_id');
 
+        // Always total across all memberships
+        $allStats = MemberStatistic::whereIn('member_club_id', $memberships->pluck('member_club_id'))->get();
+        $totalAggregated = [
+            'events_attended'      => $allStats->sum('events_attended'),
+            'training_sessions'    => $allStats->sum('training_sessions'),
+            'matches_played'       => $allStats->sum('matches_played'),
+            'tournaments_attended' => $allStats->sum('tournaments_attended'),
+            'total_wins'           => $allStats->sum('total_wins'),
+        ];
+
+        // Filtered for table
         $statsQuery = MemberStatistic::whereIn('member_club_id', $memberships->pluck('member_club_id'))
             ->with('memberClub.club');
 
@@ -42,20 +62,12 @@ class MemberStatisticsController extends Controller
 
         $stats = $statsQuery->get();
 
-        $aggregated = [
-            'events_attended'      => $stats->sum('events_attended'),
-            'training_sessions'    => $stats->sum('training_sessions'),
-            'matches_played'       => $stats->sum('matches_played'),
-            'tournaments_attended' => $stats->sum('tournaments_attended'),
-            'total_wins'           => $stats->sum('total_wins'),
-        ];
-
         if ($request->ajax()) {
-            return view('panel.statistics._table', compact('stats', 'aggregated'));
+            return view('panel.statistics._table', compact('stats'));
         }
 
         return view('panel.statistics.index', compact(
-            'stats', 'aggregated', 'clubOptions', 'selectedMemberClubId'
+            'stats', 'totalAggregated', 'clubOptions', 'selectedMemberClubId'
         ));
     }
 }

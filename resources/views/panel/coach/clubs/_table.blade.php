@@ -3,7 +3,6 @@
         <thead class="bg-gray-100">
             <tr class="border-b">
                 <th class="p-3 text-left">{{ __('Name') }}</th>
-                <th class="p-3 text-left">{{ __('Sport') }}</th>
                 <th class="p-3 text-left">{{ __('Address') }}</th>
                 <th class="p-3 text-right">{{ __('Actions') }}</th>
             </tr>
@@ -12,16 +11,10 @@
             @forelse($clubs as $club)
                 <tr class="border-b hover:bg-gray-50 data-row">
                     <td class="p-3 font-medium">{{ $club->name }}</td>
+                    
                     <td class="p-3 text-sm text-gray-600">
-                        @if($club->sports && $club->sports->count())
-                            {{ $club->sports->pluck('name')->join(', ') }}
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="p-3 text-sm text-gray-600">
-                        @if($club->address)
-                            {{ $club->address->street ? $club->address->street . ', ' : '' }}{{ $club->address->zip_code }} {{ $club->address->city }}
+                        @if($club->clubAddress)
+                            {{ $club->clubAddress ?: __('N/A')  }}
                         @else
                             -
                         @endif

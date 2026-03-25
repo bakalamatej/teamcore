@@ -8,7 +8,6 @@
 				method="POST"
 				class="space-y-6"
 			>
-				<input type="hidden" name="sport_id" value="{{ $club->sport_id }}">
 			@csrf
 
 			<div class="flex flex-col lg:flex-row gap-6">
@@ -23,7 +22,7 @@
 							<x-select-input
 								id="event_type_id"
 								name="event_type_id"
-								:options="$eventTypes"
+								:options="$eventTypeOptions"
 								:selected="old('event_type_id')"
 								placeholder="{{ __('Select type') }}"
 								class="mt-1"
@@ -36,8 +35,8 @@
 							<x-multiselect-input
 								id="club_ids"
 								name="club_ids"
-								:options="$clubs"
-								:selected="old('club_ids', [$club->club_id])"
+								:options="$clubOptions"
+								:selected="old('club_ids', [(string) $club->club_id])"
 								:placeholder="__('Select participating clubs')"
 								class="mt-1"
 							/>
@@ -50,7 +49,7 @@
 							id="sport_field_id"
 							name="sport_field_id"
 							:options="$sportFieldOptions"
-							:selected="old('sport_field_id')"
+							:selected="old('sport_field_id')"	
 							placeholder="{{ __('Select location') }}"
                             class="mt-1"
 						/>

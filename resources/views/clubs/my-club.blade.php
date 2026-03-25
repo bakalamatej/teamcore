@@ -14,6 +14,11 @@
                     <h2 class="detail-card-header">{{ __('Club Information') }}</h2>
                     
                     <div class="space-y-4">
+                        <!-- Sport -->
+                        <div class="detail-item">
+                            <span class="detail-item-label">{{ __('Sport:') }}</span>
+                            <span class="detail-item-value">{{ $club->sport?->name ?? __('N/A') }}</span>
+                        </div>
                         <!-- Email -->
                         @if($club->email)
                             <div class="detail-item">
@@ -22,7 +27,7 @@
                                     {{ $club->email }}
                                 </a>
                             </div>
-                        @endif
+                        @endif 
 
                         <!-- Phone -->
                         @if($club->phone)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Models\CoachEvaluation;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -125,6 +126,14 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
+        
+        if ($user->member) {
+            $memberClubIds = $user->member->clubMemberships()->pluck('member_club_id');
+            CoachEvaluation::whereIn('coach_member_club_id', $memberClubIds)->delete();
+            
+            $user->member->delete();
+        }
+
 
         $user->delete();
 

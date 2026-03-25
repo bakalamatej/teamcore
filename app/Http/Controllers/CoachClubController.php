@@ -6,7 +6,7 @@ use App\Enums\MemberClubRole;
 use App\Models\Club;
 use App\Models\Address;
 use App\Models\Sport;
-use App\Http\Requests\ClubRequest;
+use App\Http\Requests\CoachClubRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,27 +17,20 @@ class CoachClubController extends Controller
         $this->authorize('viewAny', Club::class);
 
         $user = Auth::user();
-        $member = $user->member;
-        $myClub = $member?->activeClubs()?->first();
-        $mySportIds = $myClub ? $myClub->sports->pluck('sport_id')->all() : [];
         $membership = $user?->activeMembership();
-        $canManageClubId = ($membership && $membership->role === \App\Enums\MemberClubRole::COACH)
+        $mySportId = $membership?->club?->sport_id;
+        $myClub = $membership?->club;
+
+        $canManageClubId = ($membership && $membership->role === MemberClubRole::COACH)
             ? $membership->club_id
             : null;
 
         $cities = Address::distinct()->orderBy('city')->pluck('city');
         $cityOptions = $cities->combine($cities)->all();
 
-        $sports = Sport::whereHas('clubs')->orderBy('name')->pluck('name', 'sport_id')->toArray();
-        $sportOptions = $sports;
-
-        $clubs = Club::whereHas('sports', function($q) use ($mySportIds) {
-                $q->whereIn('sports.sport_id', $mySportIds);
-            })
-            ->when($request->filled('search'), 
-                fn($q) => $q->search($request->input('search')))
-            ->when($request->filled('city'), 
-                fn($q) => $q->byCity($request->input('city')))
+        $clubs = Club::where('sport_id', $mySportId)
+            ->when($request->filled('search'), fn($q) => $q->search($request->input('search')))
+            ->when($request->filled('city'), fn($q) => $q->byCity($request->input('city')))
             ->with('address', 'members')
             ->paginate(10);
 
@@ -45,21 +38,15 @@ class CoachClubController extends Controller
             return view('panel.coach.clubs._table', compact('clubs', 'myClub', 'canManageClubId'));
         }
 
-        return view('panel.coach.clubs.index', compact('clubs', 'cityOptions', 'sportOptions', 'myClub', 'canManageClubId'));
+        return view('panel.coach.clubs.index', compact('clubs', 'cityOptions', 'myClub', 'canManageClubId'));
     }
 
-    /**
-     * Display club details
-     */
     public function show(Club $club)
     {
         $this->authorize('view', $club);
         return $this->renderClubShow($club, 'panel.coach.clubs.show');
     }
 
-    /**
-     * Show edit form
-     */
     public function edit(Club $club)
     {
         $this->authorize('update', $club);
@@ -75,22 +62,15 @@ class CoachClubController extends Controller
             ->orderBy('country')
             ->pluck('country', 'country')
             ->toArray();
-        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
-        $club->load('sports');
-        $selectedSportIds = $club->sports->pluck('sport_id')->toArray();
 
-        return view('panel.coach.clubs.edit', compact('club', 'addressOptions', 'countryOptions', 'sportOptions', 'selectedSportIds'));
+        return view('panel.coach.clubs.edit', compact('club', 'addressOptions', 'countryOptions'));
     }
 
-    /**
-     * Update club
-     */
-    public function update(ClubRequest $request, Club $club)
+    public function update(CoachClubRequest $request, Club $club)
     {
         $this->authorize('update', $club);
 
         $validated = $request->validated();
-        $primarySportId = (int) ($validated['sport_ids'][0] ?? 0);
 
         $addressId = $validated['address_id'] ?? null;
         if (!$addressId) {
@@ -100,19 +80,16 @@ class CoachClubController extends Controller
                 'street'   => $validated['street'] ?? null,
                 'zip_code' => $validated['zip_code'] ?? null,
             ]);
-            $addressId = $address->address_id;  
+            $addressId = $address->address_id;
         }
 
         $club->update([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'webpage' => $validated['webpage'] ?? null,
+            'name'       => $validated['name'],
+            'phone'      => $validated['phone'] ?? null,
+            'email'      => $validated['email'] ?? null,
+            'webpage'    => $validated['webpage'] ?? null,
             'address_id' => $addressId,
-            'sport_id' => $primarySportId,
         ]);
-
-        $club->sports()->sync($validated['sport_ids']);
 
         return redirect()->route('panel.coach.clubs.index')->with('success', 'Club updated successfully!');
     }
@@ -153,11 +130,12 @@ class CoachClubController extends Controller
         $recentEvents = $activeEvents->take(5);
         $moreEventsCount = max($activeEventsCount - 5, 0);
         $coaches = $activeMembers->where('roleValue', MemberClubRole::COACH->value)->values();
+
         $user = Auth::user();
         $canManageClub = false;
         if ($user && $user->member) {
             $membership = $user->activeMembership();
-            if ($membership && (int)$membership->club_id === (int)$club->club_id && $membership->role === \App\Enums\MemberClubRole::COACH) {
+            if ($membership && (int) $membership->club_id === (int) $club->club_id && $membership->role === MemberClubRole::COACH) {
                 $canManageClub = true;
             }
         }

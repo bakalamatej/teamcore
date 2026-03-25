@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\MemberClub;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use SoftDeletes, HasFactory, Notifiable;
 
     protected $table = 'users';
     protected $primaryKey = 'user_id';
@@ -203,7 +204,7 @@ class User extends Authenticatable
 
         $baseQuery = $this->member->clubMemberships()
             ->active()
-            ->with(['club', 'sport'])
+            ->with(['club.sport'])
             ->orderBy('joined_at', 'asc')
             ->orderBy('member_club_id', 'asc');
 
@@ -237,7 +238,7 @@ class User extends Authenticatable
 
         return $this->member->clubMemberships()
             ->active()
-            ->with(['club', 'sport'])
+            ->with(['club.sport'])
             ->orderBy('joined_at', 'asc')
             ->orderBy('member_club_id', 'asc')
             ->get()
@@ -250,7 +251,7 @@ class User extends Authenticatable
                     'label' => sprintf(
                         '%s · %s (%s)',
                         $membership->club?->name ?? 'Club',
-                        $membership->sport?->name ?? 'Sport',
+                        $membership->club?->sport?->name ?? 'Sport',
                         $roleText
                     ),
                 ];

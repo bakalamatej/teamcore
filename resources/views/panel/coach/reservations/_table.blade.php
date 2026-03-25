@@ -22,16 +22,15 @@
                         {{ $reservation->end_date?->format('d.m.Y') ?? '-' }}
                     </td>
                     <td class="p-3 text-center">
-                        @php($statusValue = $reservation->status->value)
-                        <span @class([
-                            'px-3 py-1 rounded-full text-xs font-semibold',
-                            'bg-yellow-200 text-yellow-800' => $statusValue === 'pending',
-                            'bg-green-200 text-green-800' => $statusValue === 'approved',
-                            'bg-red-200 text-red-800' => in_array($statusValue, ['rejected', 'canceled'], true),
-                        ])>
-                            {{ ucfirst($statusValue) }}
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            @if($reservation->status === \App\Enums\ReservationStatus::CONVERTED) bg-gray-200 text-gray-800
+                            @elseif($reservation->status === \App\Enums\ReservationStatus::CANCELED) bg-red-200 text-red-800
+                            @else bg-green-200 text-green-800
+                            @endif">
+                            {{ ucfirst($reservation->status->value) }}
                         </span>
                     </td>
+
                     <td class="p-3 text-right">
                         <a href="{{ route('panel.coach.reservations.show', $reservation) }}" class="table-action view mr-2">
                             {{ __('View') }}

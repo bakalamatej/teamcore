@@ -51,11 +51,11 @@ class CoachEvaluation extends Model
         });
     }
 
-    public function scopeByCoach($query, $coachId)
+    public function scopeSearchByCoach($query, $search)
     {
-        if (!$coachId) return $query;
-        
-        return $query->where('coach_member_club_id', $coachId);
+        if (!$search) return $query;
+        return $query->whereHas('coach.member', fn($q) => $q->where('first_name', 'like', "%{$search}%")
+            ->orWhere('last_name', 'like', "%{$search}%"));
     }
 
     public function scopeByMember($query, $memberId)
@@ -103,7 +103,7 @@ class CoachEvaluation extends Model
 
     public function scopeWithRelations($query)
     {
-        return $query->with(['coach', 'evaluatedByMember', 'reservation']);
+        return $query->with(['coach', 'evaluatedByMember']);
     }
 
     // -----------------------

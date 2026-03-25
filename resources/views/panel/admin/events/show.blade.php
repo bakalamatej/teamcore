@@ -7,8 +7,7 @@
                 <span @class([
                     'px-3 py-1 rounded-full text-sm font-semibold',
                     'bg-gray-200 text-gray-800' => $statusValue === 'finished',
-                    'bg-red-200 text-red-800' => $statusValue === 'canceled',
-                    'bg-green-200 text-green-800' => !in_array($statusValue, ['finished', 'canceled'], true),
+                    'bg-green-200 text-green-800' => !in_array($statusValue, ['finished'], true),
                 ])>
                     {{ ucfirst($statusValue) }}
                 </span>

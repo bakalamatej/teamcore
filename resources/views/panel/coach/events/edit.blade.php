@@ -1,5 +1,5 @@
 <x-panel-layout>
-	<div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+	<div class="bg-white shadow-xl rounded-lg p-4 sm:p-8">
 		<h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
 		<form
@@ -7,7 +7,6 @@
 			action="{{ route('panel.coach.events.update', $event) }}"
 			class="space-y-6"
 		>
-			<input type="hidden" name="sport_id" value="{{ $event->sport_id }}">
 			@csrf
 			@method('PATCH')
 			<input type="hidden" name="status" value="{{ $event->status->value }}">
@@ -25,7 +24,7 @@
 						<x-select-input
 							id="event_type_id"
 							name="event_type_id"
-							:options="$eventTypesBySport[$event->sport_id] ?? []"
+							:options="$eventTypeOptions"
 							:selected="old('event_type_id', $event->event_type_id)"
 							placeholder="{{ __('Select type') }}"
 							class="mt-1"
@@ -38,7 +37,7 @@
 						<x-multiselect-input
 							id="club_ids"
 							name="club_ids"
-							:options="$clubsBySport[$event->sport_id] ?? []"
+							:options="$clubOptions"
 							:selected="old('club_ids', $selectedClubIds)"
 							:placeholder="__('Select participating clubs')"
 							class="mt-1"

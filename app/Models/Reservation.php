@@ -10,25 +10,30 @@ class Reservation extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::creating(function (Reservation $reservation): void {
+            $reservation->status ??= ReservationStatus::APPROVED;
+        });
+    }
+
     protected $table = 'reservations';
     protected $primaryKey = 'reservation_id';
 
     protected $fillable = [
-        'sport_id',
         'sport_field_id',
-        'club_id',
         'created_by_member_club_id',
         'title',
         'description',
+        'status',
         'start_date',
         'end_date',
-        'status',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
         'status' => ReservationStatus::class,
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     // -----------------------
@@ -37,7 +42,9 @@ class Reservation extends Model
 
     public function scopeSearch($query, $search)
     {
-        if (!$search) return $query;
+        if (!$search) {
+            return $query;
+        }
 
         return $query->where(function ($q) use ($search) {
             $q->where('title', 'like', "%{$search}%")
@@ -47,14 +54,11 @@ class Reservation extends Model
 
     public function scopeByStatus($query, $status)
     {
-        if (!$status) return $query;
-        
-        return $query->where('status', $status);
-    }
+        if (!$status) {
+            return $query;
+        }
 
-    public function scopePending($query)
-    {
-        return $query->where('status', ReservationStatus::PENDING->value);
+        return $query->where('status', $status);
     }
 
     public function scopeApproved($query)
@@ -62,23 +66,34 @@ class Reservation extends Model
         return $query->where('status', ReservationStatus::APPROVED->value);
     }
 
-    public function scopeRejected($query)
+    public function scopeCanceled($query)
     {
-        return $query->where('status', ReservationStatus::REJECTED->value);
+        return $query->where('status', ReservationStatus::CANCELED->value);
+    }
+
+    public function scopeConverted($query)
+    {
+        return $query->where('status', ReservationStatus::CONVERTED->value);
     }
 
     public function scopeBySportField($query, $sportFieldId)
     {
-        if (!$sportFieldId) return $query;
-        
+        if (!$sportFieldId) {
+            return $query;
+        }
+
         return $query->where('sport_field_id', $sportFieldId);
     }
 
     public function scopeByClub($query, $clubId)
     {
-        if (!$clubId) return $query;
-        
-        return $query->where('club_id', $clubId);
+        if (!$clubId) {
+            return $query;
+        }
+
+        return $query->whereHas('createdByMemberClub', function ($q) use ($clubId) {
+            $q->where('club_id', $clubId);
+        });
     }
 
     public function scopeByDateRange($query, $startDate, $endDate)
@@ -86,9 +101,11 @@ class Reservation extends Model
         if ($startDate) {
             $query->whereDate('start_date', '>=', $startDate);
         }
+
         if ($endDate) {
             $query->whereDate('end_date', '<=', $endDate);
         }
+
         return $query;
     }
 
@@ -102,19 +119,13 @@ class Reservation extends Model
         return $query->where('end_date', '<', now());
     }
 
-    public function scopeActive($query)
-    {
-        return $query->whereNull('deleted_at');
-    }
-
-    public function scopeOrderByDate($query, $order = 'asc')
-    {
-        return $query->orderBy('start_date', in_array($order, ['asc', 'desc']) ? $order : 'asc');
-    }
-
     public function scopeWithRelations($query)
     {
-        return $query->with(['sportField', 'club', 'createdByMemberClub']);
+        return $query->with([
+            'sportField',
+            'createdByMemberClub.club',
+            'createdByMemberClub.club.sport',
+        ]);
     }
 
     // -----------------------
@@ -126,19 +137,9 @@ class Reservation extends Model
         return $this->belongsTo(SportField::class, 'sport_field_id');
     }
 
-    public function sport()
-    {
-        return $this->belongsTo(Sport::class, 'sport_id');
-    }
-
-    public function club()
-    {
-        return $this->belongsTo(Club::class, 'club_id');
-    }
-
     public function createdByMemberClub()
     {
-        return $this->belongsTo(MemberClub::class, 'created_by_member_club_id');
+        return $this->belongsTo(MemberClub::class, 'created_by_member_club_id', 'member_club_id');
     }
 
     public function events()
@@ -146,5 +147,22 @@ class Reservation extends Model
         return $this->hasMany(Event::class, 'reservation_id');
     }
 
+    // -----------------------
+    // Accessors
+    // -----------------------
 
+    public function getSportAttribute()
+    {
+        return $this->createdByMemberClub?->club?->sport;
+    }
+
+    public function getClubAttribute()
+    {
+        return $this->createdByMemberClub?->club;
+    }
+
+    public function getLocationAttribute()
+    {
+        return $this->sportField?->name ?? 'N/A';
+    }
 }

@@ -1,42 +1,33 @@
 export default () => ({
-    openSport: false,
-    openSportField: false,
-    openClub: false,
     openMembership: false,
-    selectedSport: '',
-    previousSport: '',
-    selectedSportField: '',
-    selectedClub: '',
-    previousClub: '',
+    openSportField: false,
     selectedMembership: '',
-    sportOptions: {},
+    selectedSportField: '',
+    memberships: {},
+    membershipMeta: {},
     sportFieldsBySport: {},
-    clubsBySport: {},
-    membershipsByClub: {},
+
+    get currentClubId() {
+        if (!this.selectedMembership) return '';
+        return this.membershipMeta[this.selectedMembership]?.club_id?.toString() ?? '';
+    },
+
+    get currentSportId() {
+        if (!this.selectedMembership) return '';
+        return this.membershipMeta[this.selectedMembership]?.sport_id?.toString() ?? '';
+    },
+
     get availableSportFields() {
-        if (!this.selectedSport) return {};
-        return this.sportFieldsBySport[this.selectedSport] ?? {};
+        if (!this.currentSportId) return {};
+        return this.sportFieldsBySport[this.currentSportId] ?? {};
     },
-    get availableClubs() {
-        if (!this.selectedSport) return {};
-        return this.clubsBySport[this.selectedSport] ?? {};
-    },
-    get availableMemberships() {
-        if (!this.selectedClub) return {};
-        return this.membershipsByClub[this.selectedClub] ?? {};
-    },
-    syncSportChange() {
-        if (this.selectedSport !== this.previousSport) {
+
+    syncMembershipChange() {
+        if (
+            this.selectedSportField &&
+            !Object.prototype.hasOwnProperty.call(this.availableSportFields, this.selectedSportField)
+        ) {
             this.selectedSportField = '';
-            this.selectedClub = '';
-            this.selectedMembership = '';
-            this.previousSport = this.selectedSport;
-        }
-    },
-    syncClubChange() {
-        if (this.selectedClub !== this.previousClub) {
-            this.selectedMembership = '';
-            this.previousClub = this.selectedClub;
         }
     }
 });

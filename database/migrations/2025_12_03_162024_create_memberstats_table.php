@@ -45,17 +45,16 @@ return new class extends Migration
                 VALUES (
                     NEW.member_club_id, 1, 
                     IF(NEW.ranking = 1, 1, 0),
-                    IF(v_event_type_name = 'Training', 1, 0),
-                    IF(v_event_type_name = 'Match', 1, 0),
-                    IF(v_event_type_name = 'Tournament', 1, 0),
+                    IF(v_event_type_name LIKE '%Training%', 1, 0),
+                    IF(v_event_type_name LIKE '%Match%', 1, 0),
+                    IF(v_event_type_name LIKE '%Tournament%', 1, 0),
                     NOW(), NOW()
                 )
                 ON DUPLICATE KEY UPDATE
-                    events_attended = events_attended + 1,
                     total_wins = total_wins + IF(NEW.ranking = 1, 1, 0),
-                    training_sessions = training_sessions + IF(v_event_type_name = 'Training', 1, 0),
-                    matches_played = matches_played + IF(v_event_type_name = 'Match', 1, 0),
-                    tournaments_attended = tournaments_attended + IF(v_event_type_name = 'Tournament', 1, 0),
+                    training_sessions = training_sessions + IF(v_event_type_name LIKE '%Training%', 1, 0),
+                    matches_played = matches_played + IF(v_event_type_name LIKE '%Match%', 1, 0),
+                    tournaments_attended = tournaments_attended + IF(v_event_type_name LIKE '%Tournament%', 1, 0),
                     updated_at = NOW();
             END
         ");
@@ -85,11 +84,11 @@ return new class extends Migration
                 WHERE e.event_id = OLD.event_id;
 
                 UPDATE member_statistics
-                SET events_attended = GREATEST(events_attended - 1, 0),
+                SET 
                     total_wins = GREATEST(total_wins - IF(OLD.ranking = 1, 1, 0), 0),
-                    training_sessions = GREATEST(training_sessions - IF(v_event_type_name = 'Training', 1, 0), 0),
-                    matches_played = GREATEST(matches_played - IF(v_event_type_name = 'Match', 1, 0), 0),
-                    tournaments_attended = GREATEST(tournaments_attended - IF(v_event_type_name = 'Tournament', 1, 0), 0),
+                    training_sessions = GREATEST(training_sessions - IF(v_event_type_name LIKE '%Training%', 1, 0), 0),
+                    matches_played = GREATEST(matches_played - IF(v_event_type_name LIKE '%Match%', 1, 0), 0),
+                    tournaments_attended = GREATEST(tournaments_attended - IF(v_event_type_name LIKE '%Tournament%', 1, 0), 0),
                     updated_at = NOW()
                 WHERE member_club_id = OLD.member_club_id;
             END

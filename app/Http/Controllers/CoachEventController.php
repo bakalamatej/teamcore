@@ -34,11 +34,9 @@ class CoachEventController extends Controller
             return view('panel.coach.events._table', compact('events'));
         }
 
-        $sportFieldOptions = $this->getSportFieldOptionsWithCity();
-        $eventTypeOptions = [];
-        if ($club) {
-            $eventTypeOptions = $this->getEventTypesBySportOptions()[$club->sport_id] ?? [];
-        }
+        $sportFieldOptions = $this->getSportFieldOptionsBySport($club->sport_id);
+        $eventTypeOptions = $this->getEventTypesBySportOptions()[$club->sport_id] ?? [];
+
         return view('panel.coach.events.index', compact('events', 'sportFieldOptions', 'eventTypeOptions'));
     }
 
@@ -50,11 +48,11 @@ class CoachEventController extends Controller
         $club = $membership?->club;
         abort_if(!$club, 403, 'No club context.');
 
-        $sportFieldOptions = $this->getSportFieldOptionsWithCity();
-        $eventTypes = $this->getEventTypesBySportOptions()[$club->sport_id] ?? [];
-        $clubs = $this->getClubsBySportOptions($club->club_id)[$club->sport_id] ?? [];
+        $sportFieldOptions = $this->getSportFieldOptionsBySport($club->sport_id);
+        $eventTypeOptions = $this->getEventTypesBySportOptions()[$club->sport_id] ?? [];
+        $clubOptions = $this->getClubsBySportOptions($club->club_id)[$club->sport_id] ?? [];
 
-        return view('panel.coach.events.create', compact('sportFieldOptions', 'eventTypes', 'clubs', 'club'));
+        return view('panel.coach.events.create', compact('sportFieldOptions', 'eventTypeOptions', 'clubOptions', 'club'));
     }
 
     public function store(StoreEventRequest $request)
@@ -66,11 +64,12 @@ class CoachEventController extends Controller
         abort_if(!$club, 403, 'No club context.');
 
         $validated = $request->validated();
+        $clubIds = $validated['club_ids'] ?? [$club->club_id];
         unset($validated['club_ids']);
 
         try {
             $event = Event::create($validated);
-            $event->clubs()->sync([$club->club_id]);
+            $event->clubs()->sync($clubIds);
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
             if ($error !== null) {
@@ -128,13 +127,14 @@ class CoachEventController extends Controller
         $event->loadMissing('clubs');
         abort_unless($event->clubs->contains('club_id', $club->club_id), 403);
 
-        $sportFieldOptions = $this->getSportFieldOptionsWithCity();
-        $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
-        $eventTypesBySport = $this->getEventTypesBySportOptions();
-        $clubsBySport = $this->getClubsBySportOptions($club->club_id);
-        $selectedClubIds = [(string) $club->club_id];
+        $sportFieldOptions = $this->getSportFieldOptionsBySport($club->sport_id);
+        $eventTypeOptions = $this->getEventTypesBySportOptions()[$club->sport_id] ?? [];
+        $clubOptions = $this->getClubsBySportOptions($club->club_id)[$club->sport_id] ?? [];
+        $selectedClubIds = $event->clubs->pluck('club_id')->map(fn($id) => (string) $id)->values()->toArray();
 
-        return view('panel.coach.events.edit', compact('event', 'sportFieldOptions', 'sportOptions', 'eventTypesBySport', 'clubsBySport', 'selectedClubIds'));
+        return view('panel.coach.events.edit', compact(
+            'event', 'sportFieldOptions', 'eventTypeOptions', 'clubOptions', 'selectedClubIds'
+        ));
     }
 
     public function update(UpdateEventRequest $request, Event $event)
@@ -146,13 +146,14 @@ class CoachEventController extends Controller
         abort_if(!$club, 403, 'No club context.');
         $event->loadMissing('clubs');
         abort_unless($event->clubs->contains('club_id', $club->club_id), 403);
-
+        
         $validated = $request->validated();
+        $clubIds = $validated['club_ids'] ?? [$club->club_id];
         unset($validated['club_ids']);
 
         try {
             $event->update($validated);
-            $event->clubs()->sync([$club->club_id]);
+            $event->clubs()->sync($clubIds);
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
             if ($error !== null) {
@@ -198,18 +199,29 @@ class CoachEventController extends Controller
             ->toArray();
     }
 
+    private function getSportFieldOptionsBySport(int $sportId): array
+    {
+        return SportField::whereHas('sports', fn($q) => $q->where('sports.sport_id', $sportId))
+            ->leftJoin('addresses', 'sport_fields.address_id', '=', 'addresses.address_id')
+            ->orderBy('sport_fields.name')
+            ->selectRaw("sport_fields.sport_field_id, CONCAT(sport_fields.name, ' (', COALESCE(addresses.city, '-'), ')') as label")
+            ->pluck('label', 'sport_fields.sport_field_id')
+            ->toArray();
+    }
+
     private function getClubsBySportOptions(int $clubId): array
     {
-        $club = Club::with('sports')->find($clubId);
-        if (!$club) return [];
+        $club = Club::find($clubId);
+        if (!$club || !$club->sport) return [];
 
         $result = [];
-        foreach ($club->sports as $sport) {
-            $clubs = $sport->clubs()->orderBy('name')->get(['clubs.club_id', 'name']);
-            foreach ($clubs as $c) {
-                $result[$sport->sport_id][$c->club_id] = $c->name;
-            }
-        }
+        $clubs = Club::where('sport_id', $club->sport_id)
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['club_id', 'name']);
+
+        $result[$club->sport_id] = $clubs->pluck('name', 'club_id')->toArray();
+
         return $result;
     }
 

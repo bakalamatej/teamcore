@@ -16,7 +16,6 @@ class MemberClub extends Model
     protected $fillable = [
         'member_id',
         'club_id',
-        'sport_id',
         'role',
         'joined_at',
         'left_at',
@@ -43,7 +42,7 @@ class MemberClub extends Model
 
     public function scopeBySport($query, $sportId)
     {
-        return $query->where('sport_id', $sportId);
+        return $sportId ? $query->whereHas('club', fn($q) => $q->where('club.sport_id', $sportId)) : $query;
     }
 
     public function scopeByClub($query, $clubId)
@@ -73,11 +72,6 @@ class MemberClub extends Model
     public function member()
     {
         return $this->belongsTo(Member::class, 'member_id');
-    }
-
-    public function sport()
-    {
-        return $this->belongsTo(Sport::class, 'sport_id');
     }
 
     public function club()

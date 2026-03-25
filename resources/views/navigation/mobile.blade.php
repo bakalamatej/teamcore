@@ -60,12 +60,18 @@ $panelRoutes = request()->routeIs('panel.*');
                     <x-responsive-nav-link :href="route('panel.update.index')" :active="request()->routeIs('panel.update.index')">
                         {{ __('Profile') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('panel.statistics.index')" :active="request()->routeIs('panel.statistics.index')">
-                        {{ __('Statistics') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('panel.results.index')" :active="request()->routeIs('panel.results.index')">
-                        {{ __('Results') }}
-                    </x-responsive-nav-link>
+
+                    @if($role != 'admin')
+                        <x-responsive-nav-link :href="route('panel.statistics.index')" :active="request()->routeIs('panel.statistics.index')">
+                            {{ __('Statistics') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.results.index')" :active="request()->routeIs('panel.results.index')">
+                            {{ __('Results') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.my-evaluations.index')" :active="request()->routeIs('panel.coach.my-evaluations.*')">
+                            {{ __('My Evaluations') }}
+                        </x-responsive-nav-link>
+                    @endif
 
                     @if($role === 'coach')
                         <x-responsive-nav-link :href="route('panel.coach.players.index')" :active="request()->routeIs('panel.coach.players.*')">
@@ -80,8 +86,8 @@ $panelRoutes = request()->routeIs('panel.*');
                         <x-responsive-nav-link :href="route('panel.coach.reservations.index')" :active="request()->routeIs('panel.coach.reservations.*')">
                             {{ __('Reservations') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('panel.coach.my-evaluations.index')" :active="request()->routeIs('panel.coach.my-evaluations.*')">
-                            {{ __('My Evaluations') }}
+                        <x-responsive-nav-link :href="route('panel.coach.recieved-evaluations.index')" :active="request()->routeIs('panel.coach.recieved-evaluations.*')">
+                            {{ __('Recieved Evaluations') }}
                         </x-responsive-nav-link>
                     @endif
 

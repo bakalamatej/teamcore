@@ -4,14 +4,14 @@
 		<div class="mb-4 pb-4 border-b-2 border-gray-200">
 			<h1 class="my-heading text-3xl mb-2">{{ $event->title }}</h1>
 			<div class="flex items-center gap-4 mt-2">
-				<span @class([
-					'px-3 py-1 rounded-full text-sm font-semibold',
-					'bg-gray-200 text-gray-800' => $statusValue === 'finished',
-					'bg-red-200 text-red-800' => $statusValue === 'canceled',
-					'bg-green-200 text-green-800' => !in_array($statusValue, ['finished', 'canceled'], true),
-				])>
-					{{ ucfirst($statusValue) }}
-				</span>
+				<span class="px-3 py-1 rounded-full text-sm font-semibold
+							@if($event->status === \App\Enums\EventStatus::FINISHED) bg-gray-200 text-gray-800
+                            @elseif($event->status === \App\Enums\EventStatus::CANCELED) bg-red-200 text-red-800
+                            @elseif($event->status === \App\Enums\EventStatus::ONGOING) bg-blue-200 text-blue-800
+                            @else bg-green-200 text-green-800
+							@endif">
+							{{ ucfirst($event->status->value) }}
+						</span>
 				<span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $event->created_at->format('d.m.Y H:i') }}</span>
 			</div>
 		</div>

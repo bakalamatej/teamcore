@@ -46,8 +46,8 @@ class ClubController extends Controller
                 fn($q) => $q->byCity($request->input('city')))
             ->when($request->filled('sport'), 
                 fn($q) => $q->bySport($request->input('sport')))
-            ->with('address', 'sports', 'members')
-            ->paginate(10);
+            ->with('address', 'sport', 'members')
+            ->paginate(7);
 
         if ($request->ajax()) {
             return view('panel.admin.clubs._table', compact('clubs'));
@@ -107,7 +107,6 @@ class ClubController extends Controller
         $this->authorize('create', Club::class);
 
         $validated = $request->validated();
-        $primarySportId = (int) ($validated['sport_ids'][0] ?? 0);
 
         $addressId = $validated['address_id'] ?? null;
         if (!$addressId) {
@@ -126,10 +125,8 @@ class ClubController extends Controller
             'email' => $validated['email'] ?? null,
             'webpage' => $validated['webpage'] ?? null,
             'address_id' => $addressId,
-            'sport_id' => $primarySportId,
+            'sport_id' => $validated['sport_id'],
         ]);
-
-        $club->sports()->sync($validated['sport_ids']);
 
         return redirect()->route('panel.admin.clubs.index')->with('success', 'Club created successfully!');
     }
@@ -153,10 +150,9 @@ class ClubController extends Controller
             ->pluck('country', 'country')
             ->toArray();
         $sportOptions = Sport::orderBy('name')->pluck('name', 'sport_id')->toArray();
-        $club->load('sports');
-        $selectedSportIds = $club->sports->pluck('sport_id')->toArray();
+        $selectedSportId = $club->sport_id;
 
-        return view('panel.admin.clubs.edit', compact('club', 'addressOptions', 'countryOptions', 'sportOptions', 'selectedSportIds'));
+        return view('panel.admin.clubs.edit', compact('club', 'addressOptions', 'countryOptions', 'sportOptions', 'selectedSportId'));
     }
 
     /**
@@ -167,7 +163,6 @@ class ClubController extends Controller
         $this->authorize('update', $club);
 
         $validated = $request->validated();
-        $primarySportId = (int) ($validated['sport_ids'][0] ?? 0);
 
         $addressId = $validated['address_id'] ?? null;
         if (!$addressId) {
@@ -186,10 +181,8 @@ class ClubController extends Controller
             'email' => $validated['email'] ?? null,
             'webpage' => $validated['webpage'] ?? null,
             'address_id' => $addressId,
-            'sport_id' => $primarySportId,
+            'sport_id' => $validated['sport_id'],
         ]);
-
-        $club->sports()->sync($validated['sport_ids']);
 
         return redirect()->route('panel.admin.clubs.index')->with('success', 'Club updated successfully!');
     }

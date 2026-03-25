@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\ClubFile;
-use App\Models\ClubSport;
+use App\Models\Sport;
 
 class Club extends Model
 {
@@ -26,17 +26,20 @@ class Club extends Model
     // -----------------------
     // Relationships
     // -----------------------
-    
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id');
     }
 
-    public function sports()
+    public function getClubAddressAttribute(): ?string
     {
-        return $this->belongsToMany(Sport::class, 'club_sport', 'club_id', 'sport_id')
-                    ->using(ClubSport::class);
-    }
+        if (!$this->address) {
+            return null;
+        }
+
+        $street = $this->address->street ? $this->address->street . ', ' : '';
+        return trim($street . $this->address->zip_code . ' ' . $this->address->city);
+}
 
     public function memberMemberships()
     {
@@ -78,6 +81,11 @@ class Club extends Model
                     ->withTimestamps();
     }
 
+    public function sport()
+    {
+        return $this->belongsTo(Sport::class, 'sport_id');
+    }
+
     public function clubStatistic()
     {
         return $this->hasOne(ClubStatistic::class, 'club_id');
@@ -90,7 +98,14 @@ class Club extends Model
 
     public function reservations()
     {
-        return $this->hasMany(Reservation::class, 'club_id');
+        return $this->hasManyThrough(
+            Reservation::class,
+            MemberClub::class,
+            'club_id',
+            'created_by_member_club_id',
+            'club_id',
+            'member_club_id'
+        );
     }
 
     // -----------------------
@@ -126,7 +141,7 @@ class Club extends Model
 
     public function scopeBySport($query, $sportId)
     {
-        return $sportId ? $query->whereHas('sports', fn($q) => $q->where('sports.sport_id', $sportId)) : $query;
+        return $sportId ? $query->where('sport_id', $sportId) : $query;
     }
 
     public function scopeActive($query)
@@ -148,7 +163,7 @@ class Club extends Model
 
     public function scopeWithRelations($query)
     {
-        return $query->with('address', 'sports', 'members', 'clubFiles');
+        return $query->with('address', 'sport', 'members', 'clubFiles');
     }
 
     // -----------------------

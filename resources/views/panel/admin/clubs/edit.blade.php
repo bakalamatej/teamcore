@@ -3,7 +3,7 @@
 @endpush
 
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
     <h1 class="my-heading">{{ __('Edit Club') }}</h1>
         <form action="{{ route('panel.admin.clubs.update', $club) }}" method="POST" class="space-y-6">
         @csrf
@@ -33,9 +33,9 @@
                 </div>
                 <div class="flex-1 space-y-4">
                     <div>
-                        <x-input-label :value="__('Sports')" />
-                        <x-multiselect-input id="sport_ids" name="sport_ids" :options="$sportOptions" :selected="old('sport_ids', $selectedSportIds)" placeholder="{{ __('Select sports...') }}" class="mt-1 block w-full" />
-                        <x-input-error :messages="$errors->get('sport_ids')" class="mt-2" />
+                        <x-input-label for="sport_id" :value="__('Sport')" />
+                        <x-select-input id="sport_id" name="sport_id" :options="$sportOptions" :selected="old('sport_id', $club->sport_id)" placeholder="{{ __('Select sport') }}" class="mt-1 block w-full" />
+                        <x-input-error :messages="$errors->get('sport_id')" class="mt-2" />
                     </div>
                     <div id="existing-address-block">
                         <x-input-label for="address_id" :value="__('Address')" />

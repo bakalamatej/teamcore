@@ -45,15 +45,15 @@ return new class extends Migration
                 INSERT INTO club_statistics (club_id, matches_played, tournaments_attended, total_wins, total_losses, created_at, updated_at)
                 VALUES (
                     NEW.club_id,
-                    IF(v_event_type_name = 'Match', 1, 0),
-                    IF(v_event_type_name = 'Tournament', 1, 0),
+                    IF(v_event_type_name LIKE '%Match%', 1, 0),
+                    IF(v_event_type_name LIKE '%Tournament%', 1, 0),
                     IF(NEW.ranking = 1, 1, 0),
                     IF(NEW.ranking > 1, 1, 0),
                     NOW(), NOW()
                 )
                 ON DUPLICATE KEY UPDATE
-                    matches_played = matches_played + IF(v_event_type_name = 'Match', 1, 0),
-                    tournaments_attended = tournaments_attended + IF(v_event_type_name = 'Tournament', 1, 0),
+                    matches_played = matches_played + IF(v_event_type_name LIKE '%Match%', 1, 0),
+                    tournaments_attended = tournaments_attended + IF(v_event_type_name LIKE '%Tournament%', 1, 0),
                     total_wins = total_wins + IF(NEW.ranking = 1, 1, 0),
                     total_losses = total_losses + IF(NEW.ranking > 1, 1, 0),
                     updated_at = NOW();
@@ -88,8 +88,8 @@ return new class extends Migration
                 WHERE e.event_id = OLD.event_id;
 
                 UPDATE club_statistics
-                SET matches_played = GREATEST(matches_played - IF(v_event_type_name = 'Match', 1, 0), 0),
-                    tournaments_attended = GREATEST(tournaments_attended - IF(v_event_type_name = 'Tournament', 1, 0), 0),
+                SET matches_played = GREATEST(matches_played - IF(v_event_type_name LIKE '%Match%', 1, 0), 0),
+                    tournaments_attended = GREATEST(tournaments_attended - IF(v_event_type_name LIKE '%Tournament%', 1, 0), 0),
                     total_wins = GREATEST(total_wins - IF(OLD.ranking = 1, 1, 0), 0),
                     total_losses = GREATEST(total_losses - IF(OLD.ranking > 1, 1, 0), 0),
                     updated_at = NOW()

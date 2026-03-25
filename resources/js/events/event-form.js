@@ -4,26 +4,56 @@ export default () => ({
     previousSport: '',
     sportOptions: {},
     openEventType: false,
+    openSportField: false,
     selectedEventType: '',
     eventTypesBySport: {},
     selectedClubs: [],
     clubsBySport: {},
+    selectedSportField: '',
+    sportFieldsBySport: {},
+    
     get availableEventTypes() {
-        if (!this.selectedSport) return {};
-        return this.eventTypesBySport[this.selectedSport] ?? {};
+        return Object.values(this.eventTypesBySport).reduce((acc, types) => ({
+            ...acc,
+            ...types,
+        }), {});
     },
     get availableClubs() {
-        if (!this.selectedSport) return {};
-        return this.clubsBySport[this.selectedSport] ?? {};
+        const sportId = this.getSportIdByEventType(this.selectedEventType);
+        if (!sportId) return {};
+        return this.clubsBySport[sportId] ?? {};
+    },
+
+    get availableSportFields() {
+        const sportId = this.getSportIdByEventType(this.selectedEventType);
+        if (!sportId) return {};
+        return this.sportFieldsBySport[sportId] ?? {};
+    },
+    getSportIdByEventType(eventTypeId) {
+        const typeId = String(eventTypeId);
+        for (const [sportId, types] of Object.entries(this.eventTypesBySport)) {
+            if (Object.prototype.hasOwnProperty.call(types, typeId)) {
+                return String(sportId);
+            }
+        }
+        return '';
     },
     syncSportChange() {
-    if (this.selectedSport !== this.previousSport) {
-        this.selectedEventType = '';
-        this.selectedClubs = [];
-        this.previousSport = this.selectedSport;
-        this.$nextTick(() => {
+        const eventTypeSport = this.getSportIdByEventType(this.selectedEventType);
+
+        if (eventTypeSport) {
+            this.selectedSport = eventTypeSport;
+        }
+
+        if (this.previousSport === '') {
+            this.previousSport = this.selectedSport;
+            return;
+        }
+
+        if (this.selectedSport !== this.previousSport) {
             this.selectedClubs = [];
-        });
+            this.selectedSportField = '';
+            this.previousSport = this.selectedSport;
+        }
     }
-}
 });

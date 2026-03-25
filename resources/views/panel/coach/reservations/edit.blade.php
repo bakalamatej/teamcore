@@ -9,8 +9,6 @@
         >
             @csrf
             @method('PATCH')
-            <input type="hidden" name="sport_id" value="{{ $sportId }}">
-            <input type="hidden" name="club_id" value="{{ $clubId }}">
             <input type="hidden" name="created_by_member_club_id" value="{{ $memberClubId }}">
 
             <div class="flex flex-col lg:flex-row gap-6">

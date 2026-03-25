@@ -8,7 +8,6 @@ use App\Models\Member;
 use App\Models\MemberClub;
 use App\Enums\MemberClubRole;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PanelMembershipController extends Controller
 {
@@ -22,7 +21,7 @@ class PanelMembershipController extends Controller
             ->toArray();
 
         $memberships = MemberClub::query()
-            ->with(['member.user', 'club', 'sport'])
+            ->with(['member.user', 'club.sport'])
             ->whereNull('left_at')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->input('search');
@@ -37,7 +36,7 @@ class PanelMembershipController extends Controller
             ->when($request->filled('club_id'), fn($query) => $query->where('club_id', $request->input('club_id')))
             ->when($request->filled('role'), fn($query) => $query->where('role', $request->input('role')))
             ->latest('member_club_id')
-            ->paginate(15);
+            ->paginate(7);
 
         if ($request->ajax()) {
             return view('panel.admin.memberships._table', compact('memberships'));
@@ -76,7 +75,7 @@ class PanelMembershipController extends Controller
     {
         $this->authorize('update', $memberClub);
 
-        $memberClub->load(['member.user', 'club', 'sport']);
+        $memberClub->load(['member.user', 'club.sport']);
         $clubOptions = Club::orderBy('name')->pluck('name', 'club_id')->toArray();
         $sportsByClub = $this->sportsByClub();
 
@@ -89,7 +88,7 @@ class PanelMembershipController extends Controller
 
         $memberClub->update($request->validated());
 
-        return redirect()->route('panel.admin.memberships.edit', $memberClub)->with('success', 'Membership updated.');
+        return redirect()->route('panel.admin.memberships.index', $memberClub)->with('success', 'Membership updated.');
     }
 
     public function destroy(MemberClub $memberClub)
@@ -123,19 +122,19 @@ class PanelMembershipController extends Controller
 
     private function sportsByClub(): array
     {
-        $rows = DB::table('club_sport')
-            ->join('sports', 'club_sport.sport_id', '=', 'sports.sport_id')
-            ->orderBy('sports.name')
-            ->get([
-                'club_sport.club_id',
-                'sports.sport_id',
-                'sports.name',
-            ]);
+        $rows = Club::query()
+            ->with('sport')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['club_id', 'sport_id', 'name']);
 
         $result = [];
 
         foreach ($rows as $row) {
-            $result[(string) $row->club_id][(string) $row->sport_id] = $row->name;
+            if (!$row->sport) {
+                continue;
+            }
+            $result[(string) $row->club_id][(string) $row->sport->sport_id] = $row->sport->name;
         }
 
         return $result;

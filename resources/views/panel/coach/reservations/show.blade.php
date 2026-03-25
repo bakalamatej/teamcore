@@ -1,18 +1,10 @@
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
-        @php($statusValue = $reservation->status->value)
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
 
         <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $reservation->title }}</h1>
             <div class="flex items-center gap-4">
-                <span @class([
-                    'px-3 py-1 rounded-full text-sm font-semibold',
-                    'bg-yellow-200 text-yellow-800' => $statusValue === 'pending',
-                    'bg-green-200 text-green-800' => $statusValue === 'approved',
-                    'bg-red-200 text-red-800' => in_array($statusValue, ['rejected', 'canceled'], true),
-                ])>
-                    {{ ucfirst($statusValue) }}
-                </span>
+               
                 <span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $reservation->created_at->format('d.m.Y H:i') }}</span>
             </div>
         </div>
@@ -81,16 +73,28 @@
                 <div class="flex-1"></div>
                 @if(isset($myMemberClubId) && $reservation->created_by_member_club_id == $myMemberClubId)
                     <div class="space-y-3 mt-auto">
+                        <x-secondary-button class="w-full justify-center" :href="route('panel.coach.reservations.create-event', $reservation)">
+                            {{ __('Create Event') }}
+                        </x-secondary-button>
                         <x-primary-button class="w-full justify-center" :href="route('panel.coach.reservations.edit', $reservation)">
                             {{ __('Edit Reservation') }}
                         </x-primary-button>
-                        <form method="POST" action="{{ route('panel.coach.reservations.destroy', $reservation) }}" onsubmit="return confirm('{{ __('Are you sure you want to delete this reservation?') }}');">
-                            @csrf
-                            @method('DELETE')
-                            <x-danger-button class="w-full justify-center" type="submit">
-                                {{ __('Delete Reservation') }}
-                            </x-danger-button>
-                        </form>
+                        <x-danger-button type="button" class="w-full justify-center" x-data x-on:click="$dispatch('open-modal', 'confirm-reservation-deletion')">
+                            {{ __('Delete Reservation') }}
+                        </x-danger-button>
+
+                        <x-modal name="confirm-reservation-deletion" :show="false" focusable>
+                            <form method="POST" action="{{ route('panel.coach.reservations.destroy', $reservation) }}" class="p-6 text-left">
+                                @csrf
+                                @method('DELETE')
+                                <h2 class="my-heading">{{ __('Delete Reservation') }}</h2>
+                                <p class="my-text">{{ __('Are you sure you want to delete') }} <strong>{{ $reservation->title }}</strong>? {{ __('This action cannot be undone.') }}</p>
+                                <div class="flex justify-end gap-3 mt-6">
+                                    <x-secondary-button type="button" x-on:click="$dispatch('close')">{{ __('Cancel') }}</x-secondary-button>
+                                    <x-danger-button type="submit">{{ __('Delete') }}</x-danger-button>
+                                </div>
+                            </form>
+                        </x-modal>
                     </div>
                 @endif
             </div>

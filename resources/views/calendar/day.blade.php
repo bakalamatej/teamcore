@@ -3,11 +3,11 @@
 @endphp
 
 <x-app-layout>
-    <div class="mb-6 sm:p-8 bg-gray-50 rounded-lg">
+    <div class="mb-6 sm:p-8 bg-white rounded-lg">
         <h2 class="text-xl font-bold mb-4">{{ $date->format('j F Y') }} ({{ $date->format('l') }})</h2>
         <div class="space-y-4">
             @forelse($events as $event)
-                <div class="border rounded-lg p-4 bg-white flex flex-col">
+                <div class="border rounded-lg p-4 bg-gray-50 flex flex-col max-w-md">
                     <div class="font-semibold text-lg mb-1">{{ $event->title }}</div>
                     <div class="text-xs text-gray-500 mb-2">{{ $event->start_date->format('H:i') }} - {{ $event->end_date?->format('H:i') }}</div>
                     <div class="mb-2">{{ $event->description }}</div>

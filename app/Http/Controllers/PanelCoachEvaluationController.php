@@ -38,7 +38,7 @@ class PanelCoachEvaluationController extends Controller
     /**
      * Show all evaluations received by the current coach
      */
-    public function myIndex(Request $request)
+    public function recievedIndex(Request $request)
     {
         $this->authorize('viewAny', CoachEvaluation::class);
         $coachMemberId = Auth::user()?->member?->member_id;
@@ -49,10 +49,34 @@ class PanelCoachEvaluationController extends Controller
             ->paginate(15);
 
         if ($request->ajax()) {
-            return view('panel.coach.my-evaluations._table', ['evaluations' => $evaluations]);
+            return view('panel.coach.recieved-evaluations._table', ['evaluations' => $evaluations]);
         }
 
-        return view('panel.coach.my-evaluations.index', ['evaluations' => $evaluations]);
+        return view('panel.coach.recieved-evaluations.index', ['evaluations' => $evaluations]);
+    }
+
+    public function myIndex(Request $request)
+    {
+        $member = Auth::user()?->member;
+
+        if (!$member) {
+            return view('panel.my-evaluations.index', [
+                'evaluations' => collect(),
+                'averageRating' => null,
+            ]);
+        }
+
+        $evaluations = CoachEvaluation::where('evaluated_by_member_id', $member->member_id)
+            ->when($request->filled('search'), fn($q) => $q->searchByCoach($request->input('search')))
+            ->with('coach.member', 'coach.club')
+            ->orderByDesc('created_at')
+            ->paginate(7);
+
+        if ($request->ajax()) {
+            return view('panel.my-evaluations._table', compact('evaluations'));
+        }
+
+        return view('panel.my-evaluations.index', compact('evaluations'));
     }
 
     /**
@@ -88,5 +112,35 @@ class PanelCoachEvaluationController extends Controller
             'averageRating',
             'ratings'
         ));
+    }
+    
+    public function editEvaluation(CoachEvaluation $evaluation)
+    {
+        $this->authorize('update', $evaluation);
+
+        return view('panel.my-evaluations.edit', compact('evaluation'));
+    }
+
+    public function updateEvaluation(Request $request, CoachEvaluation $evaluation)
+    {
+        $this->authorize('update', $evaluation);
+
+        $validated = $request->validate([
+            'rating' => ['required', 'numeric', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $evaluation->update($validated);
+
+        return redirect()->route('panel.my-evaluations.index')->with('success', 'Evaluation updated successfully!');
+    }
+
+    public function destroyEvaluation(CoachEvaluation $evaluation)
+    {
+        $this->authorize('delete', $evaluation);
+
+        $evaluation->delete();
+
+        return redirect()->route('panel.my-evaluations.index')->with('success', 'Evaluation deleted successfully!');
     }
 }

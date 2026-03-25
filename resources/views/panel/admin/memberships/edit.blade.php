@@ -4,7 +4,7 @@
         x-init="
             selectedClub = @js(old('club_id', (string) $memberClub->club_id));
             previousClub = @js(old('club_id', (string) $memberClub->club_id));
-            selectedSport = @js(old('sport_id', (string) $memberClub->sport_id));
+            selectedSport = @js(old('sport_id', (string) $memberClub->club?->sport_id));
                     clubOptions = @js(collect($clubOptions)->mapWithKeys(fn($label, $id) => [(string) $id => $label]));
                     sportsByClub = @js($sportsByClub);
                 "
@@ -41,18 +41,6 @@
                             <x-input-error :messages="$errors->get('club_id')" class="mt-2" />
                         </div>
 
-                        <div x-on:click.outside="openSport = false">
-                            <x-input-label :value="__('Sport')" />
-                            <x-filtered-select
-                                name="sport_id"
-                                open-var="openSport"
-                                selected-var="selectedSport"
-                                options-var="availableSports"
-                                disabled-when="!selectedClub"
-                                :placeholder="__('Select sport')"
-                            />
-                            <x-input-error :messages="$errors->get('sport_id')" class="mt-2" />
-                        </div>
 
                         <div>
                             <x-input-label :value="__('Role')" />

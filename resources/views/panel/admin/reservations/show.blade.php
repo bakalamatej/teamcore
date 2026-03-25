@@ -1,18 +1,9 @@
 <x-panel-layout>
-            <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
-                @php($statusValue = $reservation->status->value)
+            <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
 
                 <div class="mb-4 pb-4 border-b-2 border-gray-200">
                     <h1 class="my-heading text-3xl mb-2">{{ $reservation->title }}</h1>
                     <div class="flex items-center gap-4">
-                        <span @class([
-                            'px-3 py-1 rounded-full text-sm font-semibold',
-                            'bg-yellow-200 text-yellow-800' => $statusValue === 'pending',
-                            'bg-green-200 text-green-800' => $statusValue === 'approved',
-                            'bg-red-200 text-red-800' => in_array($statusValue, ['rejected', 'canceled'], true),
-                        ])>
-                            {{ ucfirst($statusValue) }}
-                        </span>
                         <span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $reservation->created_at->format('d.m.Y H:i') }}</span>
                     </div>
                 </div>

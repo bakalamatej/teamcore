@@ -17,7 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('club_id');
 
-            $table->decimal('score', 8, 2)->nullable();
+            $table->string('value', 20)->nullable();
+            $table->enum('result_type', array_map(fn(\App\Enums\ResultType $type) => $type->value, \App\Enums\ResultType::cases()))
+                ->default(\App\Enums\ResultType::SCORE->value);
             $table->unsignedSmallInteger('ranking')->nullable();
             $table->longText('note')->nullable();
             $table->timestamps();

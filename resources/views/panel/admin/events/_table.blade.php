@@ -23,6 +23,7 @@
                         <span class="px-3 py-1 rounded-full text-xs font-semibold
                             @if($event->status === \App\Enums\EventStatus::FINISHED) bg-gray-200 text-gray-800
                             @elseif($event->status === \App\Enums\EventStatus::CANCELED) bg-red-200 text-red-800
+                            @elseif($event->status === \App\Enums\EventStatus::ONGOING) bg-blue-200 text-blue-800
                             @else bg-green-200 text-green-800
                             @endif">
                             {{ ucfirst($event->status->value) }}

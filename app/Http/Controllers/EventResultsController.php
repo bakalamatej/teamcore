@@ -8,6 +8,7 @@ use App\Models\EventMemberResult;
 use App\Models\MemberClub;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\EventType;
 
 class EventResultsController extends Controller
 {
@@ -20,7 +21,9 @@ class EventResultsController extends Controller
             return view('panel.results.index', [
                 'results' => collect(),
                 'clubOptions' => [],
+                'eventTypeOptions' => [],
                 'selectedMemberClubId' => null,
+                'selectedEventTypeId' => null,
             ]);
         }
 
@@ -28,17 +31,27 @@ class EventResultsController extends Controller
             ->with('club')
             ->get();
 
+        $sportIds = $memberships->pluck('club.sport_id')->filter()->unique()->values();
+        $eventTypeOptions = EventType::whereIn('sport_id', $sportIds)
+            ->orderBy('name')
+            ->pluck('name', 'event_type_id')
+            ->toArray();
+
         $clubOptions = $memberships->mapWithKeys(fn($m) => [
             $m->member_club_id => $m->club->name . ' (' . ($m->left_at ? __('former') : __('active')) . ')'
         ])->toArray();
 
         $selectedMemberClubId = $request->input('member_club_id');
+        $selectedEventTypeId = $request->input('event_type_id');
 
         $resultsQuery = EventMemberResult::whereIn('member_club_id', $memberships->pluck('member_club_id'))
             ->with(['event.sportField', 'event.eventType', 'memberClub.club']);
 
         if ($selectedMemberClubId) {
             $resultsQuery->where('member_club_id', $selectedMemberClubId);
+        }
+        if ($selectedEventTypeId) {
+            $resultsQuery->whereHas('event', fn($q) => $q->where('event_type_id', $selectedEventTypeId));
         }
 
         $results = $resultsQuery->get()->sortByDesc(fn($r) => $r->event?->start_date);
@@ -47,7 +60,7 @@ class EventResultsController extends Controller
             return view('panel.results._table', compact('results'));
         }
 
-        return view('panel.results.index', compact('results', 'clubOptions', 'selectedMemberClubId'));
+        return view('panel.results.index', compact('results', 'clubOptions', 'selectedMemberClubId', 'eventTypeOptions', 'selectedEventTypeId'));
     }
 
     public function edit(Event $event)
@@ -80,7 +93,6 @@ class EventResultsController extends Controller
         ));
     }
 
-    // ADMIN: Edit results for all clubs and members
     public function adminEdit(Event $event)
     {
         $this->authorize('editResults', $event);
@@ -91,7 +103,6 @@ class EventResultsController extends Controller
             ->get()
             ->keyBy('club_id');
 
-        // Get all member clubs that participated in the event (across all clubs)
         $memberClubs = MemberClub::whereIn('club_id', $clubs->pluck('club_id'))
             ->whereHas('events', fn($q) => $q->where('events.event_id', $event->event_id))
             ->with('member')
@@ -108,29 +119,28 @@ class EventResultsController extends Controller
         ));
     }
 
-    // ADMIN: Store results for all clubs and members
     public function adminStore(EventResultsRequest $request, Event $event)
     {
         $this->authorize('storeResults', $event);
 
-        // Save all club results
         foreach ($request->input('clubs', []) as $clubId => $data) {
-                EventClubResult::updateOrCreate(
+            EventClubResult::updateOrCreate(
                 ['event_id' => $event->event_id, 'club_id' => $clubId],
                 [
-                    'score' => $data['score'] ?? null,
+                    'value' => $data['value'] ?? null,
+                    'result_type' => $data['result_type'] ?? null,
                     'ranking' => $data['ranking'] ?? null,
                     'note' => $data['note'] ?? null,
                 ]
             );
         }
 
-        // Save all member results
         foreach ($request->input('members', []) as $memberClubId => $result) {
-                EventMemberResult::updateOrCreate(
+            EventMemberResult::updateOrCreate(
                 ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
                 [
-                    'score' => $result['score'] ?? null,
+                    'value' => $result['value'] ?? null,
+                    'result_type' => $result['result_type'] ?? null,
                     'ranking' => $result['ranking'] ?? null,
                     'note' => $result['note'] ?? null,
                 ]
@@ -153,7 +163,8 @@ class EventResultsController extends Controller
         EventClubResult::updateOrCreate(
             ['event_id' => $event->event_id, 'club_id' => $club->club_id],
             [
-                'score' => $request->input('club_score'),
+                'value' => $request->input('club_value'),
+                'result_type' => $request->input('club_result_type'),
                 'ranking' => $request->input('club_ranking'),
                 'note' => $request->input('club_note'),
             ]
@@ -163,7 +174,8 @@ class EventResultsController extends Controller
             EventMemberResult::updateOrCreate(
                 ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
                 [
-                    'score' => $result['score'] ?? null,
+                    'value' => $result['value'] ?? null,
+                    'result_type' => $result['result_type'] ?? null,
                     'ranking' => $result['ranking'] ?? null,
                     'note' => $result['note'] ?? null,
                 ]

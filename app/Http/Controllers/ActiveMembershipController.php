@@ -17,7 +17,7 @@ class ActiveMembershipController extends Controller
         $member = $user?->member;
 
         if (!$member) {
-            return back();
+            return redirect('/');
         }
 
         $memberClubId = (int) $validated['member_club_id'];
@@ -28,11 +28,11 @@ class ActiveMembershipController extends Controller
             ->exists();
 
         if (!$allowed) {
-            return back()->with('error', 'Selected membership is not available.');
+            return redirect('/')->with('error', 'Selected membership is not available.');
         }
 
         $request->session()->put('active_member_club_id', $memberClubId);
 
-        return back();
+        return redirect('/');
     }
 }

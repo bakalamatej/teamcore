@@ -17,19 +17,17 @@
                     <td class="p-3 text-sm text-gray-600">{{ $reservation->sportField->name ?? '-' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $reservation->club->name ?? '-' }}</td>
                     <td class="p-3 text-sm text-gray-600">
-                        {{ $reservation->start_date?->format('d.m.Y') ?? '-' }}
+                        {{ $reservation->start_date?->format('d.m.Y H:i') ?? '-' }}
                         -
-                        {{ $reservation->end_date?->format('d.m.Y') ?? '-' }}
+                        {{ $reservation->end_date?->format('d.m.Y H:i') ?? '-' }}
                     </td>
                     <td class="p-3 text-center">
-                        @php($statusValue = $reservation->status->value)
-                        <span @class([
-                            'px-3 py-1 rounded-full text-xs font-semibold',
-                            'bg-yellow-200 text-yellow-800' => $statusValue === 'pending',
-                            'bg-green-200 text-green-800' => $statusValue === 'approved',
-                            'bg-red-200 text-red-800' => in_array($statusValue, ['rejected', 'canceled'], true),
-                        ])>
-                            {{ ucfirst($statusValue) }}
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            @if($reservation->status === \App\Enums\ReservationStatus::CONVERTED) bg-gray-200 text-gray-800
+                            @elseif($reservation->status === \App\Enums\ReservationStatus::CANCELED) bg-red-200 text-red-800
+                            @else bg-green-200 text-green-800
+                            @endif">
+                            {{ ucfirst($reservation->status->value) }}
                         </span>
                     </td>
                     <td class="p-3 text-right">

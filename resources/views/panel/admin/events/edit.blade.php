@@ -8,18 +8,29 @@
 			class="space-y-6"
 			x-data="eventForm"
 			x-init="
-				selectedSport = @js(old('sport_id', (string) $event->sport_id));
-				previousSport = @js(old('sport_id', (string) $event->sport_id));
 				selectedEventType = @js(old('event_type_id', (string) $event->event_type_id));
+				selectedSport = @js(old('sport_id', (string) $selectedSport));
+				selectedSportField = @js(old('sport_field_id', (string) $event->sport_field_id));
 				selectedClubs = @js(collect(old('club_ids', $selectedClubIds))->map(fn($id) => (string) $id)->values());
-				sportOptions = @js($sportOptions);
 				eventTypesBySport = @js($eventTypesBySport);
 				clubsBySport = @js($clubsBySport);
+				sportFieldsBySport = @js($sportFieldsBySport);
 			"
 		>
 			<div x-effect="syncSportChange()"></div>
 			@csrf
 			@method('PATCH')
+
+			@if($errors->any())
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <ul class="text-sm text-red-600 space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
 			<input type="hidden" name="status" value="{{ $event->status->value }}">
 
 			<div class="flex flex-col lg:flex-row gap-6">
@@ -27,19 +38,6 @@
 					<div>
 						<x-input-label :value="__('Title')" />
 						<x-text-input id="title" name="title" type="text" class="mt-1 block w-full" value="{{ old('title', $event->title) }}" required />
-						<x-input-error :messages="$errors->get('title')" class="mt-2" />
-					</div>
-
-					<div>
-						<x-input-label :value="__('Sport')" />
-						<x-filtered-select
-							name="sport_id"
-							open-var="openSport"
-							selected-var="selectedSport"
-							options-var="sportOptions"
-							:placeholder="__('Select sport')"
-						/>
-						<x-input-error :messages="$errors->get('sport_id')" class="mt-2" />
 					</div>
 
 					<div>
@@ -49,10 +47,8 @@
 							open-var="openEventType"
 							selected-var="selectedEventType"
 							options-var="availableEventTypes"
-							disabled-when="!selectedSport"
 							:placeholder="__('Select type')"
 						/>
-						<x-input-error :messages="$errors->get('event_type_id')" class="mt-2" />
 					</div>
 
 					<div>
@@ -69,41 +65,35 @@
                             x-model="selectedClubs"
                             class="mt-1"
                         />
-						<x-input-error :messages="$errors->get('club_ids')" class="mt-2" />
 					</div>
 
 					<div>
 						<x-input-label :value="__('Location')" />
-						<x-select-input
-							id="sport_field_id"
+						<x-filtered-select
 							name="sport_field_id"
-							:options="$sportFieldOptions"
-							:selected="old('sport_field_id', $event->sport_field_id)"
-							placeholder="{{ __('Select location') }}"
-							class="mt-1"
+							open-var="openSportField"
+							selected-var="selectedSportField"
+							options-var="availableSportFields"
+							:placeholder="__('Select location')"
 						/>
-						<x-input-error :messages="$errors->get('sport_field_id')" class="mt-2" />
 					</div>
 
 					<div>
 						<x-input-label :value="__('Start Date')" />
 						<x-text-input id="start_date" name="start_date" type="datetime-local" class="mt-1 block w-full"
 							value="{{ old('start_date', $event->start_date->format('Y-m-d\TH:i')) }}" required />
-						<x-input-error :messages="$errors->get('start_date')" class="mt-2" />
 					</div>
 
 					<div>
 						<x-input-label :value="__('End Date')" />
 						<x-text-input id="end_date" name="end_date" type="datetime-local" class="mt-1 block w-full"
 							value="{{ old('end_date', $event->end_date->format('Y-m-d\TH:i')) }}" required />
-						<x-input-error :messages="$errors->get('end_date')" class="mt-2" />
 					</div>
 				</div>
 
 				<div class="flex-1 flex flex-col">
 					<x-input-label :value="__('Description')" />
 					<x-textarea-input id="description" placeholder="{{ __('Enter description') }}" name="description" :value="old('description', $event->description)" class="mt-1 flex-1" />
-					<x-input-error :messages="$errors->get('description')" class="mt-2" />
 				</div>
 			</div>
 

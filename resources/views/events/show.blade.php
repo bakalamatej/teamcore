@@ -7,12 +7,92 @@
                 <span @class([
                     'px-3 py-1 rounded-full text-sm font-semibold',
                     'bg-gray-200 text-gray-800' => $statusValue === 'finished',
-                    'bg-red-200 text-red-800' => $statusValue === 'canceled',
-                    'bg-green-200 text-green-800' => !in_array($statusValue, ['finished', 'canceled'], true),
+                    'bg-green-200 text-green-800' => !in_array($statusValue, ['finished'], true),
                 ])>
                     {{ ucfirst($statusValue) }}
                 </span>
                 <span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $event->created_at->format('d.m.Y H:i') }}</span>
+                @if($event->status === \App\Enums\EventStatus::FINISHED)
+                <x-secondary-button type="button" class="ml-auto" x-data x-on:click="$dispatch('open-modal', 'event-results-{{ $event->event_id }}')">
+                    {{ __('Show Results') }}
+                </x-secondary-button>
+
+                <x-modal name="event-results-{{ $event->event_id }}" :show="false" focusable>
+                    <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                        <h2 class="my-heading">{{ __('Event Results') }}: {{ $event->title }}</h2>
+
+                        {{-- Club Results --}}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Club Results') }}</h3>
+                            @php($clubResults = $event->clubResults->sortBy('ranking'))
+                            @if($clubResults->isNotEmpty())
+                                <div class="border border-gray-200 rounded-md overflow-auto max-h-60">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr class="border-b">
+                                                <th class="p-3 text-left">{{ __('Rank') }}</th>
+                                                <th class="p-3 text-left">{{ __('Club') }}</th>
+                                                <th class="p-3 text-left">{{ __('Score') }}</th>
+                                                <th class="p-3 text-left">{{ __('Note') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($clubResults as $result)
+                                                <tr class="border-b hover:bg-gray-50">
+                                                    <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
+                                                    <td class="p-3">{{ $result->club?->name ?? '-' }}</td>
+                                                    <td class="p-3">{{ $result->value ?? '-' }}</td>
+                                                    <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-gray-500 text-sm">{{ __('No club results available.') }}</p>
+                            @endif
+                        </div>
+
+                        {{-- Member Results --}}
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Member Results') }}</h3>
+                            @php($memberResults = $event->memberResults->sortBy('ranking'))
+                            @if($memberResults->isNotEmpty())
+                                <div class="border border-gray-200 rounded-md overflow-auto max-h-100">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr class="border-b">
+                                                <th class="p-3 text-left">{{ __('Rank') }}</th>
+                                                <th class="p-3 text-left">{{ __('Member') }}</th>
+                                                <th class="p-3 text-left">{{ __('Club') }}</th>
+                                                <th class="p-3 text-left">{{ __('Score') }}</th>
+                                                <th class="p-3 text-left">{{ __('Note') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($memberResults as $result)
+                                                <tr class="border-b hover:bg-gray-50">
+                                                    <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
+                                                    <td class="p-3">{{ $result->memberClub?->member?->full_name ?? '-' }}</td>
+                                                    <td class="p-3 text-gray-600">{{ $result->memberClub?->club?->name ?? '-' }}</td>
+                                                    <td class="p-3">{{ $result->value ?? '-' }}</td>
+                                                    <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-gray-500 text-sm">{{ __('No member results available.') }}</p>
+                            @endif
+                        </div>
+
+                        <div class="flex justify-end">
+                            <x-secondary-button type="button" x-on:click="$dispatch('close')">{{ __('Close') }}</x-secondary-button>
+                        </div>
+                    </div>
+                </x-modal>
+            @endif
             </div>
         </div>
 
@@ -141,6 +221,72 @@
                         </div>
                     </div>
                 </div>
+                <!-- Coaches -->
+                @if($activeCoaches->isNotEmpty())
+                    <div class="sidebar-card sidebar-card-gray">
+                        <h3 class="sidebar-card-title">{{ __('Coaches') }}</h3>
+                        <div class="space-y-2">
+                            @foreach($activeCoaches as $coachMembership)
+                                <div class="detail-list-item flex justify-between items-center">
+                                    <p class="text-sm text-gray-700 font-medium">{{ $coachMembership->member->full_name }}</p>
+                                    <a href="#"
+                                    x-data
+                                    x-on:click="$dispatch('open-modal', 'rate-coach-{{ $coachMembership->member_club_id }}')"
+                                    style="color: #2563eb; text-decoration: none; font-size: 0.875rem; cursor: pointer;"
+                                    onmouseover="this.style.textDecoration='underline'"
+                                    onmouseout="this.style.textDecoration='none'">
+                                        {{ __('Rate') }}
+                                    </a>
+                                </div>
+
+                                <x-modal name="rate-coach-{{ $coachMembership->member_club_id }}" :show="false" focusable>
+                                    <form method="POST" action="{{ route('events.coach.rate', [$event, $coachMembership->member_club_id]) }}" class="p-6">
+                                        @csrf
+                                        <input type="hidden" name="coach_member_club_id" value="{{ $coachMembership->member_club_id }}">
+                                        <h2 class="my-heading">{{ __('Rate Coach') }}: {{ $coachMembership->member->full_name }}</h2>
+                                        <p class="my-text mb-4">{{ __('Please provide your rating and comment.') }}</p>
+
+                                        <div class="flex flex-col gap-4 mt-4">
+                                            <div>
+                                                <x-input-label for="rating_{{ $coachMembership->member_club_id }}" :value="__('Rating (1-5)')" />
+                                                <x-text-input
+                                                    id="rating_{{ $coachMembership->member_club_id }}"
+                                                    name="rating"
+                                                    type="number"
+                                                    min="1"
+                                                    max="5"
+                                                    step="0.1"
+                                                    class="mt-1 block w-full"
+                                                    placeholder="1-5"
+                                                />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="comment_{{ $coachMembership->member_club_id }}" :value="__('Comment')" />
+                                                <textarea
+                                                    id="comment_{{ $coachMembership->member_club_id }}"
+                                                    name="comment"
+                                                    rows="3"
+                                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                    placeholder="{{ __('Your comment...') }}"
+                                                ></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex justify-end gap-3 mt-6">
+                                            <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                                {{ __('Discard') }}
+                                            </x-secondary-button>
+                                            <x-primary-button type="submit">
+                                                {{ __('Save') }}
+                                            </x-primary-button>
+                                        </div>
+                                    </form>
+                                </x-modal>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                
             </div>
         </div>
     </div>

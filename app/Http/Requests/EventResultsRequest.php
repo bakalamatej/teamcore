@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Requests;
-
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\ResultType;
 
 class EventResultsRequest extends FormRequest
 {
@@ -12,12 +13,17 @@ class EventResultsRequest extends FormRequest
 
     public function rules(): array
     {
+        $resultTypeValues = array_map(fn(ResultType $type) => $type->value, ResultType::cases());
+
         return [
-            'club_score' => 'nullable|numeric|min:0',
+            'club_value' => 'nullable|string|max:20',
+            'club_result_type' => ['nullable', Rule::in($resultTypeValues)],
             'club_ranking' => 'nullable|integer|min:1',
             'club_note' => 'nullable|string|max:1000',
+
             'members' => 'nullable|array',
-            'members.*.score' => 'nullable|numeric|min:0',
+            'members.*.value' => 'nullable|string|max:20',
+            'members.*.result_type' => ['nullable', Rule::in($resultTypeValues)],
             'members.*.ranking' => 'nullable|integer|min:1',
             'members.*.note' => 'nullable|string|max:1000',
         ];

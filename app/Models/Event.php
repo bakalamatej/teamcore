@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\EventFile;
 use App\Enums\EventStatus;
 
 class Event extends Model
@@ -22,7 +21,6 @@ class Event extends Model
     protected $primaryKey = 'event_id';
 
     protected $fillable = [
-        'sport_id',
         'parent_event_id',
         'reservation_id',
         'sport_field_id',
@@ -46,16 +44,22 @@ class Event extends Model
 
     public function scopeSearch($query, $search)
     {
-        if (!$search) return $query;
-        
-        return $query->where('title', 'like', "%{$search}%")
-                     ->orWhere('description', 'like', "%{$search}%");
+        if (!$search) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        });
     }
 
     public function scopeByStatus($query, $status)
     {
-        if (!$status) return $query;
-        
+        if (!$status) {
+            return $query;
+        }
+
         return $query->where('status', $status);
     }
 
@@ -74,31 +78,43 @@ class Event extends Model
         return $query->where('status', EventStatus::FINISHED->value);
     }
 
-    public function scopeCanceled($query)
-    {
-        return $query->where('status', EventStatus::CANCELED->value);
-    }
-
     public function scopeByEventType($query, $eventTypeId)
     {
-        if (!$eventTypeId) return $query;
-        
+        if (!$eventTypeId) {
+            return $query;
+        }
+
         return $query->where('event_type_id', $eventTypeId);
+    }
+
+    public function scopeBySport($query, $sportId)
+    {
+        if (!$sportId) {
+            return $query;
+        }
+
+        return $query->whereHas('clubs', fn($q) => 
+            $q->where('clubs.sport_id', $sportId)
+        );
     }
 
     public function scopeBySportField($query, $sportFieldId)
     {
-        if (!$sportFieldId) return $query;
-        
+        if (!$sportFieldId) {
+            return $query;
+        }
+
         return $query->where('sport_field_id', $sportFieldId);
     }
 
     public function scopeByClub($query, $clubId)
     {
-        if (!$clubId) return $query;
-        
-        return $query->whereHas('clubs', function($q) use ($clubId) {
-            $q->where('club_id', $clubId);
+        if (!$clubId) {
+            return $query;
+        }
+
+        return $query->whereHas('clubs', function ($q) use ($clubId) {
+            $q->where('clubs.club_id', $clubId);
         });
     }
 
@@ -107,9 +123,11 @@ class Event extends Model
         if ($startDate) {
             $query->whereDate('start_date', '>=', $startDate);
         }
+
         if ($endDate) {
             $query->whereDate('end_date', '<=', $endDate);
         }
+
         return $query;
     }
 
@@ -121,11 +139,6 @@ class Event extends Model
     public function scopePast($query)
     {
         return $query->where('end_date', '<', now());
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->whereNull('deleted_at');
     }
 
     public function scopeWithRelations($query)
@@ -142,11 +155,6 @@ class Event extends Model
     // Relationships
     // -----------------------
 
-    public function sport()
-    {
-        return $this->belongsTo(Sport::class, 'sport_id');
-    }
-
     public function sportField()
     {
         return $this->belongsTo(SportField::class, 'sport_field_id');
@@ -160,23 +168,34 @@ class Event extends Model
     public function clubs()
     {
         return $this->belongsToMany(Club::class, 'event_club', 'event_id', 'club_id')
-                ->using(EventClub::class) 
-                ->withTimestamps();
+            ->using(EventClub::class)
+            ->withTimestamps();
+    }
+
+    public function getActiveClubsAttribute()
+    {
+        $clubs = $this->relationLoaded('clubs')
+            ? $this->clubs
+            : $this->clubs()->get();
+
+        return $clubs
+            ->filter(fn($club) => $club->deleted_at === null)
+            ->values();
     }
 
     public function memberClubs()
     {
         return $this->belongsToMany(MemberClub::class, 'event_member', 'event_id', 'member_club_id')
-                    ->using(MemberEvent::class)
-                    ->withTimestamps();
+            ->using(MemberEvent::class)
+            ->withTimestamps();
     }
 
     public function eventFiles()
     {
         return $this->belongsToMany(File::class, 'event_files', 'event_id', 'file_id')
-                    ->using(EventFile::class)
-                    ->withPivot('file_category_id')
-                    ->withTimestamps();
+            ->using(EventFile::class)
+            ->withPivot('file_category_id')
+            ->withTimestamps();
     }
 
     public function eventStatistic()
@@ -184,12 +203,12 @@ class Event extends Model
         return $this->hasOne(EventStatistic::class, 'event_id');
     }
 
-    public function eventMemberResults()
+    public function memberResults()
     {
         return $this->hasMany(EventMemberResult::class, 'event_id');
     }
 
-    public function eventClubResults()
+    public function clubResults()
     {
         return $this->hasMany(EventClubResult::class, 'event_id');
     }
@@ -209,16 +228,24 @@ class Event extends Model
         return $this->hasMany(Event::class, 'parent_event_id');
     }
 
-    public function getActiveClubsAttribute()
+    // -----------------------
+    // Accessors
+    // -----------------------
+
+    public function getSportAttribute()
     {
-        return $this->clubs;
+        return $this->clubs->first()?->sport 
+            ?? $this->sportField?->sports->first();
     }
 
-    public function getActiveMembersAttribute()
+    public function getMembersAttribute()
     {
-        return $this->memberClubs->map(fn($mc) => $mc->member)->filter()->values();
+        return $this->memberClubs
+            ->map(fn($mc) => $mc->member)
+            ->filter()
+            ->values();
     }
-    
+
     public function getLocationAttribute()
     {
         return $this->sportField?->name ?? 'N/A';

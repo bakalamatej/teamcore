@@ -24,25 +24,19 @@ return new class extends Migration
                 ->constrained('clubs', 'club_id')
                 ->restrictOnDelete();
 
-            $table->foreignId('sport_id')
-                ->constrained('sports', 'sport_id')
-                ->restrictOnDelete();
-
             $table->enum('role', array_map(fn(MemberClubRole $role) => $role->value, MemberClubRole::cases()))->default(MemberClubRole::PLAYER->value);
             $table->date('joined_at');
             $table->date('left_at')->nullable();
             $table->unsignedBigInteger('active_club_id')->nullable()->storedAs('IF(left_at IS NULL, club_id, NULL)');
             $table->timestamps();
 
-            $table->unique(['member_id', 'active_club_id', 'sport_id']);
+            $table->unique(['member_id', 'active_club_id']);
             $table->index(['member_id', 'club_id']);
             $table->index(['club_id', 'role']);
-            $table->index(['club_id', 'sport_id']);
             $table->index('left_at'); 
         });
 
-        DB::unprepared("
-            CREATE TRIGGER trg_club_stats_member_insert
+        DB::unprepared("CREATE TRIGGER trg_club_stats_member_insert
             AFTER INSERT ON member_club
             FOR EACH ROW
             BEGIN
@@ -54,8 +48,7 @@ return new class extends Migration
                     updated_at = NOW();
             END
         ");
-        DB::unprepared("
-            CREATE TRIGGER trg_member_club_active_insert
+        DB::unprepared("CREATE TRIGGER trg_member_club_active_insert
             BEFORE INSERT ON member_club
             FOR EACH ROW
             BEGIN
@@ -64,15 +57,13 @@ return new class extends Migration
                 FROM member_club 
                 WHERE member_id = NEW.member_id 
                 AND club_id = NEW.club_id 
-                AND sport_id = NEW.sport_id
                 AND left_at IS NULL;
                 IF v_count > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB FOR THIS SPORT.';
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB.';
                 END IF;
             END
         ");
-        DB::unprepared("
-            CREATE TRIGGER trg_member_club_active_update
+        DB::unprepared("CREATE TRIGGER trg_member_club_active_update
             BEFORE UPDATE ON member_club
             FOR EACH ROW
             BEGIN
@@ -82,17 +73,15 @@ return new class extends Migration
                     FROM member_club 
                     WHERE member_id = NEW.member_id 
                     AND club_id = NEW.club_id 
-                    AND sport_id = NEW.sport_id
                     AND left_at IS NULL
                     AND member_club_id != NEW.member_club_id;
                     IF v_count > 0 THEN
-                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB FOR THIS SPORT.';
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'MEMBER IS ALREADY AN ACTIVE MEMBER OF THIS CLUB.';
                     END IF;
                 END IF;
             END
         ");
-        DB::unprepared("
-            CREATE TRIGGER trg_club_stats_member_leave
+        DB::unprepared("CREATE TRIGGER trg_club_stats_member_leave
             AFTER UPDATE ON member_club
             FOR EACH ROW
             BEGIN
@@ -100,6 +89,26 @@ return new class extends Migration
                     UPDATE club_statistics
                     SET active_members = GREATEST(active_members - 1, 0),
                         total_coaches = GREATEST(total_coaches - IF(NEW.role = 'coach', 1, 0), 0),
+                        updated_at = NOW()
+                    WHERE club_id = NEW.club_id;
+                END IF;
+            END
+        ");
+        DB::unprepared("CREATE TRIGGER trg_club_stats_member_role_update
+            AFTER UPDATE ON member_club
+            FOR EACH ROW
+            BEGIN
+                IF OLD.left_at IS NULL
+                AND NEW.left_at IS NULL
+                AND OLD.role <> NEW.role THEN
+
+                    UPDATE club_statistics
+                    SET total_coaches = GREATEST(
+                            total_coaches
+                            + (CASE WHEN NEW.role = 'coach' THEN 1 ELSE 0 END)
+                            - (CASE WHEN OLD.role = 'coach' THEN 1 ELSE 0 END),
+                            0
+                        ),
                         updated_at = NOW()
                     WHERE club_id = NEW.club_id;
                 END IF;
@@ -116,6 +125,7 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_club_stats_member_leave');
         DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_update');
+        DB::statement('DROP TRIGGER IF EXISTS trg_club_stats_member_role_update');
         Schema::dropIfExists('member_club');
     }
 };

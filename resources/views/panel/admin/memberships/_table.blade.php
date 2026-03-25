@@ -17,7 +17,7 @@
                     <td class="p-3 font-medium">{{ $membership->member?->full_name ?? '—' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $membership->member?->user?->email ?? '—' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $membership->club?->name ?? '—' }}</td>
-                    <td class="p-3 text-sm text-gray-600">{{ $membership->sport?->name ?? '—' }}</td>
+                    <td class="p-3 text-sm text-gray-600">{{ $membership->club?->sport?->name ?? '—' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ ucfirst($membership->role->value) }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $membership->joined_at?->format('Y-m-d') ?? '—' }}</td>
                     <td class="p-3 text-right">

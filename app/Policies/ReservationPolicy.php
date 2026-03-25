@@ -26,15 +26,17 @@ class ReservationPolicy extends Policy
             return true;
         }
 
-        if ($this->isClubMember($user, $reservation->club_id)) {
+        $reservationClubId = $reservation->createdByMemberClub?->club_id;
+        if ($reservationClubId && $this->isClubMember($user, $reservationClubId)) {
             return true;
         }
 
         // Coach can view reservations on sport fields that support their club's sport
         $membership = $user->activeMembership();
         if ($membership && $membership->role === MemberClubRole::COACH) {
+            $sportId = $membership->club?->sport_id;
             return \App\Models\SportField::where('sport_field_id', $reservation->sport_field_id)
-                ->whereHas('sports', fn($q) => $q->where('sports.sport_id', $membership->sport_id))
+                ->whereHas('sports', fn($q) => $q->where('sports.sport_id', $sportId))
                 ->exists();
         }
 
@@ -48,7 +50,7 @@ class ReservationPolicy extends Policy
 
     public function update(User $user, Reservation $reservation): bool
     {
-        if ($reservation->status !== ReservationStatus::PENDING) {
+        if($reservation->status !== ReservationStatus::APPROVED) {
             return false;
         }
         return $this->isReservationCreator($user, $reservation->created_by_member_club_id);
@@ -56,7 +58,7 @@ class ReservationPolicy extends Policy
 
     public function delete(User $user, Reservation $reservation): bool
     {
-        if ($reservation->status !== ReservationStatus::PENDING) {
+        if($reservation->status !== ReservationStatus::APPROVED) {
             return false;
         }
         return $this->isReservationCreator($user, $reservation->created_by_member_club_id);
@@ -64,12 +66,20 @@ class ReservationPolicy extends Policy
 
     public function approve(User $user, Reservation $reservation): bool
     {
-        return $this->isCoachInClub($user, $reservation->club_id);
+        $reservationClubId = $reservation->createdByMemberClub?->club_id;
+        if (!$reservationClubId) {
+            return false;
+        }
+        return $this->isCoachInClub($user, $reservationClubId);
     }
 
     public function reject(User $user, Reservation $reservation): bool
     {
-        return $this->isCoachInClub($user, $reservation->club_id);
+        $reservationClubId = $reservation->createdByMemberClub?->club_id;
+        if (!$reservationClubId) {
+            return false;
+        }
+        return $this->isCoachInClub($user, $reservationClubId);
     }
 
     public function cancel(User $user, Reservation $reservation): bool
