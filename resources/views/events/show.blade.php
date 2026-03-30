@@ -12,87 +12,96 @@
                     {{ ucfirst($statusValue) }}
                 </span>
                 <span class="text-gray-600 text-sm">{{ __('Created') }}: {{ $event->created_at->format('d.m.Y H:i') }}</span>
-                @if($event->status === \App\Enums\EventStatus::FINISHED)
-                <x-secondary-button type="button" class="ml-auto" x-data x-on:click="$dispatch('open-modal', 'event-results-{{ $event->event_id }}')">
-                    {{ __('Show Results') }}
-                </x-secondary-button>
+                <div class="ml-auto flex items-center gap-2">
+                    <x-file-upload 
+                        model-type="event" 
+                        :model-id="$event->event_id"
+                        :categories="$fileCategories"
+                        :can-upload="$canManageEvent"
+                    />
 
-                <x-modal name="event-results-{{ $event->event_id }}" :show="false" focusable>
-                    <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                        <h2 class="my-heading">{{ __('Event Results') }}: {{ $event->title }}</h2>
+                    @if($event->status === \App\Enums\EventStatus::FINISHED)
+                    <x-secondary-button type="button" class="ml-auto" x-data x-on:click="$dispatch('open-modal', 'event-results-{{ $event->event_id }}')">
+                        {{ __('Show Results') }}
+                    </x-secondary-button>
 
-                        {{-- Club Results --}}
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Club Results') }}</h3>
-                            @php($clubResults = $event->clubResults->sortBy('ranking'))
-                            @if($clubResults->isNotEmpty())
-                                <div class="border border-gray-200 rounded-md overflow-auto max-h-60">
-                                    <table class="w-full text-sm">
-                                        <thead class="bg-gray-50">
-                                            <tr class="border-b">
-                                                <th class="p-3 text-left">{{ __('Rank') }}</th>
-                                                <th class="p-3 text-left">{{ __('Club') }}</th>
-                                                <th class="p-3 text-left">{{ __('Score') }}</th>
-                                                <th class="p-3 text-left">{{ __('Note') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($clubResults as $result)
-                                                <tr class="border-b hover:bg-gray-50">
-                                                    <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
-                                                    <td class="p-3">{{ $result->club?->name ?? '-' }}</td>
-                                                    <td class="p-3">{{ $result->value ?? '-' }}</td>
-                                                    <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                    <x-modal name="event-results-{{ $event->event_id }}" :show="false" focusable>
+                        <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                            <h2 class="my-heading">{{ __('Event Results') }}: {{ $event->title }}</h2>
+
+                            {{-- Club Results --}}
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Club Results') }}</h3>
+                                @php($clubResults = $event->clubResults->sortBy('ranking'))
+                                @if($clubResults->isNotEmpty())
+                                    <div class="border border-gray-200 rounded-md overflow-auto max-h-60">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-gray-50">
+                                                <tr class="border-b">
+                                                    <th class="p-3 text-left">{{ __('Rank') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Club') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Score') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Note') }}</th>
                                                 </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="text-gray-500 text-sm">{{ __('No club results available.') }}</p>
-                            @endif
-                        </div>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($clubResults as $result)
+                                                    <tr class="border-b hover:bg-gray-50">
+                                                        <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
+                                                        <td class="p-3">{{ $result->club?->name ?? '-' }}</td>
+                                                        <td class="p-3">{{ $result->value ?? '-' }}</td>
+                                                        <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <p class="text-gray-500 text-sm">{{ __('No club results available.') }}</p>
+                                @endif
+                            </div>
 
-                        {{-- Member Results --}}
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Member Results') }}</h3>
-                            @php($memberResults = $event->memberResults->sortBy('ranking'))
-                            @if($memberResults->isNotEmpty())
-                                <div class="border border-gray-200 rounded-md overflow-auto max-h-100">
-                                    <table class="w-full text-sm">
-                                        <thead class="bg-gray-50">
-                                            <tr class="border-b">
-                                                <th class="p-3 text-left">{{ __('Rank') }}</th>
-                                                <th class="p-3 text-left">{{ __('Member') }}</th>
-                                                <th class="p-3 text-left">{{ __('Club') }}</th>
-                                                <th class="p-3 text-left">{{ __('Score') }}</th>
-                                                <th class="p-3 text-left">{{ __('Note') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($memberResults as $result)
-                                                <tr class="border-b hover:bg-gray-50">
-                                                    <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
-                                                    <td class="p-3">{{ $result->memberClub?->member?->full_name ?? '-' }}</td>
-                                                    <td class="p-3 text-gray-600">{{ $result->memberClub?->club?->name ?? '-' }}</td>
-                                                    <td class="p-3">{{ $result->value ?? '-' }}</td>
-                                                    <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                            {{-- Member Results --}}
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('Member Results') }}</h3>
+                                @php($memberResults = $event->memberResults->sortBy('ranking'))
+                                @if($memberResults->isNotEmpty())
+                                    <div class="border border-gray-200 rounded-md overflow-auto max-h-100">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-gray-50">
+                                                <tr class="border-b">
+                                                    <th class="p-3 text-left">{{ __('Rank') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Member') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Club') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Score') }}</th>
+                                                    <th class="p-3 text-left">{{ __('Note') }}</th>
                                                 </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="text-gray-500 text-sm">{{ __('No member results available.') }}</p>
-                            @endif
-                        </div>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($memberResults as $result)
+                                                    <tr class="border-b hover:bg-gray-50">
+                                                        <td class="p-3 font-medium">{{ $result->ranking ?? '-' }}</td>
+                                                        <td class="p-3">{{ $result->memberClub?->member?->full_name ?? '-' }}</td>
+                                                        <td class="p-3 text-gray-600">{{ $result->memberClub?->club?->name ?? '-' }}</td>
+                                                        <td class="p-3">{{ $result->value ?? '-' }}</td>
+                                                        <td class="p-3 text-gray-600">{{ $result->note ?? '-' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <p class="text-gray-500 text-sm">{{ __('No member results available.') }}</p>
+                                @endif
+                            </div>
 
-                        <div class="flex justify-end">
-                            <x-secondary-button type="button" x-on:click="$dispatch('close')">{{ __('Close') }}</x-secondary-button>
+                            <div class="flex justify-end">
+                                <x-secondary-button type="button" x-on:click="$dispatch('close')">{{ __('Close') }}</x-secondary-button>
+                            </div>
                         </div>
-                    </div>
-                </x-modal>
-            @endif
+                    </x-modal>
+                @endif
+                </div>
             </div>
         </div>
 
@@ -193,6 +202,9 @@
                                 </div>
                             @endforeach
                         </div>
+                        <div class="mt-4">
+                            {{ $activeMembers->links() }}
+                        </div>
                     @else
                         <p class="text-gray-600">{{ __('No members registered for this event') }}</p>
                     @endif
@@ -240,9 +252,9 @@
                                 </div>
 
                                 <x-modal name="rate-coach-{{ $coachMembership->member_club_id }}" :show="false" focusable>
-                                    <form method="POST" action="{{ route('events.coach.rate', [$event, $coachMembership->member_club_id]) }}" class="p-6">
+                                    <form method="POST" action="{{ route('events.coach.rate', [$event, $coachMembership->member_id]) }}" class="p-6">
                                         @csrf
-                                        <input type="hidden" name="coach_member_club_id" value="{{ $coachMembership->member_club_id }}">
+                                        <input type="hidden" name="coach_member_id" value="{{ $coachMembership->member_id }}">
                                         <h2 class="my-heading">{{ __('Rate Coach') }}: {{ $coachMembership->member->full_name }}</h2>
                                         <p class="my-text mb-4">{{ __('Please provide your rating and comment.') }}</p>
 

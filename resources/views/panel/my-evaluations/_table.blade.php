@@ -12,7 +12,7 @@
         <tbody>
             @forelse($evaluations as $evaluation)
                 <tr class="border-b hover:bg-gray-50 data-row">
-                    <td class="p-3 text-sm text-gray-600">{{ $evaluation->coach?->member?->full_name ?? '-' }}</td>
+                    <td class="p-3 text-sm text-gray-600">{{ $evaluation->coach?->full_name ?? '-' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $evaluation->rating ?? '-' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $evaluation->comment ?? '-' }}</td>
                     <td class="p-3 text-sm text-gray-600">{{ $evaluation->created_at?->format('d.m.Y H:i') ?? '-' }}</td>

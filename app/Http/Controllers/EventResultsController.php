@@ -114,8 +114,12 @@ class EventResultsController extends Controller
             ->get()
             ->keyBy('member_club_id');
 
+        $resultTypeOptions = collect(\App\Enums\ResultType::cases())
+                ->mapWithKeys(fn($t) => [$t->value => ucfirst($t->value)])
+                ->toArray();
+
         return view('panel.admin.results.edit', compact(
-            'event', 'clubs', 'clubResults', 'memberClubs', 'memberResults'
+            'event', 'clubs', 'clubResults', 'memberClubs', 'memberResults', 'resultTypeOptions'
         ));
     }
 
@@ -124,27 +128,31 @@ class EventResultsController extends Controller
         $this->authorize('storeResults', $event);
 
         foreach ($request->input('clubs', []) as $clubId => $data) {
-            EventClubResult::updateOrCreate(
-                ['event_id' => $event->event_id, 'club_id' => $clubId],
-                [
-                    'value' => $data['value'] ?? null,
-                    'result_type' => $data['result_type'] ?? null,
-                    'ranking' => $data['ranking'] ?? null,
-                    'note' => $data['note'] ?? null,
-                ]
-            );
+            if ($data['value'] || $data['result_type']) {
+                EventClubResult::updateOrCreate(
+                    ['event_id' => $event->event_id, 'club_id' => $clubId],
+                    [
+                        'value' => $data['value'] ?? null,
+                        'result_type' => $data['result_type'] ?? null,
+                        'ranking' => $data['ranking'] ?? null,
+                        'note' => $data['note'] ?? null,
+                    ]
+                );
+            }
         }
-
+ 
         foreach ($request->input('members', []) as $memberClubId => $result) {
-            EventMemberResult::updateOrCreate(
-                ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
-                [
-                    'value' => $result['value'] ?? null,
-                    'result_type' => $result['result_type'] ?? null,
-                    'ranking' => $result['ranking'] ?? null,
-                    'note' => $result['note'] ?? null,
-                ]
-            );
+            if ($result['value'] || $result['result_type']) {
+                EventMemberResult::updateOrCreate(
+                    ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
+                    [
+                        'value' => $result['value'] ?? null,
+                        'result_type' => $result['result_type'] ?? null,
+                        'ranking' => $result['ranking'] ?? null,
+                        'note' => $result['note'] ?? null,
+                    ]
+                );
+            }
         }
 
         return redirect()->route('panel.admin.events.show', $event)->with('success', 'Results saved successfully!');
@@ -160,26 +168,30 @@ class EventResultsController extends Controller
         $event->loadMissing('clubs');
         abort_unless($event->clubs->contains('club_id', $club->club_id), 403);
 
-        EventClubResult::updateOrCreate(
-            ['event_id' => $event->event_id, 'club_id' => $club->club_id],
-            [
-                'value' => $request->input('club_value'),
-                'result_type' => $request->input('club_result_type'),
-                'ranking' => $request->input('club_ranking'),
-                'note' => $request->input('club_note'),
-            ]
-        );
-
-        foreach ($request->input('members', []) as $memberClubId => $result) {
-            EventMemberResult::updateOrCreate(
-                ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
+        if ($request->filled('club_value') || $request->filled('club_result_type')) {
+            EventClubResult::updateOrCreate(
+                ['event_id' => $event->event_id, 'club_id' => $club->club_id],
                 [
-                    'value' => $result['value'] ?? null,
-                    'result_type' => $result['result_type'] ?? null,
-                    'ranking' => $result['ranking'] ?? null,
-                    'note' => $result['note'] ?? null,
+                    'value' => $request->input('club_value'),
+                    'result_type' => $request->input('club_result_type'),
+                    'ranking' => $request->input('club_ranking'),
+                    'note' => $request->input('club_note'),
                 ]
             );
+        }
+
+        foreach ($request->input('members', []) as $memberClubId => $result) {
+            if (($result['value'] ?? null) || ($result['result_type'] ?? null)) {
+                EventMemberResult::updateOrCreate(
+                    ['event_id' => $event->event_id, 'member_club_id' => $memberClubId],
+                    [
+                        'value' => $result['value'] ?? null,
+                        'result_type' => $result['result_type'] ?? null,
+                        'ranking' => $result['ranking'] ?? null,
+                        'note' => $result['note'] ?? null,
+                    ]
+                );
+            }   
         }
 
         return redirect()->route('panel.coach.events.show', $event)->with('success', 'Results saved successfully!');

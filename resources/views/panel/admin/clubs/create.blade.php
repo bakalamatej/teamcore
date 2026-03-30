@@ -3,7 +3,7 @@
 @endpush
 
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading">{{ __('Create Club') }}</h1>
         <p class="my-text">{{ __('Create a new sports club. Provide all necessary information including name, contact details, and location.') }}</p>
         <form action="{{ route('panel.admin.clubs.store') }}" method="POST" class="space-y-6">

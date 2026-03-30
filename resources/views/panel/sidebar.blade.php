@@ -7,6 +7,7 @@
                 <a href="{{ route('panel.statistics.index') }}" class="sidebar-link">{{ __('Statistics') }}</a>
                 <a href="{{ route('panel.results.index') }}" class="sidebar-link">{{ __('Results') }}</a>
                 <a href="{{ route('panel.my-evaluations.index') }}" class="sidebar-link">{{ __('My Evaluations') }}</a>
+                <a href="{{ route('panel.files.index') }}" class="sidebar-link">{{ __('My Files') }}</a>
             @endif
             <!-- Coach menu: players, trainings, create event -->
             @if($role === 'coach')
@@ -15,7 +16,8 @@
                 <a href="{{ route('panel.coach.tournaments.index') }}" class="sidebar-link">{{ __('Tournaments') }}</a>
                 <a href="{{ route('panel.coach.clubs.index') }}" class="sidebar-link">{{ __('Clubs') }}</a>
                 <a href="{{ route('panel.coach.reservations.index') }}" class="sidebar-link">{{ __('Reservations') }}</a>
-                <a href="{{ route('panel.coach.recieved-evaluations.index') }}" class="sidebar-link">{{ __('Recieved Evaluations') }}</a>
+                <a href="{{ route('panel.coach.received-evaluations.index') }}" class="sidebar-link">{{ __('Received Evaluations') }}</a>
+                <a href="{{ route('panel.coach.files.index') }}" class="sidebar-link">{{ __('Club Files') }}</a>
             @endif
             <!-- Admin menu: users, clubs, events -->
             @if($role === 'admin')
@@ -31,6 +33,7 @@
                 <a href="{{ route('panel.admin.addresses.index') }}" class="sidebar-link">{{ __('Addresses') }}</a>
                 <a href="{{ route('panel.admin.event-types.index') }}" class="sidebar-link">{{ __('Event Types') }}</a>
                 <a href="{{ route('panel.admin.coach-evaluations.index') }}" class="sidebar-link">{{ __('Coach Evaluations') }}</a>
+                <a href="{{ route('panel.admin.files.index') }}" class="sidebar-link">{{ __('Files') }}</a>
             @endif
         </div>
         <div class="mt-auto mb-0">

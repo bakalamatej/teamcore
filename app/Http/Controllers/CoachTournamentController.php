@@ -246,13 +246,16 @@ class CoachTournamentController extends Controller
         abort_if(!$club, 403, 'No club context.');
         abort_unless($tournament->clubs->contains('club_id', $club->club_id), 403);
 
-        Event::where('parent_event_id', $tournament->event_id)
-            ->update(['parent_event_id' => null]);
+        try {
+            Event::where('parent_event_id', $tournament->event_id)
+                ->update(['parent_event_id' => null]);
 
-        $tournament->delete();
+            $tournament->delete();
 
-        return redirect()->route('panel.coach.tournaments.index')
-            ->with('success', 'Tournament deleted successfully!');
+            return redirect()->route('panel.coach.tournaments.index')->with('success', 'Tournament deleted successfully!');
+        } catch (\Exception $exception) {
+            return redirect()->back()->with('error', 'Unable to delete tournament.');
+        }
     }
 
     // -------------------------------------------------------

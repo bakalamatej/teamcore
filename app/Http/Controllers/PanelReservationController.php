@@ -37,7 +37,7 @@ class PanelReservationController extends Controller
             )
             ->with(['sportField', 'createdByMemberClub.member', 'createdByMemberClub.club.sport'])
             ->orderByDesc('created_at')
-            ->paginate(10)
+            ->paginate(6)
             ->withQueryString();
 
         if ($request->ajax()) {
@@ -72,6 +72,8 @@ class PanelReservationController extends Controller
 
         try {
             Reservation::create($request->validated());
+            return redirect()->route('panel.admin.reservations.index')->with('success', 'Reservation created successfully!');
+
         } catch (QueryException $exception) {
             $error = $this->mapReservationTriggerError($exception);
 
@@ -82,9 +84,6 @@ class PanelReservationController extends Controller
             throw $exception;
         }
 
-        return redirect()
-            ->route('panel.admin.reservations.index')
-            ->with('success', 'Reservation created successfully!');
     }
 
     public function show(Reservation $reservation)
@@ -127,6 +126,8 @@ class PanelReservationController extends Controller
 
         try {
             $reservation->update($request->validated());
+            return redirect()->route('panel.admin.reservations.show', $reservation)->with('success', 'Reservation updated successfully!');
+
         } catch (QueryException $exception) {
             $error = $this->mapReservationTriggerError($exception);
 
@@ -137,20 +138,24 @@ class PanelReservationController extends Controller
             throw $exception;
         }
 
-        return redirect()
-            ->route('panel.admin.reservations.show', $reservation)
-            ->with('success', 'Reservation updated successfully!');
     }
 
     public function destroy(Reservation $reservation)
     {
         $this->authorize('delete', $reservation);
 
-        $reservation->delete();
+        try {
+            $reservation->delete();
+            return redirect()->route('panel.admin.reservations.index')->with('success', 'Reservation deleted successfully!');
 
-        return redirect()
-            ->route('panel.admin.reservations.index')
-            ->with('success', 'Reservation deleted successfully!');
+        } catch (QueryException $exception) {
+            $error = $this->mapReservationTriggerError($exception);
+            if ($error !== null) {
+                return back()->withInput()->withErrors($error);
+            }
+            throw $exception;
+        }
+
     }
 
     private function getSportFieldsBySportOptions(): array
@@ -158,7 +163,6 @@ class PanelReservationController extends Controller
         return DB::table('sport_fields_sports')
             ->join('sport_fields', 'sport_fields_sports.sport_field_id', '=', 'sport_fields.sport_field_id')
             ->leftJoin('addresses', 'sport_fields.address_id', '=', 'addresses.address_id')
-            ->whereNull('sport_fields.deleted_at')
             ->orderBy('sport_fields.name')
             ->selectRaw("
                 sport_fields_sports.sport_id,
@@ -184,6 +188,7 @@ class PanelReservationController extends Controller
             ->where('member_club.role', MemberClubRole::COACH->value)
             ->whereNull('member_club.left_at')
             ->whereNull('clubs.deleted_at')
+            ->whereNull('members.deleted_at')
             ->orderBy('members.last_name')
             ->orderBy('members.first_name')
             ->get([

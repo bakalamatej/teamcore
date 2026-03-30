@@ -6,6 +6,7 @@ use App\Models\MemberClub;
 use App\Enums\MemberClubRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\FileCategory;
 
 class PlayerController extends Controller
 {
@@ -50,8 +51,12 @@ class PlayerController extends Controller
         $this->authorize('view', $player);
         $player->load(['member.user', 'member.memberStatistics']);
         $primaryRole = $player->role->value ?? (string) $player->role;
+        $fileCategories = \App\Models\FileCategory::orderBy('name')
+            ->get(['file_category_id', 'name'])
+            ->toArray();
+
         $clubStat = $player->member?->memberStatistics->firstWhere('member_club_id', $player->member_club_id);
-        return view('panel.coach.players.show', compact('player', 'primaryRole', 'clubStat'));
+        return view('panel.coach.players.show', compact('player', 'primaryRole', 'clubStat', 'fileCategories'));
     }
 
     public function destroy(MemberClub $player)

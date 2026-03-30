@@ -9,26 +9,48 @@ export default (config = {}) => ({
     isDisabled: config.isDisabled ?? false,
     searchable: config.searchable ?? true,
 
+    dropdownStyle: {},
+
     init() {
         this.search = this.selected !== '' && this.selected !== null
             ? (this.options[this.selected] ?? '')
             : '';
     },
 
+    getTriggerElement() {
+        return this.$refs.trigger ?? this.$el;
+    },
+
     updateDropdownPlacement() {
         this.$nextTick(() => {
-            const triggerRect = this.$el.getBoundingClientRect();
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            const dropdownHeight = 240;
-            const spaceBelow = viewportHeight - triggerRect.bottom - 8;
-            const spaceAbove = triggerRect.top;
-
-            this.dropdownUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-
-            const dropdown = this.$refs.dropdown;
-            if (dropdown) {
-                dropdown.style.zIndex = 10000;
+            const trigger = this.getTriggerElement();
+            if (!trigger) {
+                return;
             }
+
+            const rect = trigger.getBoundingClientRect();
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const estimatedDropdownHeight = 240;
+            const gap = 4;
+
+            const spaceBelow = viewportHeight - rect.bottom - gap;
+            const spaceAbove = rect.top - gap;
+
+            this.dropdownUp = spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
+
+            const top = this.dropdownUp
+                ? Math.max(8, rect.top - Math.min(estimatedDropdownHeight, spaceAbove) - gap)
+                : rect.bottom + gap;
+
+            this.dropdownStyle = {
+                position: 'fixed',
+                left: `${rect.left}px`,
+                top: `${top}px`,
+                width: `${rect.width}px`,
+                minWidth: `${rect.width}px`,
+                zIndex: '10000',
+                boxSizing: 'border-box'
+            };
         });
     },
 
@@ -79,13 +101,21 @@ export default (config = {}) => ({
         this.search = this.options[val] ?? '';
 
         this.$nextTick(() => {
+            const hiddenInput = this.$refs.hiddenInput;
+
+            if (hiddenInput) {
+                hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
             this.$el.dispatchEvent(new Event('input', { bubbles: true }));
+            this.$el.dispatchEvent(new Event('change', { bubbles: true }));
 
             if (this.$el.hasAttribute('data-submit-on-choose')) {
                 this.$nextTick(() => {
                     const form = this.$el.closest('form');
                     if (form && form.tagName === 'FORM') {
-                        form.submit();
+                        form.requestSubmit ? form.requestSubmit() : form.submit();
                     }
                 });
             }

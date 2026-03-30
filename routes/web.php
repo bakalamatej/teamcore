@@ -8,44 +8,43 @@ use App\Http\Controllers\CoachEventController;
 use App\Http\Controllers\CoachReservationController;
 use App\Http\Controllers\CoachEvaluationController;
 use App\Http\Controllers\CoachClubController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\PanelMembershipController;
 use App\Http\Controllers\MemberStatisticsController;
 use App\Http\Controllers\EventResultsController;    
+use App\Http\Controllers\CoachFileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\MemberFileController;
 use App\Http\Controllers\SportController;
 use App\Http\Controllers\SportFieldController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\EventTypeController;
 use App\Http\Controllers\FieldTypeController;
 use App\Http\Controllers\PanelCoachEvaluationController;
+use App\Http\Controllers\AdminFileController;
 use App\Http\Controllers\CoachTournamentController;
 use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PanelReservationController;
 use App\Http\Controllers\ActiveMembershipController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TournamentResultsController;
 use Illuminate\Support\Facades\Route;
-
-// --------------------------------------------------
-// PUBLIC ROUTES 
-// --------------------------------------------------
-Route::get('/', function () {
-    return view('dashboard');
-})->name('dashboard');
 
 // --------------------------------------------------
 // PROTECTED ROUTES 
 // --------------------------------------------------
 Route::middleware(['auth'])->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::post('/memberships/active', [ActiveMembershipController::class, 'update'])
         ->name('memberships.active.update');
 
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/{year}/{month}/{day}', [CalendarController::class, 'showDay'])->name('calendar.day');
 
-    Route::get('/gallery', function () {
-        return view('gallery');
-    })->name('gallery');
+    Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 
     // --------------------------------------------------
     // CLUB ROUTES
@@ -53,6 +52,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('clubs')->group(function () {
         Route::get('/my-club', [ClubController::class, 'myClub'])->name('clubs.my');
         Route::get('/{club}', [ClubController::class, 'publicShow'])->name('clubs.show');
+        Route::post('/{club}/coaches/{memberClubId}/rate', [CoachEvaluationController::class, 'storeFromClub'])
+            ->name('clubs.coach.rate');
     });
 
     // --------------------------------------------------
@@ -65,17 +66,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{event}', [EventController::class, 'show'])->name('events.show');
         Route::post('/{event}/coaches/{memberClubId}/rate', [CoachEvaluationController::class, 'storeFromEvent'])
             ->name('events.coach.rate');
+        Route::get('/tournaments/{tournament}/results', [TournamentResultsController::class, 'show'])->name('tournaments.results');
+        Route::get('/tournaments/{tournament}', [TournamentResultsController::class, 'publicShow'])->name('tournaments.show');
     });
 
     // --------------------------------------------------
     // FILE ROUTES
     // --------------------------------------------------
     Route::prefix('files')->group(function () {
+        Route::get('/download/{file}', [FileController::class, 'download'])->name('files.download');
         Route::post('/{modelType}/{modelId}/upload', [FileController::class, 'upload'])->name('files.upload');
         Route::get('/{modelType}/{modelId}', [FileController::class, 'list'])->name('files.list');
         Route::get('/{modelType}/{modelId}/category/{category}', [FileController::class, 'listByCategory'])->name('files.list.category');
-        Route::delete('/{modelType}/{modelId}/{fileId}', [FileController::class, 'delete'])->name('files.delete');
-        Route::get('/download/{fileId}', [FileController::class, 'download'])->name('files.download');
+        Route::delete('/{modelType}/{modelId}/{fileId}/delete', [FileController::class, 'webDelete'])->name('files.web.delete');
     });
 
     // --------------------------------------------------
@@ -92,6 +95,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{evaluation}/edit', [PanelCoachEvaluationController::class, 'editEvaluation'])->name('edit');
             Route::patch('/{evaluation}', [PanelCoachEvaluationController::class, 'updateEvaluation'])->name('update');
             Route::delete('/{evaluation}', [PanelCoachEvaluationController::class, 'destroyEvaluation'])->name('destroy');
+        });
+        Route::prefix('files')->name('files.')->group(function () {
+            Route::get('/', [MemberFileController::class, 'index'])->name('index');
         });
     });
 
@@ -145,8 +151,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{reservation}/create-event', [CoachReservationController::class, 'createEventFromReservation'])->name('create-event');
             Route::post('/{reservation}/store-event', [CoachReservationController::class, 'storeEventFromReservation'])->name('store-event');
         });
-        Route::prefix('recieved-evaluations')->name('recieved-evaluations.')->group(function () {
-            Route::get('/', [PanelCoachEvaluationController::class, 'recievedIndex'])->name('index');
+        Route::prefix('received-evaluations')->name('received-evaluations.')->group(function () {
+            Route::get('/', [PanelCoachEvaluationController::class, 'receivedIndex'])->name('index');
+        });
+        Route::prefix('files')->name('files.')->group(function () {
+            Route::get('/', [CoachFileController::class, 'index'])->name('index');
         });
     });
 
@@ -267,6 +276,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{reservation}/edit', [PanelReservationController::class, 'edit'])->name('edit');
             Route::patch('/{reservation}', [PanelReservationController::class, 'update'])->name('update');
             Route::delete('/{reservation}', [PanelReservationController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('files')->name('files.')->group(function () {
+            Route::get('/', [AdminFileController::class, 'index'])->name('index');
+            Route::delete('/{file}', [AdminFileController::class, 'deleteFile'])->name('destroy');
         });
     });    
 });

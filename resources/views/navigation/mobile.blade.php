@@ -47,7 +47,7 @@ $panelRoutes = request()->routeIs('panel.*');
         <x-responsive-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
             {{ __('Calendar') }}
         </x-responsive-nav-link>
-        <x-responsive-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
+        <x-responsive-nav-link :href="route('gallery.index')" :active="request()->routeIs('gallery.index')">
             {{ __('Media') }}
         </x-responsive-nav-link>
     </div>
@@ -71,6 +71,9 @@ $panelRoutes = request()->routeIs('panel.*');
                         <x-responsive-nav-link :href="route('panel.my-evaluations.index')" :active="request()->routeIs('panel.coach.my-evaluations.*')">
                             {{ __('My Evaluations') }}
                         </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.files.index')" :active="request()->routeIs('panel.files.*')">
+                            {{ __('My Files') }}
+                        </x-responsive-nav-link>
                     @endif
 
                     @if($role === 'coach')
@@ -86,8 +89,11 @@ $panelRoutes = request()->routeIs('panel.*');
                         <x-responsive-nav-link :href="route('panel.coach.reservations.index')" :active="request()->routeIs('panel.coach.reservations.*')">
                             {{ __('Reservations') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('panel.coach.recieved-evaluations.index')" :active="request()->routeIs('panel.coach.recieved-evaluations.*')">
-                            {{ __('Recieved Evaluations') }}
+                        <x-responsive-nav-link :href="route('panel.coach.received-evaluations.index')" :active="request()->routeIs('panel.coach.received-evaluations.*')">
+                            {{ __('Received Evaluations') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.coach.files.index')" :active="request()->routeIs('panel.coach.files.*')">
+                            {{ __('Club Files') }}
                         </x-responsive-nav-link>
                     @endif
 
@@ -124,6 +130,9 @@ $panelRoutes = request()->routeIs('panel.*');
                         </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('panel.admin.coach-evaluations.index')" :active="request()->routeIs('panel.admin.coach-evaluations.*')">
                             {{ __('Coach Evaluations') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('panel.admin.files.index')" :active="request()->routeIs('panel.admin.files.*')">
+                            {{ __('Files') }}
                         </x-responsive-nav-link>
                     @endif
                 </div>

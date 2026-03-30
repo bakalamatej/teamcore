@@ -47,8 +47,12 @@ class MemberClubController extends Controller
     {
         $this->authorize('create', MemberClub::class);
 
-        $memberClub = MemberClub::create($request->validated());
-        return redirect()->route('member-clubs.show', $memberClub)->with('success', 'Member added to club successfully.');
+        try {
+            $memberClub = MemberClub::create($request->validated());
+            return redirect()->route('member-clubs.show', $memberClub)->with('success', 'Member added to club successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to add member to club.');
+        }
     }
 
     /**
@@ -82,8 +86,12 @@ class MemberClubController extends Controller
     {
         $this->authorize('update', $memberClub);
 
-        $memberClub->update($request->validated());
-        return redirect()->route('member-clubs.show', $memberClub)->with('success', 'Member club record updated successfully.');
+        try {
+            $memberClub->update($request->validated());
+            return redirect()->route('member-clubs.show', $memberClub)->with('success', 'Member club record updated successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update member club record.');
+        }
     }
 
     /**
@@ -93,7 +101,11 @@ class MemberClubController extends Controller
     {
         $this->authorize('delete', $memberClub);
 
-        $memberClub->delete();
-        return redirect()->route('member-clubs.index')->with('success', 'Member club record deleted successfully.');
+        try {
+            $memberClub->delete();
+            return redirect()->route('member-clubs.index')->with('success', 'Member club record deleted successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete member club record.');
+        }
     }
 }

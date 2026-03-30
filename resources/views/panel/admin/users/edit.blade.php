@@ -1,5 +1,5 @@
 <x-panel-layout>
-            <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+            <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
                 <h1 class="my-heading">{{ __('Edit User') }}</h1>
                 <p class="my-text">{{ __('Update the user information such as name, email, and role.') }}</p>
 

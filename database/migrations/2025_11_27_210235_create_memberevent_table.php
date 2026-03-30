@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -26,6 +27,32 @@ return new class extends Migration
             $table->index('event_id');
         });
 
+        DB::unprepared("
+            CREATE TRIGGER trg_event_member_club_must_belong_to_event
+            BEFORE INSERT ON event_member
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_club_id BIGINT UNSIGNED;
+                DECLARE v_count INT;
+
+                SELECT club_id
+                INTO v_club_id
+                FROM member_club
+                WHERE member_club_id = NEW.member_club_id;
+
+                SELECT COUNT(*)
+                INTO v_count
+                FROM event_club
+                WHERE event_id = NEW.event_id
+                AND club_id = v_club_id;
+
+                IF v_count = 0 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'MEMBER CLUB MUST BELONG TO EVENT CLUB.';
+                END IF;
+            END
+        ");
+
     }
 
     /**
@@ -33,6 +60,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement('DROP TRIGGER IF EXISTS trg_event_member_club_must_belong_to_event');
         Schema::dropIfExists('event_member');
     }
 };

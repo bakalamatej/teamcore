@@ -32,6 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 default => 'An error occurred.',
             };
 
+            // Avoid turning non-navigation requests (asset/image/file loading) into back-redirects with modal popup.
+            if ($status === 404 && (
+                $request->is('files/download/*') ||
+                str_contains($request->header('accept', ''), 'image/')
+            )) {
+                return response($message, 404);
+            }
+
             return redirect()->back()->with('error', $message);
         });
     })->create();

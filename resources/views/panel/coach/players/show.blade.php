@@ -5,13 +5,11 @@
                 <h1 class="my-heading text-2xl">{{ $player->member?->full_name ?? '—' }}</h1>
                 <p class="text-gray-600">{{ $player->member?->user?->email ?? '—' }}</p>
             </div>
-            <span @class([
-                'px-3 py-1 rounded-full text-sm font-semibold',
-                'bg-blue-200 text-blue-800' => $primaryRole === \App\Enums\MemberClubRole::COACH->value,
-                'bg-green-200 text-green-800' => $primaryRole !== \App\Enums\MemberClubRole::COACH->value,
-            ])>
-                {{ ucfirst($primaryRole) }}
-            </span>
+            <x-file-upload 
+                model-type="member_club" 
+                :model-id="$player->member_club_id"
+                :categories="$fileCategories"
+            />
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

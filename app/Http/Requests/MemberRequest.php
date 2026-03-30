@@ -31,7 +31,7 @@ class MemberRequest extends FormRequest
             ],
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable','string','max:20','regex:/^(\+421|0)[1-9]\d{1,8}$/'],
             'date_of_birth' => 'nullable|date|before:today',
         ];
     }

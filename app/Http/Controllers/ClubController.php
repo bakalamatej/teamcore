@@ -9,6 +9,7 @@ use App\Models\Sport;
 use App\Http\Requests\ClubRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\MemberClub;
 
 class ClubController extends Controller
 {
@@ -107,28 +108,33 @@ class ClubController extends Controller
         $this->authorize('create', Club::class);
 
         $validated = $request->validated();
+        try {
+            
 
-        $addressId = $validated['address_id'] ?? null;
-        if (!$addressId) {
-            $address = Address::firstOrCreate([
-                'country'  => $validated['country'],
-                'city'     => $validated['city'],
-                'street'   => $validated['street'] ?? null,
-                'zip_code' => $validated['zip_code'] ?? null,
+            $addressId = $validated['address_id'] ?? null;
+            if (!$addressId) {
+                $address = Address::firstOrCreate([
+                    'country'  => $validated['country'],
+                    'city'     => $validated['city'],
+                    'street'   => $validated['street'] ?? null,
+                    'zip_code' => $validated['zip_code'] ?? null,
+                ]);
+                $addressId = $address->address_id;
+            }
+
+            $club = Club::create([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'webpage' => $validated['webpage'] ?? null,
+                'address_id' => $addressId,
+                'sport_id' => $validated['sport_id'],
             ]);
-            $addressId = $address->address_id;
+
+            return redirect()->route('panel.admin.clubs.index')->with('success', 'Club created successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create club.');
         }
-
-        $club = Club::create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'webpage' => $validated['webpage'] ?? null,
-            'address_id' => $addressId,
-            'sport_id' => $validated['sport_id'],
-        ]);
-
-        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club created successfully!');
     }
 
     /**
@@ -161,30 +167,35 @@ class ClubController extends Controller
     public function update(ClubRequest $request, Club $club)
     {
         $this->authorize('update', $club);
-
         $validated = $request->validated();
 
-        $addressId = $validated['address_id'] ?? null;
-        if (!$addressId) {
-            $address = Address::firstOrCreate([
-                'country'  => $validated['country'],
-                'city'     => $validated['city'],
-                'street'   => $validated['street'] ?? null,
-                'zip_code' => $validated['zip_code'] ?? null,
+
+        try {
+
+            $addressId = $validated['address_id'] ?? null;
+            if (!$addressId) {
+                $address = Address::firstOrCreate([
+                    'country'  => $validated['country'],
+                    'city'     => $validated['city'],
+                    'street'   => $validated['street'] ?? null,
+                    'zip_code' => $validated['zip_code'] ?? null,
+                ]);
+                $addressId = $address->address_id;  
+            }
+
+            $club->update([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'webpage' => $validated['webpage'] ?? null,
+                'address_id' => $addressId,
+                'sport_id' => $validated['sport_id'],
             ]);
-            $addressId = $address->address_id;  
+
+            return redirect()->route('panel.admin.clubs.index')->with('success', 'Club updated successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update club.');
         }
-
-        $club->update([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'webpage' => $validated['webpage'] ?? null,
-            'address_id' => $addressId,
-            'sport_id' => $validated['sport_id'],
-        ]);
-
-        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club updated successfully!');
     }
 
     /**
@@ -194,9 +205,12 @@ class ClubController extends Controller
     {
         $this->authorize('delete', $club);
 
-        $club->delete();
-
-        return redirect()->route('panel.admin.clubs.index')->with('success', 'Club deleted successfully!');
+        try {
+            $club->delete();
+            return redirect()->route('panel.admin.clubs.index')->with('success', 'Club deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete club.');
+        }
     }
 
     private function renderClubShow(Club $club, $view = 'panel.clubs.show')
@@ -207,15 +221,16 @@ class ClubController extends Controller
         $activeMembers = $club->members()
             ->wherePivotNull('left_at')
             ->with('user')
-            ->get()
-            ->map(function ($member) {
-                $role = $member->pivot->role;
-                $member->setAttribute(
-                    'roleValue',
-                    $role instanceof MemberClubRole ? $role->value : (string) $role
-                );
-                return $member;
-            });
+            ->paginate(5);
+
+        $activeMembers->getCollection()->transform(function ($member) {
+            $role = $member->pivot->role;
+            $member->setAttribute(
+                'roleValue',
+                $role instanceof MemberClubRole ? $role->value : (string) $role
+            );
+            return $member;
+        });
 
         $activeEvents = $club->events()
             ->orderBy('start_date', 'desc')
@@ -226,6 +241,12 @@ class ClubController extends Controller
                 return $event;
             });
 
+        $coaches = MemberClub::where('club_id', $club->club_id)
+            ->whereNull('left_at')
+            ->where('role', MemberClubRole::COACH->value)
+            ->with('member.user')
+            ->get();
+
         $activeMembersCount = $activeMembers->count();
         $activeEventsCount = $activeEvents->count();
         $statisticsMembersCount = $club->clubStatistic?->active_members ?? 0;
@@ -234,8 +255,10 @@ class ClubController extends Controller
         $statisticsTotalLossesCount = $club->clubStatistic?->total_losses ?? 0;
         $recentEvents = $activeEvents->take(5);
         $moreEventsCount = max($activeEventsCount - 5, 0);
-        $coaches = $activeMembers->where('roleValue', MemberClubRole::COACH->value)->values();
         $canManageClub = Auth::user()?->isAdmin() ?? false;
+        $fileCategories = \App\Models\FileCategory::orderBy('name')
+            ->get(['file_category_id', 'name'])
+            ->toArray();
 
         return view($view, compact(
             'club',
@@ -251,7 +274,8 @@ class ClubController extends Controller
             'moreEventsCount',
             'coaches',
             'canManageClub',
-            'stats'
+            'stats',
+            'fileCategories'
         ));
     }
 }

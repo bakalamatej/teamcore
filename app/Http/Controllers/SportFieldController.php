@@ -33,7 +33,7 @@ class SportFieldController extends Controller
             ->when($request->filled('field_type'),
                 fn($q) => $q->byFieldType($request->input('field_type')))
             ->with('address', 'fieldType')
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.sport-fields._table', compact('sportFields'));
@@ -78,28 +78,31 @@ class SportFieldController extends Controller
     {
         $this->authorize('create', SportField::class);
 
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $addressId = $data['address_id'] ?? null;
-        if (!$addressId) {
-            $address = Address::firstOrCreate([
-                'country'  => $data['country'],
-                'city'     => $data['city'],
-                'street'   => $data['street'] ?? null,
-                'zip_code' => $data['zip_code'] ?? null,
+            $addressId = $data['address_id'] ?? null;
+            if (!$addressId) {
+                $address = Address::firstOrCreate([
+                    'country'  => $data['country'],
+                    'city'     => $data['city'],
+                    'street'   => $data['street'] ?? null,
+                    'zip_code' => $data['zip_code'] ?? null,
+                ]);
+                $addressId = $address->address_id;
+            }
+
+            $sportField = SportField::create([
+                'name'          => $data['name'],
+                'field_type_id' => $data['field_type_id'],
+                'address_id'    => $addressId,
             ]);
-            $addressId = $address->address_id;
+
+            $sportField->sports()->sync($data['sport_ids']);
+            return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field created successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Sport field could not be created.');
         }
-
-        $sportField = SportField::create([
-            'name'          => $data['name'],
-            'field_type_id' => $data['field_type_id'],
-            'address_id'    => $addressId,
-        ]);
-
-        $sportField->sports()->sync($data['sport_ids']);
-
-        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field created successfully!');
     }
 
     /**
@@ -128,28 +131,31 @@ class SportFieldController extends Controller
     {
         $this->authorize('update', $sportField);
 
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $addressId = $data['address_id'] ?? null;
-        if (!$addressId) {
-            $address = Address::firstOrCreate([
-                'country'  => $data['country'],
-                'city'     => $data['city'],
-                'street'   => $data['street'] ?? null,
-                'zip_code' => $data['zip_code'] ?? null,
+            $addressId = $data['address_id'] ?? null;
+            if (!$addressId) {
+                $address = Address::firstOrCreate([
+                    'country'  => $data['country'],
+                    'city'     => $data['city'],
+                    'street'   => $data['street'] ?? null,
+                    'zip_code' => $data['zip_code'] ?? null,
+                ]);
+                $addressId = $address->address_id;
+            }
+
+            $sportField->update([
+                'name'          => $data['name'],
+                'field_type_id' => $data['field_type_id'],
+                'address_id'    => $addressId,
             ]);
-            $addressId = $address->address_id;
+
+            $sportField->sports()->sync($data['sport_ids']);
+            return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field updated successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Sport field could not be updated.');
         }
-
-        $sportField->update([
-            'name'          => $data['name'],
-            'field_type_id' => $data['field_type_id'],
-            'address_id'    => $addressId,
-        ]);
-
-        $sportField->sports()->sync($data['sport_ids']);
-
-        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field updated successfully!');
     }
 
     /**
@@ -158,9 +164,12 @@ class SportFieldController extends Controller
     public function destroy(SportField $sportField)
     {
         $this->authorize('delete', $sportField);
-
-        $sportField->delete();
-
-        return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field deleted successfully!');
+        
+        try {
+            $sportField->delete();
+            return redirect()->route('panel.admin.sport-fields.index')->with('success', 'Sport field deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete sport field because it is associated with other records.');
+        }
     }
 }

@@ -23,13 +23,14 @@ return new class extends Migration
                 ->constrained('field_types', 'field_type_id')
                 ->restrictOnDelete();
 
-            $table->softDeletes();
             $table->timestamps();
 
             $table->unique(['address_id', 'name']);
             $table->index('address_id');
             $table->index('field_type_id');
         });
+
+        
     }
 
     /**

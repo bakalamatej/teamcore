@@ -3,6 +3,7 @@ namespace App\Policies;
 use App\Models\Event;
 use App\Models\User;
 use App\Enums\EventStatus;
+use App\Enums\MemberClubRole;
 
 class EventPolicy extends Policy
 {
@@ -51,7 +52,7 @@ class EventPolicy extends Policy
 
     public function register(User $user, Event $event): bool
     {
-        if ($event->status === EventStatus::FINISHED || $event->status === EventStatus::CANCELED) return false;
+        if ($event->status != EventStatus::SCHEDULED) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
 
@@ -64,7 +65,7 @@ class EventPolicy extends Policy
 
     public function unregister(User $user, Event $event): bool
     {
-        if ($event->status === EventStatus::FINISHED || $event->status === EventStatus::CANCELED) return false;
+        if ($event->status != EventStatus::SCHEDULED) return false;
         $membership = $user->activeMembership();
         if (!$membership) return false;
 
@@ -92,5 +93,12 @@ class EventPolicy extends Policy
     public function storeResults(User $user, Event $event): bool
     {
         return $this->editResults($user, $event);
+    }
+
+    public function uploadTo(User $user, Event $event): bool
+    {
+        $membership = $user->activeMembership();
+        if (!$membership || $membership->role !== MemberClubRole::COACH) return false;
+        return $event->clubs()->where('clubs.club_id', $membership->club_id)->exists();
     }
 }

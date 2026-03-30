@@ -10,7 +10,7 @@ class CoachEvaluation extends Model
     protected $primaryKey = 'evaluation_id';
 
     protected $fillable = [
-        'coach_member_club_id',
+        'coach_member_id',
         'evaluated_by_member_id',
         'rating',
         'comment',
@@ -21,54 +21,53 @@ class CoachEvaluation extends Model
     ];
 
     // -----------------------
-    // Rating constants (1-5 scale)
-    // -----------------------
-    const RATING_POOR = 1;
-    const RATING_FAIR = 2;
-    const RATING_GOOD = 3;
-    const RATING_VERY_GOOD = 4;
-    const RATING_EXCELLENT = 5;
-
-    // -----------------------
     // Scopes
     // -----------------------
 
     public function scopeSearch($query, $search)
     {
         if (!$search) return $query;
-
-        return $query->whereHas('coach.member', fn($q) => $q->where('first_name', 'like', "%{$search}%")
-            ->orWhere('last_name', 'like', "%{$search}%"));
+        return $query->whereHas('coach', fn($q) => 
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+        );
     }
 
     public function scopeSearchByEvaluator($query, $search)
     {
         if (!$search) return $query;
         return $query->where(function($q) use ($search) {
-            $q->whereHas('evaluatedByMember', fn($q) => $q->where('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%"))
-            ->orWhere('comment', 'like', "%{$search}%");
+            $q->whereHas('evaluatedByMember', fn($q) => 
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+            )->orWhere('comment', 'like', "%{$search}%");
         });
     }
 
     public function scopeSearchByCoach($query, $search)
     {
         if (!$search) return $query;
-        return $query->whereHas('coach.member', fn($q) => $q->where('first_name', 'like', "%{$search}%")
-            ->orWhere('last_name', 'like', "%{$search}%"));
+        return $query->whereHas('coach', fn($q) => 
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+        );
     }
 
     public function scopeByMember($query, $memberId)
     {
         if (!$memberId) return $query;
-
         return $query->where('evaluated_by_member_id', $memberId);
+    }
+
+    public function scopeByCoach($query, $coachMemberId)
+    {
+        if (!$coachMemberId) return $query;
+        return $query->where('coach_member_id', $coachMemberId);
     }
 
     public function scopeByRating($query, $rating)
     {
         if (!$rating) return $query;
-        
         return $query->where('rating', $rating);
     }
 
@@ -80,11 +79,8 @@ class CoachEvaluation extends Model
     public function scopeMinRating($query, $minRating)
     {
         if (!$minRating) return $query;
-        
         return $query->where('rating', '>=', $minRating);
     }
-
-
 
     public function scopeRecent($query, $days = 30)
     {
@@ -110,15 +106,19 @@ class CoachEvaluation extends Model
     // Relationships
     // -----------------------
 
+    /**
+     * Get the coach (member) who gave the evaluation
+     */
     public function coach()
     {
-        return $this->belongsTo(MemberClub::class, 'coach_member_club_id');
+        return $this->belongsTo(Member::class, 'coach_member_id');
     }
 
+    /**
+     * Get the member who was evaluated
+     */
     public function evaluatedByMember()
     {
         return $this->belongsTo(Member::class, 'evaluated_by_member_id');
     }
-
-
 }

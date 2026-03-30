@@ -36,7 +36,7 @@ class PanelMembershipController extends Controller
             ->when($request->filled('club_id'), fn($query) => $query->where('club_id', $request->input('club_id')))
             ->when($request->filled('role'), fn($query) => $query->where('role', $request->input('role')))
             ->latest('member_club_id')
-            ->paginate(7);
+            ->paginate(6);
 
         if ($request->ajax()) {
             return view('panel.admin.memberships._table', compact('memberships'));
@@ -66,9 +66,12 @@ class PanelMembershipController extends Controller
     {
         $this->authorize('create', MemberClub::class);
 
-        MemberClub::create($request->validated());
-
-        return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership created successfully.');
+        try {
+            MemberClub::create($request->validated());
+            return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership created successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create membership.');
+        }
     }
 
     public function edit(MemberClub $memberClub)
@@ -86,20 +89,26 @@ class PanelMembershipController extends Controller
     {
         $this->authorize('update', $memberClub);
 
-        $memberClub->update($request->validated());
-
-        return redirect()->route('panel.admin.memberships.index', $memberClub)->with('success', 'Membership updated.');
+        try {
+            $memberClub->update($request->validated());
+            return redirect()->route('panel.admin.memberships.index', $memberClub)->with('success', 'Membership updated.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update membership.');
+        }
     }
 
     public function destroy(MemberClub $memberClub)
     {
         $this->authorize('delete', $memberClub);
 
-        $memberClub->update([
-            'left_at' => now(),
-        ]);
-
-        return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership ended successfully.');
+        try {
+            $memberClub->update([
+                'left_at' => now(),
+            ]);
+            return redirect()->route('panel.admin.memberships.index')->with('success', 'Membership ended successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to end membership.');
+        }
     }
 
     private function memberOptions(): array

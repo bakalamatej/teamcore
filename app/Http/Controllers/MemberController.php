@@ -45,8 +45,12 @@ class MemberController extends Controller
     {
         $this->authorize('create', Member::class);
         
-        $member = Member::create($request->validated());
-        return redirect()->route('members.show', $member)->with('success', 'Member created successfully.');
+        try {
+            $member = Member::create($request->validated());
+            return redirect()->route('members.show', $member)->with('success', 'Member created successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create member.');
+        }
     }
 
     /**
@@ -82,8 +86,12 @@ class MemberController extends Controller
     {
         $this->authorize('update', $member);
         
-        $member->update($request->validated());
-        return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
+        try {
+            $member->update($request->validated());
+            return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update member.');
+        }
     }
 
     /**
@@ -93,7 +101,11 @@ class MemberController extends Controller
     {
         $this->authorize('delete', $member);
         
-        $member->delete();
-        return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
+        try {
+            $member->delete();
+            return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete member.');
+        }
     }
 }

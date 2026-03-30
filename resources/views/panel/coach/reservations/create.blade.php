@@ -1,5 +1,5 @@
 <x-panel-layout>
-	<div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+	<div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
 		<h1 class="my-heading">{{ __('Create Reservation') }}</h1>
 		<p class="my-text">{{ __('Add a new reservation request.') }}</p>
 
@@ -32,12 +32,12 @@
 					</div>
 					<div>
 						<x-input-label for="start_date" :value="__('Start Date')" />
-						<x-text-input id="start_date" name="start_date" type="date" class="mt-1 block w-full" value="{{ old('start_date') }}" required />
+						<x-text-input id="start_date" name="start_date" type="datetime-local" class="mt-1 block w-full" value="{{ old('start_date') }}" required />
 						<x-input-error :messages="$errors->get('start_date')" class="mt-2" />
 					</div>
 					<div>
 						<x-input-label for="end_date" :value="__('End Date')" />
-						<x-text-input id="end_date" name="end_date" type="date" class="mt-1 block w-full" value="{{ old('end_date') }}" required />
+						<x-text-input id="end_date" name="end_date" type="datetime-local" class="mt-1 block w-full" value="{{ old('end_date') }}" required />
 						<x-input-error :messages="$errors->get('end_date')" class="mt-2" />
 					</div>
 				</div>

@@ -54,8 +54,10 @@ class ReservationController extends Controller
         try {
             $reservation = Reservation::create(array_merge(
                 $request->validated(),
-                ['status' => ReservationStatus::PENDING->value]
+                ['status' => ReservationStatus::APPROVED->value]
             ));
+            return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation created successfully.');
+
         } catch (QueryException $exception) {
             $error = $this->mapReservationTriggerError($exception);
 
@@ -68,7 +70,6 @@ class ReservationController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation created successfully.');
     }
 
     /**
@@ -103,6 +104,8 @@ class ReservationController extends Controller
 
         try {
             $reservation->update($request->validated());
+            return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation updated successfully.');
+
         } catch (QueryException $exception) {
             $error = $this->mapReservationTriggerError($exception);
 
@@ -115,7 +118,6 @@ class ReservationController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation updated successfully.');
     }
 
     /**
@@ -125,8 +127,12 @@ class ReservationController extends Controller
     {
         $this->authorize('delete', $reservation);
 
-        $reservation->delete();
-        return redirect()->route('reservations.index')->with('success', 'Reservation deleted successfully.');
+        try {
+            $reservation->delete();
+            return redirect()->route('reservations.index')->with('success', 'Reservation deleted successfully.');
+        } catch (QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete reservation.');
+        }
     }
 
     public function approve(Reservation $reservation)
@@ -135,14 +141,6 @@ class ReservationController extends Controller
 
         $reservation->update(['status' => ReservationStatus::APPROVED->value]);
         return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation approved.');
-    }
-
-    public function reject(Reservation $reservation)
-    {
-        $this->authorize('reject', $reservation);
-
-        $reservation->update(['status' => ReservationStatus::REJECTED->value]);
-        return redirect()->route('reservations.show', $reservation)->with('success', 'Reservation rejected.');
     }
 
     public function cancel(Reservation $reservation)

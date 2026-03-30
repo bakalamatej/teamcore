@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\ClubFile;
 use App\Models\EventFile;
 use App\Models\MemberClubFile;
 
 class File extends Model
 {
+    use SoftDeletes;
 
     protected $table = 'files';
     protected $primaryKey = 'file_id';

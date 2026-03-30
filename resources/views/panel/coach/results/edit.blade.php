@@ -1,5 +1,5 @@
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <div class="flex items-start justify-between">
                 <div>

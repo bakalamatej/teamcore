@@ -175,7 +175,16 @@ class CoachEventController extends Controller
         $event->loadMissing('clubs');
         abort_unless($event->clubs->contains('club_id', $club->club_id), 403);
 
-        $event->delete();
+        try {
+            $event->delete();
+        } catch (QueryException $exception) {
+            $error = $this->mapEventTriggerError($exception);
+            if ($error !== null) {
+                return back()->withInput()->withErrors($error);
+            }
+            throw $exception;
+        }
+
         return redirect()->route('panel.coach.events.index');
     }
 

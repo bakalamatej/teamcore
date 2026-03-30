@@ -168,19 +168,12 @@ class Member extends Model
                     ->wherePivotNull('left_at');
     }
 
-    public function coachEvaluations()
+    public function receivedEvaluations()
     {
-        return $this->hasManyThrough(
-            CoachEvaluation::class,
-            MemberClub::class,
-            'member_id',
-            'coach_member_club_id',
-            'member_id',
-            'member_club_id'
-        );
+        return $this->hasMany(CoachEvaluation::class, 'coach_member_id');
     }
 
-    public function memberEvaluations()
+    public function coachEvaluations()
     {
         return $this->hasMany(CoachEvaluation::class, 'evaluated_by_member_id');
     }

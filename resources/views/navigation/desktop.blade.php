@@ -22,7 +22,7 @@
                 <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
                     {{ __('Calendar') }}
                 </x-nav-link>
-                <x-nav-link :href="route('gallery')" :active="request()->routeIs('gallery')">
+                <x-nav-link :href="route('gallery.index')" :active="request()->routeIs('gallery.index')">
                     {{ __('Media') }}
                 </x-nav-link>
             </div>

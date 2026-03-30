@@ -75,27 +75,22 @@ class CoachReservationController extends Controller
     public function store(StoreReservationRequest $request)
     {
         $this->authorize('create', Reservation::class);
-        $user = Auth::user();
-        $membership = $user?->activeMembership();
-        abort_if(!$membership, 403, 'No club context.');
-        $memberClubId = $membership->member_club_id;
 
         try {
+            $user = Auth::user();
+            $membership = $user?->activeMembership();
+            abort_if(!$membership, 403, 'No club context.');
+            $memberClubId = $membership->member_club_id;
             Reservation::create(array_merge(
                 $request->validated(),
                 [
                     'created_by_member_club_id' => $memberClubId,
                 ]
             ));
+            return redirect()->route('panel.coach.reservations.index')->with('success', 'Reservation created successfully!');
         } catch (QueryException $exception) {
-            $error = $this->mapReservationTriggerError($exception);
-            if ($error !== null) {
-                return back()->withInput()->withErrors($error);
-            }
-            throw $exception;
+            return redirect()->back()->with('error', 'Unable to create reservation.');
         }
-
-        return redirect()->route('panel.coach.reservations.index')->with('success', 'Reservation created successfully!');
     }
 
     public function createEventFromReservation(Reservation $reservation)
@@ -206,21 +201,22 @@ class CoachReservationController extends Controller
         $this->authorize('update', $reservation);
         try {
             $reservation->update($request->validated());
+            return redirect()->route('panel.coach.reservations.show', $reservation)->with('success', 'Reservation updated successfully!');
         } catch (QueryException $exception) {
-            $error = $this->mapReservationTriggerError($exception);
-            if ($error !== null) {
-                return back()->withInput()->withErrors($error);
-            }
-            throw $exception;
+            return redirect()->back()->with('error', 'Unable to update reservation.');
         }
-        return redirect()->route('panel.coach.reservations.show', $reservation)->with('success', 'Reservation updated successfully!');
     }
 
     public function destroy(Reservation $reservation)
     {
         $this->authorize('delete', $reservation);
-        $reservation->delete();
-        return redirect()->route('panel.coach.reservations.index')->with('success', 'Reservation deleted successfully!');
+
+        try {
+            $reservation->delete();
+            return redirect()->route('panel.coach.reservations.index')->with('success', 'Reservation deleted successfully!');
+        } catch (QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete reservation.');
+        }
     }
 
     private function mapReservationTriggerError(QueryException $exception): ?array

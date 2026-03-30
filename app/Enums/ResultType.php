@@ -8,6 +8,8 @@ enum ResultType: string
     case TIME = 'time';
     case DISTANCE = 'distance';
     case POINTS = 'points';
+    case SETS = 'sets';
+    case ASSISTS = 'assists';
     case CUSTOM = 'custom';
     case GOALS  = 'goals';
 }

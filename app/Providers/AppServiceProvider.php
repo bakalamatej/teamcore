@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Database\Eloquent\Model;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        //Model::preventLazyLoading(!app()->isProduction());
+
+        Model::automaticallyEagerLoadRelationships();
+
         Blade::component('layouts.panel-layout', 'panel-layout');
 
         View::composer('panel.sidebar', function ($view) {

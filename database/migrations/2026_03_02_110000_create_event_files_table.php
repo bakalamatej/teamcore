@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('file_category_id')
                 ->constrained('file_categories', 'file_category_id')
                 ->restrictOnDelete();
+                
             $table->timestamps();
 
             $table->primary(['event_id', 'file_id']);

@@ -16,12 +16,13 @@ return new class extends Migration
 
             $table->foreignId('user_id')
                 ->constrained('users', 'user_id')
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
 
             $table->string('first_name', 100)->nullable();
             $table->string('last_name', 100)->nullable();
             $table->string('phone', 20)->nullable();
             $table->date('date_of_birth')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 

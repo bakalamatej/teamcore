@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
+use App\Constants\FileMessages;
+use App\Http\Requests\FileUploadRequest;
 use App\Models\Club;
+use App\Models\Event;
 use App\Models\File;
 use App\Models\MemberClub;
-use App\Http\Requests\FileUploadRequest;
 use App\Services\FileService;
-use App\Constants\FileMessages;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+use Throwable;
 
 class FileController extends Controller
 {
@@ -21,297 +25,319 @@ class FileController extends Controller
     }
 
     /**
-     * Upload file for a model (Event, Club, MemberClub)
-     *
-     * @param FileUploadRequest $request
-     * @param string $modelType (event, club, member_club)
-     * @param int $modelId
-     * @return JsonResponse
+     * Upload file for a model (event, club, member_club)
      */
     public function upload(FileUploadRequest $request, string $modelType, int $modelId): JsonResponse
     {
         try {
-            // Get the model instance
             $model = $this->getModel($modelType, $modelId);
-            
+
             if (!$model) {
                 return response()->json([
                     'success' => false,
-                    'message' => FileMessages::MODEL_NOT_FOUND
+                    'message' => FileMessages::MODEL_NOT_FOUND,
                 ], 404);
             }
 
-            // Authorize file upload
-            $this->authorize('create', File::class);
+            $this->authorize('uploadTo', $model);
 
-            // Store file
+            $validated = $request->validated();
+
             $file = $this->fileService->storeFile(
-                $request->file('file')
+                $request->file('file'),
+                $request->user()->user_id
             );
 
-            // Attach file to model using appropriate relationship
-            $this->attachFileToModel($model, $file, $request->validated()['category'], $modelType);
+            $this->attachFileToModel(
+                $model,
+                $file,
+                (int) $validated['file_category_id'],
+                $modelType
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => FileMessages::FILE_UPLOADED,
-                'file' => $file
+                'file' => $file,
             ], 201);
+        } catch (Throwable $e) {
+            report($e);
 
-        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::UPLOAD_ERROR
+                'message' => FileMessages::UPLOAD_ERROR,
             ], 500);
         }
     }
 
     /**
-     * Get all files for a model (Event, Club, MemberClub)
-     *
-     * @param string $modelType (event, club, member_club)
-     * @param int $modelId
-     * @return JsonResponse
+     * Get all files for a model
      */
     public function list(string $modelType, int $modelId): JsonResponse
     {
         try {
             $model = $this->getModel($modelType, $modelId);
-            
+
             if (!$model) {
                 return response()->json([
                     'success' => false,
-                    'message' => FileMessages::MODEL_NOT_FOUND
+                    'message' => FileMessages::MODEL_NOT_FOUND,
                 ], 404);
             }
 
-            // Authorize file viewing
             $this->authorize('viewAny', File::class);
 
             $files = $this->getFilesForModel($model, $modelType);
 
             return response()->json([
                 'success' => true,
-                'files' => $files->map(function ($file) {
+                'files' => $files->map(function (File $file) {
                     return [
-                        'file_id'    => $file->file_id,
-                        'file_name'  => $file->file_name,
-                        'file_size'  => $file->file_size,
-                        'file_type'  => $file->file_type,
-                        'category'   => $file->pivot->file_category_id,
+                        'file_id' => $file->file_id,
+                        'file_name' => $file->file_name,
+                        'file_size' => $file->file_size,
+                        'file_type' => $file->file_type,
+                        'file_category_id' => $file->pivot->file_category_id,
                         'created_at' => $file->pivot->created_at,
-                        'url'        => $this->fileService->getDownloadUrl($file),
+                        'url' => $this->fileService->getDownloadUrl($file),
                     ];
-                })
+                }),
             ]);
+        } catch (Throwable $e) {
+            report($e);
 
-        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::LIST_ERROR
+                'message' => FileMessages::LIST_ERROR,
             ], 500);
         }
     }
 
     /**
      * Get files of specific category for a model
-     *
-     * @param string $modelType (event, club, member_club)
-     * @param int $modelId
-     * @param string $category
-     * @return JsonResponse
      */
-    public function listByCategory(string $modelType, int $modelId, string $category): JsonResponse
+    public function listByCategory(string $modelType, int $modelId, int $fileCategoryId): JsonResponse
     {
         try {
             $model = $this->getModel($modelType, $modelId);
-            
+
             if (!$model) {
                 return response()->json([
                     'success' => false,
-                    'message' => FileMessages::MODEL_NOT_FOUND
+                    'message' => FileMessages::MODEL_NOT_FOUND,
                 ], 404);
             }
 
-            // Authorize file viewing
             $this->authorize('viewAny', File::class);
 
-            $files = $this->getFilesForModel($model, $modelType, $category);
+            $files = $this->getFilesForModel($model, $modelType, $fileCategoryId);
 
             return response()->json([
                 'success' => true,
-                'category' => $category,
-                'files' => $files->map(fn($file) => [
-                    'file_id'   => $file->file_id,
-                    'file_name' => $file->file_name,
-                    'file_size' => $file->file_size,
-                    'file_type' => $file->file_type,
-                    'url'       => $this->fileService->getDownloadUrl($file),
-                ])
+                'file_category_id' => $fileCategoryId,
+                'files' => $files->map(function (File $file) {
+                    return [
+                        'file_id' => $file->file_id,
+                        'file_name' => $file->file_name,
+                        'file_size' => $file->file_size,
+                        'file_type' => $file->file_type,
+                        'file_category_id' => $file->pivot->file_category_id,
+                        'created_at' => $file->pivot->created_at,
+                        'url' => $this->fileService->getDownloadUrl($file),
+                    ];
+                }),
             ]);
+        } catch (Throwable $e) {
+            report($e);
 
-        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::LIST_ERROR
+                'message' => FileMessages::LIST_ERROR,
             ], 500);
         }
     }
 
     /**
      * Delete a file from a model
-     *
-     * @param string $modelType (event, club, member_club)
-     * @param int $modelId
-     * @param int $fileId
-     * @return JsonResponse
      */
     public function delete(string $modelType, int $modelId, int $fileId): JsonResponse
     {
         try {
             $model = $this->getModel($modelType, $modelId);
-            
+
             if (!$model) {
                 return response()->json([
                     'success' => false,
-                    'message' => FileMessages::MODEL_NOT_FOUND
+                    'message' => FileMessages::MODEL_NOT_FOUND,
                 ], 404);
             }
 
             $file = File::find($fileId);
+
             if (!$file) {
                 return response()->json([
                     'success' => false,
-                    'message' => FileMessages::FILE_NOT_FOUND
+                    'message' => FileMessages::FILE_NOT_FOUND,
                 ], 404);
             }
 
-            // Authorize file deletion
+            if (!$this->modelHasFile($model, $fileId, $modelType)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => FileMessages::FILE_NOT_FOUND,
+                ], 404);
+            }
+
             $this->authorize('delete', $file);
 
-            // Detach file from model using appropriate relationship
             $this->detachFileFromModel($model, $file, $modelType);
 
-            // Check if this file is used by other models
             $otherUsages = $this->countFileUsages($file);
 
-            // If no other usages, delete the file
             if ($otherUsages === 0) {
                 $this->fileService->deleteFile($file);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => FileMessages::FILE_DELETED
+                'message' => FileMessages::FILE_DELETED,
             ]);
+        } catch (Throwable $e) {
+            report($e);
 
-        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => FileMessages::DELETE_ERROR
+                'message' => FileMessages::DELETE_ERROR,
             ], 500);
         }
     }
 
     /**
      * Download a file
-     *
-     * @param int $fileId
-     * @return mixed
      */
-    public function download(int $fileId)
+    public function download(File $file,  Request $request)
     {
-        $file = File::findOrFail($fileId);
         $this->authorize('view', $file);
+
         $path = storage_path('app/private/' . $file->file_path);
+
+        if (!file_exists($path)) {
+            return redirect()->back()->with('error', 'File not found on server.');
+        }
+
+        if (str_starts_with($file->file_type, 'image/') && !$request->boolean('download')) {
+            return response()->file($path, [
+                'Content-Type' => $file->file_type,
+            ]);
+        }
+
         return response()->download($path, $file->file_name);
     }
 
     /**
      * Get model instance by type and ID
-     *
-     * @param string $modelType
-     * @param int $modelId
-     * @return mixed
      */
-    private function getModel(string $modelType, int $modelId)
+    private function getModel(string $modelType, int $modelId): Event|Club|MemberClub|null
     {
         return match ($modelType) {
-            'event'       => Event::find($modelId),
-            'club'        => Club::find($modelId),
+            'event' => Event::find($modelId),
+            'club' => Club::find($modelId),
             'member_club' => MemberClub::find($modelId),
-            default       => null,
+            default => null,
         };
     }
 
     /**
      * Attach file to model using appropriate relationship
-     *
-     * @param mixed $model
-     * @param File $file
-     * @param string $category
-     * @param string $modelType
      */
-    private function attachFileToModel($model, File $file, string $category, string $modelType): void
+    private function attachFileToModel(Event|Club|MemberClub $model, File $file, int $fileCategoryId, string $modelType): void
     {
         match ($modelType) {
-            'event'       => $model->eventFiles()->attach($file->file_id, ['file_category_id' => $category]),
-            'club'        => $model->clubFiles()->attach($file->file_id, ['file_category_id' => $category]),
-            'member_club' => $model->memberClubFiles()->attach($file->file_id, ['file_category_id' => $category]),
+            'event' => $model->eventFiles()->attach($file->file_id, [
+                'file_category_id' => $fileCategoryId,
+            ]),
+            'club' => $model->clubFiles()->attach($file->file_id, [
+                'file_category_id' => $fileCategoryId,
+            ]),
+            'member_club' => $model->memberClubFiles()->attach($file->file_id, [
+                'file_category_id' => $fileCategoryId,
+            ]),
         };
     }
 
     /**
      * Detach file from model using appropriate relationship
-     *
-     * @param mixed $model
-     * @param File $file
-     * @param string $modelType
      */
-    private function detachFileFromModel($model, File $file, string $modelType): void
+    private function detachFileFromModel(Event|Club|MemberClub $model, File $file, string $modelType): void
     {
         match ($modelType) {
-            'event'       => $model->eventFiles()->detach($file->file_id),
-            'club'        => $model->clubFiles()->detach($file->file_id),
+            'event' => $model->eventFiles()->detach($file->file_id),
+            'club' => $model->clubFiles()->detach($file->file_id),
             'member_club' => $model->memberClubFiles()->detach($file->file_id),
         };
     }
 
     /**
-     * Get files for a model, filtered by category if provided
-     *
-     * @param mixed $model
-     * @param string $modelType
-     * @param string|null $category
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Get files for a model, optionally filtered by category ID
      */
-    private function getFilesForModel($model, string $modelType, ?string $category = null)
+    private function getFilesForModel(Event|Club|MemberClub $model, string $modelType, ?int $fileCategoryId = null): Collection
     {
         $files = match ($modelType) {
-            'event'       => $model->eventFiles(),
-            'club'        => $model->clubFiles(),
+            'event' => $model->eventFiles(),
+            'club' => $model->clubFiles(),
             'member_club' => $model->memberClubFiles(),
         };
 
-        if ($category) {
-            $files = $files->wherePivot('file_category_id', $category);
+        if ($fileCategoryId !== null) {
+            $files->wherePivot('file_category_id', $fileCategoryId);
         }
 
         return $files->get();
     }
 
     /**
-     * Count how many models use a file
-     *
-     * @param File $file
-     * @return int
+     * Check whether given model has the given file attached
+     */
+    private function modelHasFile(Event|Club|MemberClub $model, int $fileId, string $modelType): bool
+    {
+        return match ($modelType) {
+            'event' => $model->eventFiles()->where('files.file_id', $fileId)->exists(),
+            'club' => $model->clubFiles()->where('files.file_id', $fileId)->exists(),
+            'member_club' => $model->memberClubFiles()->where('files.file_id', $fileId)->exists(),
+        };
+    }
+
+    /**
+     * Count how many models still use a file
      */
     private function countFileUsages(File $file): int
     {
-        $count = 0;
-        $count += $file->clubs()->count();
-        $count += $file->events()->count();
-        $count += $file->memberClubs()->count();
-        return $count;
+        return
+            $file->clubs()->count() +
+            $file->events()->count() +
+            $file->memberClubs()->count();
+    }
+
+    public function webDelete(string $modelType, int $modelId, int $fileId)
+    {
+        $model = $this->getModel($modelType, $modelId);
+
+        abort_if(!$model, 404);
+
+        $file = File::findOrFail($fileId);
+
+        abort_unless($this->modelHasFile($model, $fileId, $modelType), 404);
+
+        $this->authorize('delete', $file);
+
+        $this->detachFileFromModel($model, $file, $modelType);
+
+        $otherUsages = $this->countFileUsages($file);
+
+        if ($otherUsages === 0) {
+            $this->fileService->deleteFile($file);
+        }
+
+        return redirect()->back()->with('success', 'File deleted successfully.');
     }
 }

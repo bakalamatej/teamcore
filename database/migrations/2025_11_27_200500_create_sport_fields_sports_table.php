@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -25,6 +26,27 @@ return new class extends Migration
             $table->index('sport_field_id');
             $table->index('sport_id');
         });
+
+        DB::unprepared("
+            CREATE TRIGGER trg_sport_fields_sports_delete
+            BEFORE DELETE ON sport_fields_sports
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_event_count INT;
+                
+                SELECT COUNT(*) INTO v_event_count
+                FROM events e
+                JOIN event_types et ON et.event_type_id = e.event_type_id
+                WHERE e.sport_field_id = OLD.sport_field_id
+                AND et.sport_id = OLD.sport_id
+                AND e.deleted_at IS NULL;
+                
+                IF v_event_count > 0 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'CANNOT REMOVE SPORT FROM FIELD WITH EXISTING EVENTS.';
+                END IF;
+            END
+        ");
     }   
 
     /**
@@ -32,6 +54,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::unprepared("DROP TRIGGER IF EXISTS trg_sport_fields_sports_delete");
         Schema::dropIfExists('sport_fields_sports');
     }
 };

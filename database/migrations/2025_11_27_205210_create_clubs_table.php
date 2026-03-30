@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
             $table->string('email', 255)->nullable();
             $table->string('webpage', 255)->nullable();
+            
             $table->timestamps();
             $table->softDeletes();
 

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('street', 255)->nullable();
             $table->string('zip_code', 20)->nullable();
             
-            $table->softDeletes();
             $table->timestamps();
 
             $table->unique(['country', 'city', 'street']);

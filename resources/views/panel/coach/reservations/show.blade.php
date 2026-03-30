@@ -40,14 +40,6 @@
                             </div>
                         </div>
 
-                        <div class="detail-item">
-                            <span class="detail-item-label">{{ __('Created By:') }}</span>
-                            <span class="detail-item-value">
-                                {{ $reservation->createdByMemberClub?->club?->name ?? '-' }} -
-                                {{ $reservation->createdByMemberClub?->member?->full_name ?? __('N/A') }}
-                            </span>
-                        </div>
-
                         <div class="detail-item-divider">
                             <div class="flex justify-between items-start mb-3">
                                 <span class="detail-item-label">{{ __('Start:') }}</span>

@@ -3,7 +3,7 @@
 @endpush
 
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <div class="flex justify-between items-center mb-4">
             <h1 class="my-heading text-2xl">{{ __('Event Types Management') }}</h1>
             <span class="text-sm text-gray-600">{{ $eventTypes->total() }} {{ __('event types total') }}</span>

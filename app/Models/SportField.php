@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SportField extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'sport_fields';
     protected $primaryKey = 'sport_field_id';
 

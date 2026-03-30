@@ -15,6 +15,7 @@ use Illuminate\Database\QueryException;
 use App\Enums\EventStatus;
 use App\Enums\MemberClubRole;
 use App\Models\Club;
+use App\Models\FileCategory;
 
 class EventController extends Controller
 {
@@ -75,7 +76,11 @@ class EventController extends Controller
     private function decorateEventsWithUserContext($events, $activeMembership)
     {
         $userClubIds = $activeMembership ? [$activeMembership->club_id] : [];
-        $memberClubIds = Auth::user()->member?->clubMemberships()->active()->pluck('member_club_id') ?? collect();
+        
+        $memberClubIds = $activeMembership 
+            ? collect([$activeMembership->member_club_id])
+            : collect();
+            
         $userEventIds = DB::table('event_member')
             ->whereIn('member_club_id', $memberClubIds)
             ->pluck('event_id')
@@ -126,7 +131,7 @@ class EventController extends Controller
             ->when($request->filled('start_date_from') || $request->filled('start_date_to'),
                 fn($q) => $q->byDateRange($request->input('start_date_from'), $request->input('start_date_to')))
             ->with('sportField', 'eventType')
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.events._table', compact('events'));
@@ -201,9 +206,20 @@ class EventController extends Controller
         $activeClubs = $event->activeClubs;
         $clubId = Auth::user()?->activeMembership()?->club_id;
 
+        $page = request()->input('page', 1);
+        $perPage = 5;
+
         $activeMembers = $clubId
             ? $event->memberClubs->where('club_id', $clubId)->map(fn($mc) => $mc->member)->filter()->values()
             : collect();
+
+        $activeMembers = new \Illuminate\Pagination\LengthAwarePaginator(
+            $activeMembers->forPage($page, $perPage),
+            $activeMembers->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
 
         $activeCoaches = $clubId
             ? $event->memberClubs
@@ -223,11 +239,18 @@ class EventController extends Controller
             : $duration->h . 'h ' . $duration->i . 'm';
         $canManageEvent = Auth::user()?->isAdmin() || Auth::user()?->isCoach();
 
+        $fileCategories = FileCategory::orderBy('name')
+            ->get(['file_category_id', 'name'])
+            ->toArray();
+
+       $isTournament = strcasecmp($event->eventType?->name ?? '', 'Tournament') === 0;
+
         return view($view, compact(
             'event', 'activeClubs', 'activeMembers', 'activeCoaches',
             'activeClubsCount', 'activeMembersCount',
             'statisticsClubsCount', 'statisticsMembersCount',
-            'statusValue', 'durationText', 'canManageEvent'
+            'statusValue', 'durationText', 'canManageEvent', 'fileCategories',
+            'isTournament'
         ));
     }
 
@@ -304,7 +327,16 @@ class EventController extends Controller
     {
         $this->authorize('delete', $event);
 
-        $event->delete();
+        try {
+            $event->delete();
+        } catch (QueryException $exception) {
+            $error = $this->mapEventTriggerError($exception);
+            if ($error !== null) {
+                return back()->withInput()->withErrors($error);
+            }
+            throw $exception;
+        }
+
         return redirect()->route('panel.admin.events.index');
     }
 
@@ -376,7 +408,6 @@ class EventController extends Controller
     private function getSportFieldsGroupedBySport(): array
     {
         $sportFields = SportField::query()
-            ->whereNull('deleted_at')
             ->with(['sports', 'address'])
             ->whereHas('sports')
             ->get();

@@ -27,8 +27,11 @@
                         </span>
                     </td>
                     <td class="p-3 text-right">
-                        <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
-
+                        @if($event->isTournament())
+                            <a href="{{ route('tournaments.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
+                        @else
+                            <a href="{{ route('events.show', $event) }}" class="table-action view mr-2">{{ __('View') }}</a>
+                        @endif
                         @auth
                             @if($userHasMember)
                                 @if($event->canUnregister)

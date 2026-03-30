@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Constants\FileMessages;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class FileUploadRequest extends FormRequest
@@ -13,7 +13,7 @@ class FileUploadRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // auth middleware handles this
+        return true;
     }
 
     /**
@@ -21,18 +21,19 @@ class FileUploadRequest extends FormRequest
      */
     public function rules(): array
     {
+
         return [
             'file' => [
                 'required',
                 'file',
-                'max:10240', // 10 MB in KB
-                'mimes:jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx',
+                'max:10240',
+                'mimes:heic,jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx',
             ],
-            'category' => [
-            'required',
-            'integer',
-            Rule::exists('file_categories', 'file_category_id'),
-        ],
+            'file_category_id' => [
+                'required',
+                'integer',
+                Rule::exists('file_categories', 'file_category_id'),
+            ],
         ];
     }
 
@@ -46,8 +47,10 @@ class FileUploadRequest extends FormRequest
             'file.file' => FileMessages::FILE_INVALID,
             'file.max' => FileMessages::FILE_TOO_LARGE,
             'file.mimes' => FileMessages::FILE_TYPE_NOT_ALLOWED,
-            'category.required' => FileMessages::CATEGORY_REQUIRED,
-            'category.exists' => FileMessages::CATEGORY_INVALID,
+
+            'file_category_id.required' => FileMessages::CATEGORY_REQUIRED,
+            'file_category_id.integer' => FileMessages::CATEGORY_INVALID,
+            'file_category_id.exists' => FileMessages::CATEGORY_INVALID,
         ];
     }
 }

@@ -1,5 +1,5 @@
 <x-panel-layout>
-        <div class="bg-white overflow-visible shadow-xl rounded-lg sm:p-8">
+        <div class="bg-white overflow-visible shadow-xl rounded-lg p-4 sm:p-8">
             <h1 class="my-heading">{{ __('Edit Sport Field') }}</h1>
 
             <form method="POST" action="{{ route('panel.admin.sport-fields.update', $sportField) }}" class="space-y-6">

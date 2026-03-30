@@ -1,5 +1,5 @@
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <h1 class="my-heading text-2xl">{{ $member->full_name }}</h1>
         <p class="my-text mb-4">{{ __('Coach rating overview') }} </p>
 
@@ -53,6 +53,9 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-4">
+                {{ $ratings->links() }}
             </div>
         </div>
     </div>

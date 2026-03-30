@@ -20,8 +20,10 @@ return new class extends Migration
 
             $table->string('file_name', 255);     // original name
             $table->string('file_path', 500);     // stored path
-            $table->string('file_type', 50);      // mime type
+            $table->string('file_type', 100);      // mime type
             $table->unsignedInteger('file_size');
+
+            $table->softDeletes();
             $table->timestamps();
 
             $table->unique('file_path');

@@ -70,28 +70,33 @@ class CoachClubController extends Controller
     {
         $this->authorize('update', $club);
 
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $addressId = $validated['address_id'] ?? null;
-        if (!$addressId) {
-            $address = Address::firstOrCreate([
-                'country'  => $validated['country'],
-                'city'     => $validated['city'],
-                'street'   => $validated['street'] ?? null,
-                'zip_code' => $validated['zip_code'] ?? null,
+            $addressId = $validated['address_id'] ?? null;
+            if (!$addressId) {
+                $address = Address::firstOrCreate([
+                    'country'  => $validated['country'],
+                    'city'     => $validated['city'],
+                    'street'   => $validated['street'] ?? null,
+                    'zip_code' => $validated['zip_code'] ?? null,
+                ]);
+                $addressId = $address->address_id;
+            }
+
+            $club->update([
+                'name'       => $validated['name'],
+                'phone'      => $validated['phone'] ?? null,
+                'email'      => $validated['email'] ?? null,
+                'webpage'    => $validated['webpage'] ?? null,
+                'address_id' => $addressId,
             ]);
-            $addressId = $address->address_id;
+
+            return redirect()->route('panel.coach.clubs.index')->with('success', 'Club updated successfully!');
+
+        } catch (\Exception $exception) {
+            return redirect()->back()->with('error', 'Unable to update club.');
         }
-
-        $club->update([
-            'name'       => $validated['name'],
-            'phone'      => $validated['phone'] ?? null,
-            'email'      => $validated['email'] ?? null,
-            'webpage'    => $validated['webpage'] ?? null,
-            'address_id' => $addressId,
-        ]);
-
-        return redirect()->route('panel.coach.clubs.index')->with('success', 'Club updated successfully!');
     }
 
     private function renderClubShow(Club $club, $view = 'panel.clubs.show')

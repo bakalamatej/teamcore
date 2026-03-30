@@ -54,4 +54,10 @@ class ClubPolicy extends Policy
     {
         return false;
     }
+    
+    public function uploadTo(User $user, Club $club): bool
+    {
+        $membership = $user->activeMembership();
+        return $membership?->club_id === $club->club_id;
+    }
 }

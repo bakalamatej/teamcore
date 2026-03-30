@@ -3,7 +3,7 @@
 @endpush
 
 <x-panel-layout>
-    <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+    <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
         <div class="flex justify-between items-center mb-4">
             <h1 class="my-heading text-2xl">{{ __('My Coach Evaluations') }}</h1>
             <span class="text-sm text-gray-600">
@@ -14,7 +14,7 @@
             </span>
         </div>
         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-            <form id="filter-form" method="GET" action="{{ route('panel.coach.recieved-evaluations.index') }}" class="flex flex-col sm:flex-row gap-4 flex-wrap">
+            <form id="filter-form" method="GET" action="{{ route('panel.coach.received-evaluations.index') }}" class="flex flex-col sm:flex-row gap-4 flex-wrap">
                 <div class="flex-1">
                     <x-input-label :value="__('Search')" />
                     <x-text-input
@@ -30,7 +30,7 @@
         </div>
         
         <div id="results">
-            @include('panel.coach.recieved-evaluations._table', ['evaluations' => $evaluations])
+            @include('panel.coach.received-evaluations._table', ['evaluations' => $evaluations])
         </div>
     </div>
 </x-panel-layout>

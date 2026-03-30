@@ -27,7 +27,7 @@ class AddressController extends Controller
                 fn($q) => $q->byCountry($request->input('country')))
             ->when($request->filled('city'), 
                 fn($q) => $q->byCity($request->input('city')))
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.addresses._table', compact('addresses'));
@@ -53,9 +53,12 @@ class AddressController extends Controller
     {
         $this->authorize('create', Address::class);
 
-        Address::create($request->validated());
-
-        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address created successfully!');
+        try {
+            Address::create($request->validated());
+            return redirect()->route('panel.admin.addresses.index')->with('success', 'Address created successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Address with these details already exists.');
+        }   
     }
 
     /**
@@ -75,9 +78,12 @@ class AddressController extends Controller
     {
         $this->authorize('update', $address);
 
-        $address->update($request->validated());
-
-        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address updated successfully!');
+        try {
+            $address->update($request->validated());
+            return redirect()->route('panel.admin.addresses.index')->with('success', 'Address updated successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Address with these details already exists.');
+        }
     }
 
     /**
@@ -87,8 +93,11 @@ class AddressController extends Controller
     {
         $this->authorize('delete', $address);
 
-        $address->delete();
-
-        return redirect()->route('panel.admin.addresses.index')->with('success', 'Address deleted successfully!');
+        try {
+            $address->delete();
+            return redirect()->route('panel.admin.addresses.index')->with('success', 'Address deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete address because it is associated with other records.');
+        }
     }
 }

@@ -3,7 +3,18 @@
     <!-- Header -->
         <div class="mb-4 pb-4 border-b-2 border-gray-200">
             <h1 class="my-heading text-3xl mb-2">{{ $club->name }}</h1>
-            <p class="text-gray-600">{{ __('Created') }}: {{ $club->created_at->format('d.m.Y H:i') }}</p>
+            <div class="flex items-center">
+                <div>
+                    <p class="text-gray-600">{{ __('Created') }}: {{ $club->created_at->format('d.m.Y H:i') }}</p>
+                </div>
+                <div class="ml-auto">
+                    <x-file-upload 
+                        model-type="club" 
+                        :model-id="$club->club_id"
+                        :categories="$fileCategories"
+                    />
+                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -105,6 +116,9 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                            <div class="mt-4">
+                                {{ $activeMembers->links() }}
+                            </div>
                         </div>
                     @else 
                         <p class="text-gray-600">{{ __('No members in this club') }}</p>
@@ -180,15 +194,68 @@
                 <!-- Coaches -->
                 <div class="sidebar-card sidebar-card-gray">
                     <h3 class="sidebar-card-title">{{ __('Coaches') }}</h3>
-                    
                     @if($coaches->count() > 0)
                         <div class="space-y-2">
-                            @foreach($coaches as $coach)
-                                <div class="p-2 bg-white rounded border border-gray-200">
-                                    <p class="font-medium text-sm text-gray-900">{{ $coach->full_name ?? $coach->user?->name }}</p>
-                                    <p class="text-xs text-gray-600">{{ $coach->user?->email }}</p>
+                            @foreach($coaches as $coachMembership)
+                            <div class="detail-list-item flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium text-sm text-gray-900">{{ $coachMembership->member?->full_name }}</p>
+                                    <p class="text-xs text-gray-600">{{ $coachMembership->member?->user?->email }}</p>
                                 </div>
-                            @endforeach
+                                <a href="#"
+                                    x-data
+                                    x-on:click="$dispatch('open-modal', 'rate-coach-{{ $coachMembership->member_club_id }}')"
+                                    style="color: #2563eb; text-decoration: none; font-size: 0.875rem; cursor: pointer;"
+                                    onmouseover="this.style.textDecoration='underline'"
+                                    onmouseout="this.style.textDecoration='none'">
+                                    {{ __('Rate') }}
+                                </a>
+                            </div>
+
+                            <x-modal name="rate-coach-{{ $coachMembership->member_club_id }}" :show="false" focusable>
+                                <form method="POST" action="{{ route('clubs.coach.rate', [$club, $coachMembership->member_club_id]) }}" class="p-6">
+                                    @csrf
+                                    <input type="hidden" name="coach_member_id" value="{{ $coachMembership->member_id }}">
+                                    <h2 class="my-heading">{{ __('Rate Coach') }}: {{ $coachMembership->member?->full_name }}</h2>
+                                    <p class="my-text mb-4">{{ __('Please provide your rating and comment.') }}</p>
+
+                                    <div class="flex flex-col gap-4 mt-4">
+                                        <div>
+                                            <x-input-label for="rating_{{ $coachMembership->member_club_id }}" :value="__('Rating (1-5)')" />
+                                            <x-text-input
+                                                id="rating_{{ $coachMembership->member_club_id }}"
+                                                name="rating"
+                                                type="number"
+                                                min="1"
+                                                max="5"
+                                                step="0.1"
+                                                class="mt-1 block w-full"
+                                                placeholder="1-5"
+                                            />
+                                        </div>
+                                        <div>
+                                            <x-input-label for="comment_{{ $coachMembership->member_club_id }}" :value="__('Comment')" />
+                                            <textarea
+                                                id="comment_{{ $coachMembership->member_club_id }}"
+                                                name="comment"
+                                                rows="3"
+                                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                                placeholder="{{ __('Your comment...') }}"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-end gap-3 mt-6">
+                                        <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                                            {{ __('Discard') }}
+                                        </x-secondary-button>
+                                        <x-primary-button type="submit">
+                                            {{ __('Save') }}
+                                        </x-primary-button>
+                                    </div>
+                                </form>
+                            </x-modal>
+                        @endforeach
                         </div>
                     @else
                         <p class="text-sm text-gray-600">{{ __('No coaches assigned') }}</p>

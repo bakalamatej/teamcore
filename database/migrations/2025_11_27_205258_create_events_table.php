@@ -42,6 +42,7 @@ return new class extends Migration
 
             $table->dateTime('start_date', 0);
             $table->dateTime('end_date', 0);
+            
             $table->timestamps();
             $table->softDeletes();
 
@@ -68,6 +69,52 @@ return new class extends Migration
             BEGIN
                 IF NEW.parent_event_id = NEW.event_id THEN
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'EVENT CANNOT BE ITS OWN PARENT.';
+                END IF;
+            END
+        ");
+
+        DB::unprepared("CREATE TRIGGER trg_event_sport_match_insert
+            BEFORE INSERT ON events
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_event_type_sport_id INT;
+                DECLARE v_sport_field_match INT;
+ 
+                SELECT sport_id INTO v_event_type_sport_id
+                FROM event_types
+                WHERE event_type_id = NEW.event_type_id;
+ 
+                SELECT COUNT(*) INTO v_sport_field_match
+                FROM sport_fields_sports
+                WHERE sport_field_id = NEW.sport_field_id
+                AND sport_id = v_event_type_sport_id;
+ 
+                IF v_sport_field_match = 0 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'EVENT TYPE SPORT MUST MATCH SPORT FIELD SPORT.';
+                END IF;
+            END
+        ");
+ 
+        DB::unprepared("CREATE TRIGGER trg_event_sport_match_update
+            BEFORE UPDATE ON events
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_event_type_sport_id INT;
+                DECLARE v_sport_field_match INT;
+ 
+                SELECT sport_id INTO v_event_type_sport_id
+                FROM event_types
+                WHERE event_type_id = NEW.event_type_id;
+ 
+                SELECT COUNT(*) INTO v_sport_field_match
+                FROM sport_fields_sports
+                WHERE sport_field_id = NEW.sport_field_id
+                AND sport_id = v_event_type_sport_id;
+ 
+                IF v_sport_field_match = 0 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'EVENT TYPE SPORT MUST MATCH SPORT FIELD SPORT.';
                 END IF;
             END
         ");
@@ -339,6 +386,8 @@ return new class extends Migration
     {
         DB::statement('DROP TRIGGER IF EXISTS trg_event_no_self_parent_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_no_self_parent_insert');
+        DB::statement('DROP TRIGGER IF EXISTS trg_event_sport_match_insert');
+        DB::statement('DROP TRIGGER IF EXISTS trg_event_sport_match_update');   
         DB::statement('DROP TRIGGER IF EXISTS trg_event_reservation_overlap_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_reservation_overlap_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_event_overlap_insert');
@@ -346,7 +395,6 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_event_valid_dates_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_valid_dates_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_reservation_consistency_insert');
-        DB::statement('DROP TRIGGER IF EXISTS trg_event_reservation_consistency_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_sport_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_sport_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_dates_insert');

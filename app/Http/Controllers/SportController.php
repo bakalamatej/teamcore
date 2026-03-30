@@ -18,7 +18,7 @@ class SportController extends Controller
         $sports = Sport::query()
             ->when($request->filled('search'), 
                 fn($q) => $q->search($request->input('search')))
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.sports._table', compact('sports'));
@@ -54,9 +54,14 @@ class SportController extends Controller
     {
         $this->authorize('create', Sport::class);
 
-        Sport::create($request->validated());
+        try {
+            Sport::create($request->validated());
+            return redirect()->route('panel.admin.sports.index')->with('success', 'Sport created successfully!');
 
-        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport created successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create sport.');
+        }
+
     }
 
     /**
@@ -76,9 +81,14 @@ class SportController extends Controller
     {
         $this->authorize('update', $sport);
 
-        $sport->update($request->validated());
+        try {
+            $sport->update($request->validated());
+            return redirect()->route('panel.admin.sports.index')->with('success', 'Sport updated successfully!');
 
-        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport updated successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update sport.');
+        }
+
     }
 
     /**
@@ -88,8 +98,13 @@ class SportController extends Controller
     {
         $this->authorize('delete', $sport);
 
-        $sport->delete();
+        try {
+            $sport->delete();
+            return redirect()->route('panel.admin.sports.index')->with('success', 'Sport deleted successfully!');
 
-        return redirect()->route('panel.admin.sports.index')->with('success', 'Sport deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete sport.');
+        }
+
     }
 }

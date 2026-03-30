@@ -227,6 +227,19 @@ class Event extends Model
     {
         return $this->hasMany(Event::class, 'parent_event_id');
     }
+    
+    public function isTournament(): bool
+    {
+        return strcasecmp($this->eventType?->name ?? '', 'Tournament') === 0;
+    }
+
+    public function getAllChildEvents()
+    {
+        return $this->childEvents()
+            ->with(['clubs', 'sportField', 'eventType'])
+            ->orderBy('start_date')
+            ->get();
+    }
 
     // -----------------------
     // Accessors
@@ -249,5 +262,17 @@ class Event extends Model
     public function getLocationAttribute()
     {
         return $this->sportField?->name ?? 'N/A';
+    }
+
+    public function getParticipatingClubsDisplay()
+    {
+        $clubs = $this->clubs->take(2)->pluck('name')->implode(', ');
+        $remaining = $this->clubs->count() - 2;
+        
+        if ($remaining > 0) {
+            return "{$clubs} +{$remaining} " . __('more');
+        }
+        
+        return $clubs ?: 'N/A';
     }
 }

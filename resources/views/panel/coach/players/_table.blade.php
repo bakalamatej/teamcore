@@ -1,5 +1,5 @@
-<div class="border border-gray-300 rounded-md overflow-hidden shadow-md">
-    <table class="w-full data-table">
+<div class="border border-gray-300 rounded-md overflow-hidden overflow-x-auto shadow-md">
+    <table class="w-full data-table min-w-[500px]">
         <thead class="bg-gray-100">
             <tr class="border-b">
                 <th class="p-3 text-left">{{ __('Name') }}</th>

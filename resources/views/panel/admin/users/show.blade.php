@@ -1,5 +1,5 @@
 <x-panel-layout>
-        <div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
             <div class="flex justify-between items-start mb-4">
             <div>
                 <h1 class="my-heading text-2xl">{{ $user->member?->full_name ?? 'N/A' }}</h1>

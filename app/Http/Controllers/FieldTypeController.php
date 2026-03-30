@@ -18,7 +18,7 @@ class FieldTypeController extends Controller
         $fieldTypes = FieldType::query()
             ->search($request->input('search'))
             ->orderByName()
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.field-types._table', compact('fieldTypes'));
@@ -44,9 +44,13 @@ class FieldTypeController extends Controller
     {
         $this->authorize('create', FieldType::class);
 
-        FieldType::create($request->validated());
-
+        try {
+            FieldType::create($request->validated());
         return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type created successfully!');
+            
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create field type.');
+        }
     }
 
     /**
@@ -66,9 +70,14 @@ class FieldTypeController extends Controller
     {
         $this->authorize('update', $fieldType);
 
-        $fieldType->update($request->validated());
+        try {
+            $fieldType->update($request->validated());
+            return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type updated successfully!');
 
-        return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type updated successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update field type.');
+        }
+
     }
 
     /**
@@ -78,8 +87,12 @@ class FieldTypeController extends Controller
     {
         $this->authorize('delete', $fieldType);
 
-        $fieldType->delete();
+        try {
+            $fieldType->delete();
+            return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type deleted successfully!');
 
-        return redirect()->route('panel.admin.field-types.index')->with('success', 'Field type deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete field type.');
+        }
     }
 }

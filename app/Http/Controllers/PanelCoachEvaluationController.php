@@ -16,7 +16,7 @@ class PanelCoachEvaluationController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Member::class);
+        $this->authorize('viewAny', CoachEvaluation::class);
 
         $members = Member::query()
             ->whereHas('clubMemberships', fn($query) => $query->byRole(MemberClubRole::COACH))
@@ -36,25 +36,29 @@ class PanelCoachEvaluationController extends Controller
     }
 
     /**
-     * Show all evaluations received by the current coach
+     * Show all evaluations given by the current coach
      */
-    public function recievedIndex(Request $request)
+    public function receivedIndex(Request $request)
     {
         $this->authorize('viewAny', CoachEvaluation::class);
         $coachMemberId = Auth::user()?->member?->member_id;
-        $evaluations = CoachEvaluation::whereHas('coach', fn($q) => $q->where('member_id', $coachMemberId))
+
+        $evaluations = CoachEvaluation::where('coach_member_id', $coachMemberId)
             ->when($request->filled('search'), fn($q) => $q->searchByEvaluator($request->input('search')))
-            ->with('coach.member', 'evaluatedByMember')
+            ->with('coach', 'evaluatedByMember')
             ->orderByDesc('created_at')
             ->paginate(15);
 
         if ($request->ajax()) {
-            return view('panel.coach.recieved-evaluations._table', ['evaluations' => $evaluations]);
+            return view('panel.coach.received-evaluations._table', ['evaluations' => $evaluations]);
         }
 
-        return view('panel.coach.recieved-evaluations.index', ['evaluations' => $evaluations]);
+        return view('panel.coach.received-evaluations.index', ['evaluations' => $evaluations]);
     }
 
+    /**
+     * Show all evaluations received by the current member
+     */
     public function myIndex(Request $request)
     {
         $member = Auth::user()?->member;
@@ -68,7 +72,7 @@ class PanelCoachEvaluationController extends Controller
 
         $evaluations = CoachEvaluation::where('evaluated_by_member_id', $member->member_id)
             ->when($request->filled('search'), fn($q) => $q->searchByCoach($request->input('search')))
-            ->with('coach.member', 'coach.club')
+            ->with('coach', 'evaluatedByMember')
             ->orderByDesc('created_at')
             ->paginate(7);
 
@@ -84,27 +88,23 @@ class PanelCoachEvaluationController extends Controller
      */
     public function show(Member $member)
     {
-        $this->authorize('view', $member);
+        $this->authorize('view', CoachEvaluation::class);
+
+        $averageRating = CoachEvaluation::where('coach_member_id', $member->member_id)
+            ->avg('rating');
+
+        $ratings = CoachEvaluation::where('coach_member_id', $member->member_id)
+            ->with(['evaluatedByMember', 'coach'])
+            ->orderByDate()
+            ->paginate(5);
 
         $coachMemberships = MemberClub::query()
-            ->byMember($member->member_id)
+            ->where('member_id', $member->member_id)
             ->byRole(MemberClubRole::COACH)
             ->with('club')
             ->get();
 
-        $coachMembershipIds = $coachMemberships->pluck('member_club_id');
-
         $activeCoachClubs = $coachMemberships->filter(fn($memberClub) => $memberClub->left_at === null);
-
-        $averageRating = CoachEvaluation::query()
-            ->whereIn('coach_member_club_id', $coachMembershipIds)
-            ->avg('rating');
-
-        $ratings = CoachEvaluation::query()
-            ->whereIn('coach_member_club_id', $coachMembershipIds)
-            ->with(['evaluatedByMember', 'coach.club'])
-            ->orderByDate()
-            ->get();
 
         return view('panel.admin.coach-evaluations.show', compact(
             'member',
@@ -113,7 +113,10 @@ class PanelCoachEvaluationController extends Controller
             'ratings'
         ));
     }
-    
+
+    /**
+     * Show form to edit evaluation
+     */
     public function editEvaluation(CoachEvaluation $evaluation)
     {
         $this->authorize('update', $evaluation);
@@ -121,6 +124,9 @@ class PanelCoachEvaluationController extends Controller
         return view('panel.my-evaluations.edit', compact('evaluation'));
     }
 
+    /**
+     * Update evaluation
+     */
     public function updateEvaluation(Request $request, CoachEvaluation $evaluation)
     {
         $this->authorize('update', $evaluation);
@@ -135,12 +141,20 @@ class PanelCoachEvaluationController extends Controller
         return redirect()->route('panel.my-evaluations.index')->with('success', 'Evaluation updated successfully!');
     }
 
+    /**
+     * Delete evaluation
+     */
     public function destroyEvaluation(CoachEvaluation $evaluation)
     {
         $this->authorize('delete', $evaluation);
 
-        $evaluation->delete();
+        try {
+            $evaluation->delete();
+            return redirect()->route('panel.my-evaluations.index')->with('success', 'Evaluation deleted successfully!');
 
-        return redirect()->route('panel.my-evaluations.index')->with('success', 'Evaluation deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete evaluation.');
+        }
+
     }
 }

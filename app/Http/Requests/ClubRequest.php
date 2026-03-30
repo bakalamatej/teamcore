@@ -27,19 +27,20 @@ class ClubRequest extends FormRequest
                 'required',
                 'string',
                 'max:30',
-                Rule::unique('clubs', 'name')->ignore($clubId, 'club_id'),
+                Rule::unique('clubs', 'name')
+                    ->where(fn ($query) => $query->where('sport_id', $this->input('sport_id')))
+                    ->ignore($clubId, 'club_id'),
             ],
             'phone' => [
                 'nullable',
                 'string',
                 'max:20',
-                Rule::unique('clubs', 'phone')->ignore($clubId, 'club_id'),
+                'regex:/^(\+421|0)[1-9]\d{1,8}$/',
             ],
             'email' => [
                 'nullable',
                 'email',
                 'max:56',
-                Rule::unique('clubs', 'email')->ignore($clubId, 'club_id'),
             ],
             'webpage' => 'nullable|url|max:255',
             'address_id' => ['nullable', 'integer', Rule::exists('addresses', 'address_id')],

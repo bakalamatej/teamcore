@@ -3,7 +3,7 @@
 @endphp
 
 <x-app-layout>
-    <div class="mb-6 sm:p-8 bg-white rounded-lg">
+    <div class="mb-6 p-4 sm:p-8 bg-white rounded-lg">
         <h2 class="text-xl font-bold mb-4">{{ $date->format('j F Y') }} ({{ $date->format('l') }})</h2>
         <div class="space-y-4">
             @forelse($events as $event)

@@ -24,7 +24,7 @@ class EventTypeController extends Controller
             ->when($request->filled('sport_id'), 
                 fn($q) => $q->bySport($request->input('sport_id')))
             ->with('sport')
-            ->paginate(10);
+            ->paginate(8);
 
         if ($request->ajax()) {
             return view('panel.admin.event-types._table', compact('eventTypes'));
@@ -64,9 +64,13 @@ class EventTypeController extends Controller
     {
         $this->authorize('create', EventType::class);
 
-        EventType::create($request->validated());
+        try {
+            EventType::create($request->validated());
+            return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type created successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to create event type.');
+        }
 
-        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type created successfully!');
     }
 
     /**
@@ -89,9 +93,12 @@ class EventTypeController extends Controller
     {
         $this->authorize('update', $eventType);
 
-        $eventType->update($request->validated());
-
-        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type updated successfully!');
+        try {
+            $eventType->update($request->validated());
+            return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type updated successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to update event type.');
+        }
     }
 
     /**
@@ -101,8 +108,11 @@ class EventTypeController extends Controller
     {
         $this->authorize('delete', $eventType);
 
-        $eventType->delete();
-
-        return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type deleted successfully!');
+        try {
+            $eventType->delete();
+            return redirect()->route('panel.admin.event-types.index')->with('success', 'Event type deleted successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return redirect()->back()->with('error', 'Unable to delete event type.');
+        }
     }
 }

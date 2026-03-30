@@ -1,5 +1,5 @@
 <x-panel-layout>
-	<div class="bg-white overflow-hidden shadow-xl rounded-lg sm:p-8">
+	<div class="bg-white overflow-hidden shadow-xl rounded-lg p-4 sm:p-8">
 		<h1 class="my-heading">{{ __('Edit Event') }}</h1>
 
 		<form

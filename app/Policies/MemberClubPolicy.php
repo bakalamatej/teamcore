@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\MemberClub;
+use App\Enums\MemberClubRole;
 use App\Models\User;
 
 class MemberClubPolicy extends Policy
@@ -75,5 +76,12 @@ class MemberClubPolicy extends Policy
     {
         // Coaches in the same club can update membership
         return $this->isCoachInClub($user, $memberClub->club_id);
+    }
+
+    public function uploadTo(User $user, MemberClub $targetMemberClub): bool
+    {
+        $membership = $user->activeMembership();
+        if (!$membership || $membership->role !== MemberClubRole::COACH) return false;
+        return (int) $membership->club_id === (int) $targetMemberClub->club_id;
     }
 }

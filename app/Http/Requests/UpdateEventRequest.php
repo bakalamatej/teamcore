@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\EventStatus;
 use App\Models\Club;
+use App\Models\SportField;
 use App\Models\EventType;
 
 class UpdateEventRequest extends FormRequest
@@ -41,6 +42,28 @@ class UpdateEventRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('event_types', 'event_type_id'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $sportFieldId = $this->input('sport_field_id');
+                    
+                    if (!$value || !$sportFieldId) {
+                        return;
+                    }
+
+                    $eventType = EventType::find($value);
+                    $sportField = SportField::find($sportFieldId);
+
+                    if (!$eventType || !$sportField) {
+                        return;
+                    }
+
+                    $hasMatchingSport = $sportField->sports()
+                        ->where('sport_fields_sports.sport_id', $eventType->sport_id)
+                        ->exists();
+
+                    if (!$hasMatchingSport) {
+                        $fail('Event type sport must match the sport field sport.');
+                    }
+                },
             ],
 
             'parent_event_id' => [

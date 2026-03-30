@@ -40,7 +40,7 @@ class TournamentController extends Controller
                 fn($q) => $q->byDateRange($request->input('start_date_from'), $request->input('start_date_to')))
             ->with('sportField', 'eventType', 'clubs', 'childEvents')
             ->latest('start_date')
-            ->paginate(10);
+            ->paginate(6);
 
         if ($request->ajax()) {
             return view('panel.admin.tournaments._table', compact('tournaments'));
@@ -75,13 +75,14 @@ class TournamentController extends Controller
     {
         $this->authorize('create', Event::class);
 
-        $validated = $request->validated();
-        $clubIds = $validated['club_ids'] ?? [];
-        unset($validated['club_ids']);
-
         try {
+            $validated = $request->validated();
+            $clubIds = $validated['club_ids'] ?? [];
+            unset($validated['club_ids']);
             $tournament = Event::create($validated);
             $tournament->clubs()->sync($clubIds);
+            return redirect()->route('panel.admin.tournaments.show', $tournament)
+                ->with('success', 'Tournament created successfully!');
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
             if ($error !== null) {
@@ -89,9 +90,6 @@ class TournamentController extends Controller
             }
             throw $exception;
         }
-
-        return redirect()->route('panel.admin.tournaments.show', $tournament)
-            ->with('success', 'Tournament created successfully!');
     }
 
     // -------------------------------------------------------
@@ -167,13 +165,14 @@ class TournamentController extends Controller
     {
         $this->authorize('update', $tournament);
 
-        $validated = $request->validated();
-        $clubIds = $validated['club_ids'] ?? [];
-        unset($validated['club_ids']);
-
         try {
+            $validated = $request->validated();
+            $clubIds = $validated['club_ids'] ?? [];
+            unset($validated['club_ids']);
             $tournament->update($validated);
             $tournament->clubs()->sync($clubIds);
+
+            return redirect()->route('panel.admin.tournaments.index', $tournament)->with('success', 'Tournament updated successfully!');
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
             if ($error !== null) {
@@ -182,8 +181,7 @@ class TournamentController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('panel.admin.tournaments.index', $tournament)
-            ->with('success', 'Tournament updated successfully!');
+        
     }
 
     // -------------------------------------------------------
@@ -193,13 +191,21 @@ class TournamentController extends Controller
     {
         $this->authorize('delete', $tournament);
 
-        Event::where('parent_event_id', $tournament->event_id)
-            ->update(['parent_event_id' => null]);
+        try {
+            Event::where('parent_event_id', $tournament->event_id)
+                ->update(['parent_event_id' => null]);
 
-        $tournament->delete();
+            $tournament->delete();
 
-        return redirect()->route('panel.admin.tournaments.index')
-            ->with('success', 'Tournament deleted successfully!');
+            return redirect()->route('panel.admin.tournaments.index')->with('success', 'Tournament deleted successfully!');
+        } catch (QueryException $exception) {
+            $error = $this->mapEventTriggerError($exception);
+            if ($error !== null) {
+                return back()->withInput()->withErrors($error);
+            }
+            throw $exception;
+        }
+
     }
 
     // -------------------------------------------------------
@@ -216,6 +222,8 @@ class TournamentController extends Controller
         try {
             Event::where('event_id', $validated['event_id'])
                 ->update(['parent_event_id' => $tournament->event_id]);
+            
+            return redirect()->route('panel.admin.tournaments.show', $tournament)->with('success', 'Event attached to tournament.');
         } catch (QueryException $e) {
             $message = strtoupper($e->getMessage());
             $driverErrorCode = (int) ($e->errorInfo[1] ?? 0);
@@ -233,8 +241,7 @@ class TournamentController extends Controller
             throw $e;
         }
 
-        return redirect()->route('panel.admin.tournaments.show', $tournament)
-            ->with('success', 'Event attached to tournament.');
+  
     }
 
     public function detachChild(Event $tournament, Event $event)

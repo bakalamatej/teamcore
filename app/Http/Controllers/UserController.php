@@ -21,7 +21,7 @@ class UserController extends Controller
             ->when($request->input('is_admin') === '0', fn($q) => $q->regularUsers())
             ->orderBy('email')
             ->with('member')
-            ->paginate(15);
+            ->paginate(8);
 
         $users->getCollection()->transform(function ($user) {
             $user->setAttribute('primaryRole', $user->getRole());
@@ -48,23 +48,29 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $validated = $request->validated();
-        $user = User::create([
-            'email' => $validated['email'],
-            'password_hash' => $validated['password'],
-            'is_admin' => $validated['is_admin'] ?? false,
-        ]);
+        try {
+            $validated = $request->validated();
+            $user = User::create([
+                'email' => $validated['email'],
+                'password_hash' => $validated['password'],
+                'is_admin' => $validated['is_admin'] ?? false,
+            ]);
 
-        // Create member profile if data provided
-        if ($request->filled('first_name') || $request->filled('last_name')) {
-            $user->member()->create($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
+
+            // Create member profile if data provided
+            if ($request->filled('first_name') || $request->filled('last_name')) {
+                $user->member()->create($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
+            }
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'User created', 'user' => $user], 201);
+            }
+
+            return redirect()->route('panel.admin.users.index')->with('success', 'User created successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return back()->withInput()->withErrors(['error' => 'Unable to create user.']);
         }
 
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'User created', 'user' => $user], 201);
-        }
-
-        return redirect()->route('panel.admin.users.index')->with('success', 'User created successfully!');
     }
 
     // Display user details (admin only)
@@ -106,20 +112,24 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        // Update user email and is_admin
-        $user->update($request->only(['email', 'is_admin']));
+        try {
+            // Update user email and is_admin
+            $user->update($request->only(['email', 'is_admin']));
 
-        // Update member data if member exists
-        if ($user->member) {
-            $user->member->update($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
+            // Update member data if member exists
+            if ($user->member) {
+                $user->member->update($request->only(['first_name', 'last_name', 'phone', 'date_of_birth']));
+            }
+
+            // Return JSON for AJAX or redirect
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'User updated']);
+            }
+
+            return redirect()->route('panel.admin.users.index')->with('success', 'User updated successfully!');
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return back()->withInput()->withErrors(['error' => 'Unable to update user.']);
         }
-
-        // Return JSON for AJAX or redirect
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'User updated']);
-        }
-
-        return redirect()->route('panel.admin.users.index')->with('success', 'User updated successfully!');
     }
 
     // Delete user (admin only, cannot delete self)
@@ -127,16 +137,19 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
         
-        if ($user->member) {
-            $memberClubIds = $user->member->clubMemberships()->pluck('member_club_id');
-            CoachEvaluation::whereIn('coach_member_club_id', $memberClubIds)->delete();
-            
-            $user->member->delete();
+        try {
+            if ($user->member) {
+                $memberId = $user->member->member_id;
+                CoachEvaluation::where('coach_member_id', $memberId)->delete();
+                
+                $user->member->delete();
+            }
+
+            $user->delete();
+            return redirect()->route('panel.admin.users.index')->with('success', 'User deleted successfully!');
+
+        } catch (\Illuminate\Database\QueryException $exception) {
+            return back()->withErrors(['error' => 'Unable to delete user.']);
         }
-
-
-        $user->delete();
-
-        return redirect()->route('panel.admin.users.index')->with('success', 'User deleted successfully!');
     }
 }
