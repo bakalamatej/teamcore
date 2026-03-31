@@ -23,7 +23,7 @@
                     {{ $averageRating ? number_format((float) $averageRating, 1) : '-' }}
                 </p>
                 <p class="text-sm text-gray-600 mt-2">
-                    {{ __('Total ratings:') }} {{ $ratings->count() }}
+                    {{ __('Total ratings:') }} {{ $ratings->total() }}
                 </p>
             </div>
         </div>

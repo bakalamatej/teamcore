@@ -129,6 +129,37 @@ return new class extends Migration
             END
         ");
 
+        DB::unprepared("
+            CREATE TRIGGER trg_user_soft_delete_member_and_memberships
+            BEFORE UPDATE ON users
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_member_id BIGINT UNSIGNED;
+
+                IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+                    SELECT member_id
+                    INTO v_member_id
+                    FROM members
+                    WHERE user_id = OLD.user_id
+                    AND deleted_at IS NULL
+                    LIMIT 1;
+
+                    IF v_member_id IS NOT NULL THEN
+                        UPDATE member_club
+                        SET left_at = CURDATE(),
+                            updated_at = NOW()
+                        WHERE member_id = v_member_id
+                        AND left_at IS NULL;
+
+                        UPDATE members
+                        SET deleted_at = NOW(),
+                            updated_at = NOW()
+                        WHERE member_id = v_member_id
+                        AND deleted_at IS NULL;
+                    END IF;
+                END IF;
+            END
+        ");
     }
 
     public function down(): void
@@ -138,6 +169,7 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_club_statistics_result_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_club_statistics_result_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_club_statistics_result_delete');
+        DB::statement('DROP TRIGGER IF EXISTS trg_user_soft_delete_member_and_memberships');
         Schema::dropIfExists('club_statistics');
     }
 };

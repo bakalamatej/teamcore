@@ -331,10 +331,7 @@ class EventController extends Controller
             $event->delete();
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
-            if ($error !== null) {
-                return back()->withInput()->withErrors($error);
-            }
-            throw $exception;
+            return redirect()->back()->with('error', 'Unable to delete event due to existing links.');
         }
 
         return redirect()->route('panel.admin.events.index');

@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Http\Requests\MemberRequest;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Models\CoachEvaluation;
+use App\Enums\MemberClubRole;
 
 class MemberController extends Controller
 {
@@ -67,6 +69,36 @@ class MemberController extends Controller
         
         $member->load('user', 'clubMemberships.club');
         return view('members.show', compact('member', 'activeEventsCount'));
+    }
+
+    public function showCoach(Member $member)
+    {
+        $this->authorize('view', $member);
+
+        $member->load([
+            'user',
+            'clubMemberships.club',
+            'receivedEvaluations.evaluatedByMember.user'
+        ]);
+
+        $coachMemberships = $member->clubMemberships()
+            ->where('role', \App\Enums\MemberClubRole::COACH->value)
+            ->whereNull('left_at')
+            ->with('club')
+            ->get();
+
+        $evaluations = $member->receivedEvaluations()->latest()->paginate(4);
+
+        $averageRating = $evaluations->avg('rating');
+        $evaluationsCount = $evaluations->total();
+
+        return view('clubs.show-coach', compact(
+            'member',
+            'coachMemberships',
+            'evaluations',
+            'averageRating',
+            'evaluationsCount'
+        ));
     }
 
     /**

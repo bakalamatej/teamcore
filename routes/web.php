@@ -30,6 +30,7 @@ use App\Http\Controllers\ActiveMembershipController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TournamentResultsController;
+use App\Http\Controllers\MemberController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------
@@ -54,6 +55,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{club}', [ClubController::class, 'publicShow'])->name('clubs.show');
         Route::post('/{club}/coaches/{memberClubId}/rate', [CoachEvaluationController::class, 'storeFromClub'])
             ->name('clubs.coach.rate');
+        Route::get('/coach/{member}', [MemberController::class, 'showCoach'])
+            ->name('members.showCoach');
     });
 
     // --------------------------------------------------

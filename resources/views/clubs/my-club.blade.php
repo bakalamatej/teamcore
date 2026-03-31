@@ -199,7 +199,10 @@
                             @foreach($coaches as $coachMembership)
                             <div class="detail-list-item flex justify-between items-center">
                                 <div>
-                                    <p class="font-medium text-sm text-gray-900">{{ $coachMembership->member?->full_name }}</p>
+                                    <a href="{{ route('members.showCoach', $coachMembership->member) }}"
+                                        class="inline-flex items-center gap-1 font-medium text-sm text-indigo-600">
+                                        {{ $coachMembership->member?->full_name }}
+                                    </a>
                                     <p class="text-xs text-gray-600">{{ $coachMembership->member?->user?->email }}</p>
                                 </div>
                                 <a href="#"

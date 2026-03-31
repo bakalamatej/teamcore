@@ -114,6 +114,27 @@ return new class extends Migration
                 END IF;
             END
         ");
+        DB::unprepared("
+            CREATE TRIGGER trg_club_prevent_soft_delete_with_active_members
+            BEFORE UPDATE ON clubs
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+
+                IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+                    SELECT COUNT(*)
+                    INTO v_count
+                    FROM member_club
+                    WHERE club_id = OLD.club_id
+                    AND left_at IS NULL;
+
+                    IF v_count > 0 THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'CLUB WITH ACTIVE MEMBERS CANNOT BE DELETED.';
+                    END IF;
+                END IF;
+            END
+        ");
     }
 
     /**
@@ -126,6 +147,7 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_member_club_active_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_club_stats_member_role_update');
+        DB::statement('DROP TRIGGER IF EXISTS trg_club_prevent_soft_delete_with_active_members');
         Schema::dropIfExists('member_club');
     }
 };

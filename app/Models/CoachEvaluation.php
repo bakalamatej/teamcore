@@ -111,7 +111,7 @@ class CoachEvaluation extends Model
      */
     public function coach()
     {
-        return $this->belongsTo(Member::class, 'coach_member_id');
+        return $this->belongsTo(Member::class, 'coach_member_id', 'member_id');
     }
 
     /**
@@ -119,6 +119,12 @@ class CoachEvaluation extends Model
      */
     public function evaluatedByMember()
     {
-        return $this->belongsTo(Member::class, 'evaluated_by_member_id');
+        return $this->belongsTo(Member::class, 'evaluated_by_member_id', 'member_id');
     }
+
+    public function coachMemberClub()
+    {
+        return $this->belongsTo(MemberClub::class, 'coach_member_club_id', 'member_club_id');
+    }
+
 }

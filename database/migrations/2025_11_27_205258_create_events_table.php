@@ -377,6 +377,25 @@ return new class extends Migration
                 END IF;
             END
         ");
+        DB::unprepared("CREATE TRIGGER trg_reservation_prevent_soft_delete_if_used_by_event
+            BEFORE UPDATE ON reservations
+            FOR EACH ROW
+            BEGIN
+                DECLARE v_count INT;
+
+                IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+                    SELECT COUNT(*) INTO v_count
+                    FROM events
+                    WHERE reservation_id = OLD.reservation_id
+                    AND deleted_at IS NULL;
+
+                    IF v_count > 0 THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'RESERVATION USED BY EVENT CANNOT BE DELETED.';
+                    END IF;
+                END IF;
+            END
+        ");
     }
 
     /**
@@ -399,7 +418,7 @@ return new class extends Migration
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_sport_update');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_dates_insert');
         DB::statement('DROP TRIGGER IF EXISTS trg_event_child_dates_update');
-
+        DB::statement('DROP TRIGGER IF EXISTS trg_reservation_prevent_soft_delete_if_used_by_event');
         Schema::dropIfExists('events');
     }
 };
