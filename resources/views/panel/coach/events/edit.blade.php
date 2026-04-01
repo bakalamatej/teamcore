@@ -73,7 +73,20 @@
 					</div>
 				</div>
 
-				<div class="flex-1 flex flex-col">
+				<div class="flex-1 flex flex-col min-w-0">
+					<div class="mb-4">
+						<x-input-label :value="__('Participating Members')" />
+						<x-multiselect-input
+							id="member_club_ids"
+							name="member_club_ids"
+							:options="$memberOptions"
+							:selected="old('member_club_ids', $selectedMemberIds)"
+							:placeholder="__('Select members')"
+							class="mt-1"
+						/>
+						<x-input-error :messages="$errors->get('member_club_ids')" class="mt-2" />
+					</div>
+					
 					<x-input-label :value="__('Description')" />
 					<x-textarea-input id="description" placeholder="{{ __('Enter description') }}" name="description" :value="old('description', $event->description)" class="mt-1 flex-1" />
 					<x-input-error :messages="$errors->get('description')" class="mt-2" />

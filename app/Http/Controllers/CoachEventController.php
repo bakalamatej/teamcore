@@ -132,8 +132,23 @@ class CoachEventController extends Controller
         $clubOptions = $this->getClubsBySportOptions($club->club_id)[$club->sport_id] ?? [];
         $selectedClubIds = $event->clubs->pluck('club_id')->map(fn($id) => (string) $id)->values()->toArray();
 
+        $memberOptions = \App\Models\MemberClub::where('club_id', $club->club_id)
+            ->whereNull('left_at')
+            ->with('member')
+            ->get()
+            ->mapWithKeys(fn($mc) => [(string) $mc->member_club_id => $mc->member?->full_name ?? '-'])
+            ->toArray();
+
+        $selectedMemberIds = $event->memberClubs()
+            ->where('member_club.club_id', $club->club_id)
+            ->pluck('event_member.member_club_id')
+            ->map(fn($id) => (string) $id)
+            ->values()
+            ->toArray();
+
         return view('panel.coach.events.edit', compact(
-            'event', 'sportFieldOptions', 'eventTypeOptions', 'clubOptions', 'selectedClubIds'
+            'event', 'sportFieldOptions', 'eventTypeOptions', 'clubOptions',
+            'selectedClubIds', 'memberOptions', 'selectedMemberIds'
         ));
     }
 
@@ -146,14 +161,26 @@ class CoachEventController extends Controller
         abort_if(!$club, 403, 'No club context.');
         $event->loadMissing('clubs');
         abort_unless($event->clubs->contains('club_id', $club->club_id), 403);
-        
+
         $validated = $request->validated();
         $clubIds = $validated['club_ids'] ?? [$club->club_id];
+        $memberClubIds = $request->input('member_club_ids', []);
         unset($validated['club_ids']);
 
         try {
             $event->update($validated);
             $event->clubs()->sync($clubIds);
+
+            // Sync členov — len z tohto klubu
+            $currentClubMemberIds = $event->memberClubs()
+                ->where('member_club.club_id', $club->club_id)
+                ->pluck('event_member.member_club_id')
+                ->toArray();
+
+            $event->memberClubs()->detach($currentClubMemberIds);
+            if (!empty($memberClubIds)) {
+                $event->memberClubs()->syncWithoutDetaching($memberClubIds);
+            }
         } catch (QueryException $exception) {
             $error = $this->mapEventTriggerError($exception);
             if ($error !== null) {
