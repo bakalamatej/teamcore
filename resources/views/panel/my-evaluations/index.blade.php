@@ -7,7 +7,7 @@
         <div class="flex justify-between items-center mb-4">
             <h1 class="my-heading text-2xl">{{ __('My Evaluations') }}</h1>
             <span class="text-sm text-gray-600">
-                {{ $evaluations->total() }} {{ __('evaluations') }}
+                {{ $evaluations->total()? $evaluations->total() . ' ' . __('evaluations') : __('No evaluations found') }}
             </span>
         </div>
 
