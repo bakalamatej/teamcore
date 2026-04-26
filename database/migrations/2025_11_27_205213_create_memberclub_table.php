@@ -8,9 +8,6 @@ use App\Enums\MemberClubRole;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('member_club', function (Blueprint $table) {
@@ -24,10 +21,14 @@ return new class extends Migration
                 ->constrained('clubs', 'club_id')
                 ->restrictOnDelete();
 
-            $table->enum('role', array_map(fn(MemberClubRole $role) => $role->value, MemberClubRole::cases()))->default(MemberClubRole::PLAYER->value);
+            $table->enum('role', 
+                        array_map(fn(MemberClubRole $role) => $role->value, 
+                        MemberClubRole::cases()))
+                        ->default(MemberClubRole::PLAYER->value);
             $table->date('joined_at');
             $table->date('left_at')->nullable();
-            $table->unsignedBigInteger('active_club_id')->nullable()->storedAs('IF(left_at IS NULL, club_id, NULL)');
+            $table->unsignedBigInteger('active_club_id')->nullable()
+                    ->storedAs('IF(left_at IS NULL, club_id, NULL)');
             $table->timestamps();
 
             $table->unique(['member_id', 'active_club_id']);
